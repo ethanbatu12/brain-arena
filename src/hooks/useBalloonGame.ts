@@ -1,32 +1,32 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { mulberry32 } from "../game/rng";
-import { mathInitialState, mathReduce } from "../math/reducer";
-import type { MathAction, MathState } from "../math/types";
+import { balloonInitialState, balloonReduce } from "../balloon/reducer";
+import type { BalloonAction, BalloonState } from "../balloon/types";
 import { usePlayerProfile } from "../player/PlayerContext";
 
 const TICK_MS = 100;
 
 /**
- * React binding for the pure mental-math reducer. Owns the 60-second countdown;
- * all rules live in the tested reducer. Best score and result recording come
- * from the shared player profile.
+ * React binding for the pure Balloon Order Challenge reducer. Owns the
+ * 60-second countdown; all rules live in the tested reducer. Best score and
+ * result recording come from the shared player profile.
  */
-export function useMathGame() {
+export function useBalloonGame() {
   const rngRef = useRef(mulberry32((Math.random() * 2 ** 31) >>> 0));
   const wrapped = useCallback(
-    (state: MathState, action: MathAction) => mathReduce(state, action, rngRef.current),
+    (state: BalloonState, action: BalloonAction) => balloonReduce(state, action, rngRef.current),
     [],
   );
-  const [state, dispatch] = useReducer(wrapped, undefined, mathInitialState);
+  const [state, dispatch] = useReducer(wrapped, undefined, balloonInitialState);
 
   const { profile, recordResult } = usePlayerProfile();
-  const best = profile?.games.math.bestScore ?? 0;
+  const best = profile?.games.balloon.bestScore ?? 0;
 
   const recordedRef = useRef(false);
   useEffect(() => {
     if (state.phase === "over" && !recordedRef.current) {
       recordedRef.current = true;
-      recordResult("math", state.score);
+      recordResult("balloon", state.score);
     }
     if (state.phase !== "over") recordedRef.current = false;
   }, [state.phase, state.score, recordResult]);
@@ -36,11 +36,7 @@ export function useMathGame() {
     dispatch({ type: "START" });
   }, []);
   const reset = useCallback(() => dispatch({ type: "RESET" }), []);
-  const setInput = useCallback(
-    (value: string) => dispatch({ type: "INPUT_CHANGE", value }),
-    [],
-  );
-  const submit = useCallback(() => dispatch({ type: "SUBMIT" }), []);
+  const tap = useCallback((id: number) => dispatch({ type: "TAP", id }), []);
 
   const isActive = state.phase === "playing";
   useEffect(() => {
@@ -55,5 +51,5 @@ export function useMathGame() {
     return () => clearInterval(id);
   }, [isActive]);
 
-  return { state, best, start, reset, setInput, submit };
+  return { state, best, start, reset, tap };
 }

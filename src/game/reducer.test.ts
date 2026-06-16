@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GAME_MS, GRID_MIN, GRID_START } from "./constants";
+import { GAME_MS, GRID_MIN, GRID_START, GROWTH_STREAK } from "./constants";
 import { roundScore } from "./logic";
 import { mulberry32 } from "./rng";
 import { initialState, reduce } from "./reducer";
@@ -166,26 +166,39 @@ describe("CLICK_CELL", () => {
 });
 
 describe("FEEDBACK_DONE -> next round", () => {
-  it("grows the board after a win and starts a fresh round", () => {
+  it("does not grow the board after a single win, but advances the growth streak", () => {
     const rng = seeded();
     const won = winRound(run(initialState(), [{ type: "START" }], rng), rng);
     const next = reduce(won, { type: "FEEDBACK_DONE" }, rng);
     expect(next.phase).toBe("memorize");
-    expect(next.gridSize).toBe(GRID_START + 1);
+    expect(next.gridSize).toBe(GRID_START);
+    expect(next.growthStreak).toBe(1);
     expect(next.round).toBe(2);
     expect(next.found.size).toBe(0);
     expect(next.wrong).toBeNull();
-    expect(next.peakSize).toBe(GRID_START + 1);
   });
 
-  it("shrinks the board after a loss but not below the minimum", () => {
+  it("grows the board after GROWTH_STREAK consecutive wins and resets the streak", () => {
+    const rng = seeded();
+    let s = run(initialState(), [{ type: "START" }], rng);
+    for (let i = 0; i < GROWTH_STREAK; i++) {
+      s = winRound(s, rng);
+      s = reduce(s, { type: "FEEDBACK_DONE" }, rng);
+    }
+    expect(s.gridSize).toBe(GRID_START + 1);
+    expect(s.growthStreak).toBe(0);
+    expect(s.peakSize).toBe(GRID_START + 1);
+  });
+
+  it("shrinks the board after a loss and resets the growth streak, but not below the minimum", () => {
     const rng = seeded();
     // start, go to recall, click wrong
     let s = run(initialState(), [{ type: "START" }, { type: "MEMORIZE_DONE" }], rng);
     const wrongCell = Array.from({ length: s.gridSize * s.gridSize }, (_, i) => i).find((i) => !s.pattern.has(i))!;
     s = reduce(s, { type: "CLICK_CELL", index: wrongCell }, rng);
     s = reduce(s, { type: "FEEDBACK_DONE" }, rng);
-    expect(s.gridSize).toBe(GRID_START - 1);
+    expect(s.gridSize).toBe(GRID_MIN);
+    expect(s.growthStreak).toBe(0);
   });
 
   it("is ignored outside the feedback phase", () => {
@@ -237,7 +250,7 @@ describe("full game flow integration", () => {
       s = reduce(s, { type: "FEEDBACK_DONE" }, rng);
     }
     expect(s.score).toBe(expectedScore);
-    expect(s.gridSize).toBe(GRID_START + 3);
+    expect(s.gridSize).toBe(GRID_START + 1);
     expect(s.roundsWon).toBe(3);
   });
 

@@ -32,9 +32,14 @@ export function mathInitialState(): MathState {
   };
 }
 
-/** Keep only digits and cap the length, so the input is always a clean number. */
+/**
+ * Keep only an optional leading minus sign plus digits, capping the digit
+ * count so the input is always a clean (possibly negative) number.
+ */
 function sanitize(value: string): string {
-  return value.replace(/\D/g, "").slice(0, MAX_INPUT_LEN);
+  const isNegative = value.trimStart().startsWith("-");
+  const digits = value.replace(/[^0-9]/g, "").slice(0, MAX_INPUT_LEN);
+  return (isNegative ? "-" : "") + digits;
 }
 
 export function mathReduce(

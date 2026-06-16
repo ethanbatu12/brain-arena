@@ -1,17 +1,18 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import { FEEDBACK_MS } from "../game/constants";
 import { memorizeMsForSize } from "../game/logic";
 import { mulberry32 } from "../game/rng";
 import { initialState, reduce } from "../game/reducer";
 import type { Action, GameState } from "../game/types";
+import { usePlayerProfile } from "../player/PlayerContext";
 
 const TICK_MS = 100;
-const BEST_KEY = "mm_best_score";
 
 /**
  * React binding for the pure game reducer. Owns the wall-clock timers
- * (memorize reveal, feedback pause, the 60s countdown) and the persisted
- * best score; all *rules* still live in the tested reducer.
+ * (memorize reveal, feedback pause, the 60s countdown); all *rules* still
+ * live in the tested reducer. Best score and result recording come from the
+ * shared player profile.
  */
 export function useMemoryGame() {
   // A single rng instance, reseeded on each new game so runs differ.
@@ -22,19 +23,17 @@ export function useMemoryGame() {
   );
   const [state, dispatch] = useReducer(wrapped, undefined, initialState);
 
-  const [best, setBest] = useState(0);
-  useEffect(() => {
-    const stored = Number(localStorage.getItem(BEST_KEY));
-    if (Number.isFinite(stored)) setBest(stored);
-  }, []);
+  const { profile, recordResult } = usePlayerProfile();
+  const best = profile?.games.memory.bestScore ?? 0;
 
-  // Persist a new best when a game ends.
+  const recordedRef = useRef(false);
   useEffect(() => {
-    if (state.phase === "over" && state.score > best) {
-      setBest(state.score);
-      localStorage.setItem(BEST_KEY, String(state.score));
+    if (state.phase === "over" && !recordedRef.current) {
+      recordedRef.current = true;
+      recordResult("memory", state.score);
     }
-  }, [state.phase, state.score, best]);
+    if (state.phase !== "over") recordedRef.current = false;
+  }, [state.phase, state.score, recordResult]);
 
   const start = useCallback(() => {
     rngRef.current = mulberry32((Math.random() * 2 ** 31) >>> 0);

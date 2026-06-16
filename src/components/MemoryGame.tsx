@@ -1,10 +1,21 @@
+import { useEffect } from "react";
 import { Grid } from "./Grid";
 import { HUD } from "./HUD";
 import { useMemoryGame } from "../hooks/useMemoryGame";
 
-export function MemoryGame({ onExit }: { onExit: () => void }) {
+interface MemoryGameProps {
+  onExit: () => void;
+  mode?: "solo" | "challenge";
+  onRoundComplete?: (score: number) => void;
+}
+
+export function MemoryGame({ onExit, mode = "solo", onRoundComplete }: MemoryGameProps) {
   const { state, best, start, clickCell } = useMemoryGame();
   const { phase } = state;
+
+  useEffect(() => {
+    if (mode === "challenge" && phase === "idle") start();
+  }, [mode, phase, start]);
 
   const isPlaying = phase !== "idle" && phase !== "over";
   const remaining = Math.max(0, state.pattern.size - state.found.size);
@@ -72,12 +83,20 @@ export function MemoryGame({ onExit }: { onExit: () => void }) {
               {state.score >= best && state.score > 0 ? " · new best!" : ""}
             </p>
             <div className="overlay__actions">
-              <button className="btn btn--primary" onClick={start}>
-                Play again
-              </button>
-              <button className="btn btn--ghost" onClick={onExit}>
-                Menu
-              </button>
+              {mode === "challenge" ? (
+                <button className="btn btn--primary" onClick={() => onRoundComplete?.(state.score)}>
+                  Continue ›
+                </button>
+              ) : (
+                <>
+                  <button className="btn btn--primary" onClick={start}>
+                    Play again
+                  </button>
+                  <button className="btn btn--ghost" onClick={onExit}>
+                    Menu
+                  </button>
+                </>
+              )}
             </div>
           </Overlay>
         )}

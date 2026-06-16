@@ -27,6 +27,7 @@ export function initialState(): GameState {
     lastRoundCorrect: null,
     peakSize: GRID_START,
     roundsWon: 0,
+    growthStreak: 0,
   };
 }
 
@@ -103,8 +104,12 @@ export function reduce(state: GameState, action: Action, rng: Rng): GameState {
 
     case "FEEDBACK_DONE": {
       if (state.phase !== "feedback") return state;
-      const size = nextGridSize(state.gridSize, state.lastRoundCorrect === true);
-      return startRound(state, size, rng, state.round + 1);
+      const { size, growthStreak } = nextGridSize(
+        state.gridSize,
+        state.lastRoundCorrect === true,
+        state.growthStreak,
+      );
+      return startRound({ ...state, growthStreak }, size, rng, state.round + 1);
     }
 
     case "TICK": {

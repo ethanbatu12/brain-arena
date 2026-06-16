@@ -21,6 +21,8 @@ export interface GameState {
   peakSize: number;
   /** Number of rounds completed successfully. */
   roundsWon: number;
+  /** Consecutive wins at the current board size (gates growth). */
+  growthStreak: number;
 }
 
 export type Action =

@@ -1,21 +1,21 @@
 import { useEffect, useRef } from "react";
-import { MATH_GAME_MS } from "../math/constants";
-import { levelBand } from "../math/logic";
-import type { MathState, Problem } from "../math/types";
-import { useMathGame } from "../hooks/useMathGame";
+import { BONUS_EVERY, BONUS_POINTS, CUBE_GAME_MS, POINTS_PER_CORRECT } from "../cube/constants";
+import type { CubeState } from "../cube/types";
+import { useCubeGame } from "../hooks/useCubeGame";
+import { CubeStructureView } from "./CubeStructureView";
 
-interface MathGameProps {
+interface LogicGameProps {
   onExit: () => void;
   mode?: "solo" | "challenge";
   onRoundComplete?: (score: number) => void;
 }
 
-export function MathGame({ onExit, mode = "solo", onRoundComplete }: MathGameProps) {
-  const { state, best, start, reset, setInput, submit } = useMathGame();
+export function LogicGame({ onExit, mode = "solo", onRoundComplete }: LogicGameProps) {
+  const { state, best, start, reset, setInput, submit } = useCubeGame();
   const { phase } = state;
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Keep focus on the answer box whenever a new round begins or a problem swaps.
+  // Keep focus on the answer box whenever a new round begins or a structure swaps.
   useEffect(() => {
     if (phase === "playing") inputRef.current?.focus();
   }, [phase, state.flashId]);
@@ -36,53 +36,54 @@ export function MathGame({ onExit, mode = "solo", onRoundComplete }: MathGamePro
           ‹ Menu
         </button>
         <h1 className="app__logo">
-          Mental<span>Math</span>
+          Logic<span>Challenge</span>
         </h1>
-        <p className="app__tag">speed sprint</p>
+        <p className="app__tag">spatial reasoning</p>
       </div>
 
-      <MathHUD state={state} best={best} />
+      <LogicHUD state={state} best={best} />
 
       <main className="app__stage">
-        <div className="bubbles">
-          <Bubble problem={state.left} dim={phase !== "playing"} />
-          <span className="bubbles__or">or</span>
-          <Bubble problem={state.right} dim={phase !== "playing"} />
-        </div>
+        {phase === "playing" && <CubeStructureView structure={state.structure} />}
 
         {phase === "playing" && (
           <form className="answer" onSubmit={onSubmit}>
             <input
               ref={inputRef}
-              className={`answer__input answer__input--${state.lastResult ?? "none"}`}
+              className={`answer__input answer__input--${state.lastResult === "correct" ? "left" : state.lastResult === "wrong" ? "wrong" : "none"}`}
               key={state.flashId} // retrigger the flash on each resolved answer
               type="text"
-              inputMode="text"
-              pattern="-?[0-9]*"
+              inputMode="numeric"
+              pattern="[0-9]*"
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}
-              aria-label="Type the answer to either problem, then press Enter"
+              aria-label="How many cubes are in the structure?"
               value={state.input}
               onChange={(e) => setInput(e.target.value)}
               autoFocus
             />
-            <p className="answer__hint">Answer either side · press Enter</p>
+            <p className="answer__hint">How many cubes in total? · press Enter</p>
           </form>
         )}
 
         {phase === "idle" && (
           <Overlay>
-            <h2>Mental Math</h2>
+            <h2>Logic Challenge</h2>
             <p className="overlay__lead">
-              Two problems, always on screen. Solve <b>either one</b> — type its
-              answer and press Enter. The more you get right, the harder and more
-              valuable the problems become.
+              A 3D structure made of cube towers appears. Count only the
+              cubes you can actually see on top of each tower and add them up
+              for the total.
             </p>
             <ul className="overlay__rules">
-              <li>Pick whichever side is faster for you</li>
-              <li>Harder problems are worth <b>more points</b></li>
-              <li>Difficulty adapts to you, up to 2-digit × 1-digit</li>
+              <li>
+                Correct answer: <b>+{POINTS_PER_CORRECT} points</b> and a new,
+                slightly bigger structure
+              </li>
+              <li>
+                Every <b>{BONUS_EVERY} in a row</b>: an extra <b>+{BONUS_POINTS} bonus</b>
+              </li>
+              <li>Wrong answers move on without losing your progress</li>
             </ul>
             <button className="btn btn--primary" onClick={start}>
               Start · 60 seconds
@@ -96,8 +97,8 @@ export function MathGame({ onExit, mode = "solo", onRoundComplete }: MathGamePro
             <h2>Time!</h2>
             <div className="overlay__score">{state.score.toLocaleString()}</div>
             <p className="overlay__lead">
-              {state.correct} solved · {accuracy(state)}% accuracy · best streak{" "}
-              {state.bestStreak} · reached level {state.peakLevel}
+              {state.correct} solved · {accuracy(state)}% accuracy · reached level{" "}
+              {state.peakLevel}
               {state.score >= best && state.score > 0 ? " · new best!" : ""}
             </p>
             <div className="overlay__actions">
@@ -129,39 +130,33 @@ export function MathGame({ onExit, mode = "solo", onRoundComplete }: MathGamePro
   );
 }
 
-function accuracy(state: MathState): number {
+function accuracy(state: CubeState): number {
   const total = state.correct + state.wrong;
   return total === 0 ? 100 : Math.round((state.correct / total) * 100);
 }
 
-function Bubble({ problem, dim }: { problem: Problem; dim: boolean }) {
-  // Keyed by problem id so a freshly generated problem animates in.
-  return (
-    <div className={`bubble ${dim ? "bubble--dim" : ""}`} key={problem.id}>
-      <span className="bubble__problem">{problem.text || "—"}</span>
-      {!dim && <span className="bubble__points">+{problem.points}</span>}
-    </div>
-  );
-}
-
-function MathHUD({ state, best }: { state: MathState; best: number }) {
+function LogicHUD({ state, best }: { state: CubeState; best: number }) {
   const seconds = Math.ceil(state.timeLeftMs / 1000);
-  const pct = Math.max(0, Math.min(100, (state.timeLeftMs / MATH_GAME_MS) * 100));
+  const pct = Math.max(0, Math.min(100, (state.timeLeftMs / CUBE_GAME_MS) * 100));
   const low = state.timeLeftMs <= 10_000 && state.phase === "playing";
-  const level = levelBand(state.levelF);
 
   return (
     <header className="hud">
       <div className="hud__stats">
         <Stat label="Score" value={state.score.toLocaleString()} />
-        <Stat label="Level" value={`${level}`} />
-        <Stat label="Streak" value={`${state.streak}`} />
+        <Stat label="Level" value={`${state.level}`} />
+        <Stat label="Correct" value={`${state.correct}`} />
         <Stat label="Best" value={best.toLocaleString()} />
       </div>
+      {state.phase === "playing" && (
+        <p className="hud__sub">
+          {state.streakToBonus}/{BONUS_EVERY} correct until bonus
+        </p>
+      )}
       <div className="hud__timer">
         <div className="hud__timer-row">
           <span className="hud__phase hud__phase--recall">
-            {state.phase === "playing" ? "Solve" : state.phase === "over" ? "Time" : "Ready"}
+            {state.phase === "playing" ? "Count" : state.phase === "over" ? "Time" : "Ready"}
           </span>
           <span className={`hud__clock ${low ? "is-low" : ""}`}>{seconds}s</span>
         </div>

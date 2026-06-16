@@ -54,6 +54,27 @@ describe("INPUT_CHANGE", () => {
     const idle = mathInitialState();
     expect(mathReduce(idle, { type: "INPUT_CHANGE", value: "5" }, seeded())).toBe(idle);
   });
+
+  it("keeps a leading minus sign", () => {
+    const rng = seeded();
+    let s = mathReduce(mathInitialState(), { type: "START" }, rng);
+    s = mathReduce(s, { type: "INPUT_CHANGE", value: "-12" }, rng);
+    expect(s.input).toBe("-12");
+  });
+
+  it("only treats a leading minus as a sign, stripping interior dashes", () => {
+    const rng = seeded();
+    let s = mathReduce(mathInitialState(), { type: "START" }, rng);
+    s = mathReduce(s, { type: "INPUT_CHANGE", value: "1-2" }, rng);
+    expect(s.input).toBe("12");
+  });
+
+  it("caps digits at MAX_INPUT_LEN while keeping the sign", () => {
+    const rng = seeded();
+    let s = mathReduce(mathInitialState(), { type: "START" }, rng);
+    s = mathReduce(s, { type: "INPUT_CHANGE", value: "-123456" }, rng);
+    expect(s.input).toBe("-1234");
+  });
 });
 
 describe("SUBMIT", () => {
@@ -101,6 +122,20 @@ describe("SUBMIT", () => {
     expect(s.streak).toBe(0);
     expect(s.score).toBe(s.left.points === undefined ? 0 : s.score); // unchanged by the wrong submit
     expect(s.levelF).toBeLessThan(beforeLevel);
+  });
+
+  it("solves a problem with a negative answer when given a negative input", () => {
+    const rng = seeded();
+    const base = mathReduce(mathInitialState(), { type: "START" }, rng);
+    const negative: MathState = {
+      ...base,
+      left: { ...base.left, answer: -7, text: "3 − 10", id: 100 },
+    };
+    let s = mathReduce(negative, { type: "INPUT_CHANGE", value: "-7" }, rng);
+    s = mathReduce(s, { type: "SUBMIT" }, rng);
+    expect(s.lastResult).toBe("left");
+    expect(s.score).toBe(negative.left.points);
+    expect(s.input).toBe("");
   });
 
   it("prefers LEFT when both bubbles share the same answer", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GRID_MAX, GRID_MIN } from "./constants";
+import { GRID_MAX, GRID_MIN, GROWTH_STREAK, POINTS_PER_BOX } from "./constants";
 import {
   clampGridSize,
   generatePattern,
@@ -88,17 +88,39 @@ describe("generatePattern", () => {
 });
 
 describe("nextGridSize", () => {
-  it("grows on a correct round", () => {
-    expect(nextGridSize(3, true)).toBe(4);
+  it("does not grow on the first correct round, only advances the streak", () => {
+    const result = nextGridSize(3, true, 0);
+    expect(result.size).toBe(3);
+    expect(result.growthStreak).toBe(1);
   });
-  it("shrinks on a wrong round", () => {
-    expect(nextGridSize(3, false)).toBe(2);
+
+  it("grows after GROWTH_STREAK consecutive correct rounds and resets the streak", () => {
+    let size = 3;
+    let growthStreak = 0;
+    for (let i = 0; i < GROWTH_STREAK; i++) {
+      ({ size, growthStreak } = nextGridSize(size, true, growthStreak));
+    }
+    expect(size).toBe(4);
+    expect(growthStreak).toBe(0);
   });
+
+  it("shrinks immediately on a wrong round and resets the streak", () => {
+    const result = nextGridSize(3, false, 1);
+    expect(result.size).toBe(2);
+    expect(result.growthStreak).toBe(0);
+  });
+
   it("never grows past the maximum", () => {
-    expect(nextGridSize(GRID_MAX, true)).toBe(GRID_MAX);
+    let size = GRID_MAX;
+    let growthStreak = 0;
+    for (let i = 0; i < GROWTH_STREAK; i++) {
+      ({ size, growthStreak } = nextGridSize(size, true, growthStreak));
+    }
+    expect(size).toBe(GRID_MAX);
   });
+
   it("never shrinks below the minimum", () => {
-    expect(nextGridSize(GRID_MIN, false)).toBe(GRID_MIN);
+    expect(nextGridSize(GRID_MIN, false, 0).size).toBe(GRID_MIN);
   });
 });
 
@@ -133,6 +155,18 @@ describe("roundScore", () => {
   });
   it("is always positive", () => {
     expect(roundScore(GRID_MIN)).toBeGreaterThan(0);
+  });
+  it("awards POINTS_PER_BOX for every cell in the sequence", () => {
+    for (let size = GRID_MIN; size <= GRID_MAX; size++) {
+      expect(roundScore(size)).toBe(targetCountForSize(size) * POINTS_PER_BOX);
+    }
+  });
+  it("a perfectly completed 5-box sequence is worth 100 points", () => {
+    const size = [...Array(GRID_MAX + 1).keys()].find(
+      (s) => s >= GRID_MIN && targetCountForSize(s) === 5,
+    );
+    expect(size).toBeDefined();
+    expect(roundScore(size!)).toBe(100);
   });
 });
 

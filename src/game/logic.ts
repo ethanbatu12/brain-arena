@@ -1,11 +1,12 @@
 import {
-  BASE_POINTS,
   FILL_RATIO,
   GRID_MAX,
   GRID_MIN,
+  GROWTH_STREAK,
   MEMORIZE_LARGE_FROM,
   MEMORIZE_MS_LARGE,
   MEMORIZE_MS_SMALL,
+  POINTS_PER_BOX,
 } from "./constants";
 import type { Rng } from "./rng";
 
@@ -63,18 +64,33 @@ export function memorizeMsForSize(size: number): number {
   return size >= MEMORIZE_LARGE_FROM ? MEMORIZE_MS_LARGE : MEMORIZE_MS_SMALL;
 }
 
-/** The new board size after a round. Correct grows it, wrong shrinks it. */
-export function nextGridSize(current: number, correct: boolean): number {
-  return clampGridSize(current + (correct ? 1 : -1));
+/**
+ * The new board size (and growth streak) after a round.
+ * A wrong round shrinks immediately and resets the streak. A correct round
+ * only grows the board once GROWTH_STREAK consecutive wins have piled up at
+ * the current size, otherwise it just advances the streak.
+ */
+export function nextGridSize(
+  current: number,
+  correct: boolean,
+  growthStreak: number,
+): { size: number; growthStreak: number } {
+  if (!correct) {
+    return { size: clampGridSize(current - 1), growthStreak: 0 };
+  }
+  if (growthStreak + 1 >= GROWTH_STREAK) {
+    return { size: clampGridSize(current + 1), growthStreak: 0 };
+  }
+  return { size: current, growthStreak: growthStreak + 1 };
 }
 
 /**
  * Points earned for completing a full round at this board size.
- * Quadratic in size so bigger boards are worth disproportionately more,
- * which is the core incentive to grow the board.
+ * Awards POINTS_PER_BOX for every lit cell in the sequence, but only if the
+ * whole sequence was completed correctly (all-or-nothing).
  */
 export function roundScore(size: number): number {
-  return size * size * BASE_POINTS;
+  return targetCountForSize(size) * POINTS_PER_BOX;
 }
 
 /**

@@ -1,32 +1,32 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { mulberry32 } from "../game/rng";
-import { mathInitialState, mathReduce } from "../math/reducer";
-import type { MathAction, MathState } from "../math/types";
+import { cubeInitialState, cubeReduce } from "../cube/reducer";
+import type { CubeAction, CubeState } from "../cube/types";
 import { usePlayerProfile } from "../player/PlayerContext";
 
 const TICK_MS = 100;
 
 /**
- * React binding for the pure mental-math reducer. Owns the 60-second countdown;
- * all rules live in the tested reducer. Best score and result recording come
- * from the shared player profile.
+ * React binding for the pure Logic Challenge reducer. Owns the 60-second
+ * countdown; all rules live in the tested reducer. Best score and result
+ * recording come from the shared player profile.
  */
-export function useMathGame() {
+export function useCubeGame() {
   const rngRef = useRef(mulberry32((Math.random() * 2 ** 31) >>> 0));
   const wrapped = useCallback(
-    (state: MathState, action: MathAction) => mathReduce(state, action, rngRef.current),
+    (state: CubeState, action: CubeAction) => cubeReduce(state, action, rngRef.current),
     [],
   );
-  const [state, dispatch] = useReducer(wrapped, undefined, mathInitialState);
+  const [state, dispatch] = useReducer(wrapped, undefined, cubeInitialState);
 
   const { profile, recordResult } = usePlayerProfile();
-  const best = profile?.games.math.bestScore ?? 0;
+  const best = profile?.games.logic.bestScore ?? 0;
 
   const recordedRef = useRef(false);
   useEffect(() => {
     if (state.phase === "over" && !recordedRef.current) {
       recordedRef.current = true;
-      recordResult("math", state.score);
+      recordResult("logic", state.score);
     }
     if (state.phase !== "over") recordedRef.current = false;
   }, [state.phase, state.score, recordResult]);

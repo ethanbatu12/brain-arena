@@ -66,23 +66,37 @@ export function countBorrows(a: number, b: number): number {
 }
 
 /**
- * Difficulty-weighted reward. Calibrated so an easy "15 + 24" ≈ 10 and a hard
- * "87 × 9" ≈ 60: solving harder problems is worth proportionally more, which is
+ * Difficulty-weighted reward. Calibrated so an easy "15 + 24" ≈ 20 and a hard
+ * "87 × 9" ≈ 120: solving harder problems is worth proportionally more, which is
  * what makes the final score track skill rather than just raw speed.
+ * A small bonus rewards problems involving negative numbers, which require an
+ * extra reasoning step.
  */
 export function problemPoints(op: Op, a: number, b: number, answer: number): number {
+  const negativeBonus = a < 0 || b < 0 || answer < 0 ? 10 : 0;
   switch (op) {
     case "+":
-      return 10 + countCarries(a, b) * 5;
+      return 20 + countCarries(Math.abs(a), Math.abs(b)) * 10 + negativeBonus;
     case "-":
-      return 12 + countBorrows(a, b) * 5;
+      return 24 + countBorrows(Math.abs(a), Math.abs(b)) * 10 + negativeBonus;
     case "×":
       // a is the 2-digit operand, b the 1-digit multiplier.
-      return 20 + Math.floor(a / 10) * 3 + b * 2;
+      return 40 + Math.floor(Math.abs(a) / 10) * 6 + Math.abs(b) * 4 + negativeBonus;
     case "÷":
       // b is the divisor, answer the quotient.
-      return 24 + b * 2 + answer * 2;
+      return 48 + b * 4 + answer * 4;
   }
+}
+
+/**
+ * Probability of applying a "negative twist" to a problem at the given band,
+ * once that twist is unlocked at `unlockBand`. Negatives are introduced
+ * gradually: rare just after unlocking, capped at 60% so positive problems
+ * remain common even at the highest bands.
+ */
+export function negativeChance(band: number, unlockBand: number): number {
+  if (band < unlockBand) return 0;
+  return Math.min(0.6, (band - unlockBand + 1) * 0.2);
 }
 
 /** Which operations are unlocked at a given band. */
@@ -96,9 +110,13 @@ export function opsForBand(band: number): Op[] {
 
 /**
  * Build one problem for the given difficulty rating. Guarantees:
- *  - addition/subtraction operands grow with level; subtraction never negative
- *  - multiplication is always 2-digit × 1-digit, growing toward 99 × 9
- *  - division is always exact (dividend = divisor × quotient)
+ *  - addition/subtraction operands grow with level; negative addends and
+ *    negative subtraction results are introduced gradually from band 4-5
+ *  - multiplication is always 2-digit × 1-digit, growing toward 99 × 9, with
+ *    a negative multiplier introduced gradually from band 7
+ *  - division is always exact (dividend = divisor × quotient) and stays
+ *    positive at every band
+ *  - every problem has exactly one correct (integer) answer
  */
 export function makeProblem(levelF: number, rng: Rng, id: number): Problem {
   const band = levelBand(levelF);
@@ -114,6 +132,11 @@ export function makeProblem(levelF: number, rng: Rng, id: number): Problem {
       const hi = Math.min(99, 20 + band * 8);
       a = randInt(10, hi, rng);
       b = randInt(10, hi, rng);
+      // From band 5, occasionally make the first addend negative — the sum
+      // can then land on either side of zero.
+      if (rng() < negativeChance(band, 5)) {
+        a = -a;
+      }
       answer = a + b;
       text = `${a} + ${b}`;
       break;
@@ -121,7 +144,12 @@ export function makeProblem(levelF: number, rng: Rng, id: number): Problem {
     case "-": {
       const hi = Math.min(99, 20 + band * 8);
       a = randInt(10, hi, rng);
-      b = randInt(10, a, rng); // keep the result non-negative
+      // From band 4, occasionally let b exceed a, giving a negative result.
+      if (a < hi && rng() < negativeChance(band, 4)) {
+        b = randInt(a + 1, hi, rng);
+      } else {
+        b = randInt(10, a, rng);
+      }
       answer = a - b;
       text = `${a} − ${b}`;
       break;
@@ -131,8 +159,14 @@ export function makeProblem(levelF: number, rng: Rng, id: number): Problem {
       const bMax = band >= 7 ? 9 : 5; // the 1-digit multiplier
       a = randInt(10, aMax, rng);
       b = randInt(2, bMax, rng);
+      // From band 7, occasionally make the multiplier negative.
+      if (rng() < negativeChance(band, 7)) {
+        b = -b;
+        text = `${a} × (${b})`;
+      } else {
+        text = `${a} × ${b}`;
+      }
       answer = a * b;
-      text = `${a} × ${b}`;
       break;
     }
     case "÷": {

@@ -6,6 +6,7 @@ import {
   countCarries,
   levelBand,
   makeProblem,
+  negativeChance,
   nextLevel,
   opsForBand,
   problemPoints,
@@ -57,13 +58,43 @@ describe("opsForBand", () => {
 
 describe("problemPoints", () => {
   it("rewards an easy add modestly and a hard multiply richly", () => {
-    expect(problemPoints("+", 15, 24, 39)).toBe(10);
-    expect(problemPoints("×", 87, 9, 783)).toBeGreaterThan(40);
+    expect(problemPoints("+", 15, 24, 39)).toBe(20);
+    expect(problemPoints("×", 87, 9, 783)).toBeGreaterThan(80);
   });
   it("is always positive across operations", () => {
     expect(problemPoints("+", 10, 10, 20)).toBeGreaterThan(0);
     expect(problemPoints("-", 99, 10, 89)).toBeGreaterThan(0);
     expect(problemPoints("÷", 72, 8, 9)).toBeGreaterThan(0);
+  });
+
+  it("awards a bonus when an operand or the result is negative", () => {
+    const plain = problemPoints("+", 10, 20, 30);
+    const withNegativeAddend = problemPoints("+", -10, 20, 10);
+    const withNegativeResult = problemPoints("-", 10, 20, -10);
+    expect(withNegativeAddend).toBe(plain + 10);
+    expect(withNegativeResult).toBe(problemPoints("-", 10, 20, 10) + 10);
+  });
+
+  it("stays positive even with negative operands (no infinite loops)", () => {
+    expect(problemPoints("+", -15, 24, 9)).toBeGreaterThan(0);
+    expect(problemPoints("-", 10, 30, -20)).toBeGreaterThan(0);
+    expect(problemPoints("×", 12, -4, -48)).toBeGreaterThan(0);
+  });
+});
+
+describe("negativeChance", () => {
+  it("is zero below the unlock band", () => {
+    expect(negativeChance(3, 5)).toBe(0);
+    expect(negativeChance(4, 5)).toBe(0);
+  });
+  it("starts low right at the unlock band and grows with band", () => {
+    expect(negativeChance(5, 5)).toBeCloseTo(0.2);
+    expect(negativeChance(6, 5)).toBeCloseTo(0.4);
+  });
+  it("never exceeds 0.6", () => {
+    for (let band = MIN_LEVEL; band <= MAX_LEVEL; band++) {
+      expect(negativeChance(band, 1)).toBeLessThanOrEqual(0.6);
+    }
   });
 });
 
@@ -79,7 +110,7 @@ describe("makeProblem — arithmetic validity (fuzzed across all bands)", () => 
             break;
           case "-":
             expect(p.a - p.b).toBe(p.answer);
-            expect(p.answer).toBeGreaterThanOrEqual(0); // never negative
+            expect(Number.isInteger(p.answer)).toBe(true);
             break;
           case "×":
             expect(p.a * p.b).toBe(p.answer);
@@ -110,8 +141,8 @@ describe("makeProblem — arithmetic validity (fuzzed across all bands)", () => 
       if (p.op === "×") {
         expect(p.a).toBeGreaterThanOrEqual(10);
         expect(p.a).toBeLessThanOrEqual(99);
-        expect(p.b).toBeGreaterThanOrEqual(2);
-        expect(p.b).toBeLessThanOrEqual(9);
+        expect(Math.abs(p.b)).toBeGreaterThanOrEqual(2);
+        expect(Math.abs(p.b)).toBeLessThanOrEqual(9);
       }
     }
   });
@@ -120,5 +151,88 @@ describe("makeProblem — arithmetic validity (fuzzed across all bands)", () => 
     const p1 = makeProblem(6, mulberry32(42), 1);
     const p2 = makeProblem(6, mulberry32(42), 1);
     expect(p1).toEqual(p2);
+  });
+});
+
+describe("makeProblem — negative numbers introduced gradually", () => {
+  it("keeps addition non-negative below the unlock band", () => {
+    for (let band = 1; band < 5; band++) {
+      const rng = mulberry32(band * 13 + 3);
+      for (let i = 0; i < 100; i++) {
+        const p = makeProblem(band, rng, i);
+        if (p.op === "+") {
+          expect(p.a).toBeGreaterThanOrEqual(0);
+          expect(p.b).toBeGreaterThanOrEqual(0);
+        }
+      }
+    }
+  });
+
+  it("eventually produces a negative addend from the unlock band", () => {
+    let sawNegative = false;
+    for (let seed = 0; seed < 50; seed++) {
+      const p = makeProblem(MAX_LEVEL, mulberry32(seed), 1);
+      if (p.op === "+" && (p.a < 0 || p.b < 0)) sawNegative = true;
+    }
+    expect(sawNegative).toBe(true);
+  });
+
+  it("keeps subtraction results non-negative below the unlock band", () => {
+    for (let band = 1; band < 4; band++) {
+      const rng = mulberry32(band * 17 + 5);
+      for (let i = 0; i < 100; i++) {
+        const p = makeProblem(band, rng, i);
+        if (p.op === "-") {
+          expect(p.answer).toBeGreaterThanOrEqual(0);
+        }
+      }
+    }
+  });
+
+  it("eventually produces a negative subtraction result from the unlock band", () => {
+    let sawNegative = false;
+    for (let seed = 0; seed < 50; seed++) {
+      const p = makeProblem(MAX_LEVEL, mulberry32(seed), 1);
+      if (p.op === "-" && p.answer < 0) sawNegative = true;
+    }
+    expect(sawNegative).toBe(true);
+  });
+
+  it("keeps the multiplier non-negative below the unlock band", () => {
+    for (let band = 1; band < 7; band++) {
+      const rng = mulberry32(band * 19 + 7);
+      for (let i = 0; i < 100; i++) {
+        const p = makeProblem(band, rng, i);
+        if (p.op === "×") {
+          expect(p.b).toBeGreaterThanOrEqual(0);
+        }
+      }
+    }
+  });
+
+  it("eventually produces a negative multiplier at the top band", () => {
+    let sawNegative = false;
+    for (let seed = 0; seed < 50; seed++) {
+      const p = makeProblem(MAX_LEVEL, mulberry32(seed), 1);
+      if (p.op === "×" && p.b < 0) {
+        sawNegative = true;
+        expect(p.text).toMatch(/^\d+ × \(-\d+\)$/);
+      }
+    }
+    expect(sawNegative).toBe(true);
+  });
+
+  it("keeps division positive at every band", () => {
+    for (let band = MIN_LEVEL; band <= MAX_LEVEL; band++) {
+      const rng = mulberry32(band * 23 + 11);
+      for (let i = 0; i < 100; i++) {
+        const p = makeProblem(band, rng, i);
+        if (p.op === "÷") {
+          expect(p.a).toBeGreaterThan(0);
+          expect(p.b).toBeGreaterThan(0);
+          expect(p.answer).toBeGreaterThan(0);
+        }
+      }
+    }
   });
 });
