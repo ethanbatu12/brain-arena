@@ -2,6 +2,15 @@ export type GameId = "memory" | "math" | "logic" | "balloon";
 
 export const GAME_IDS: GameId[] = ["memory", "math", "logic", "balloon"];
 
+export interface RatedPuzzleStats {
+  rating: number;
+  highestRating: number;
+  totalCompleted: number;
+  totalCorrect: number;
+  totalIncorrect: number;
+  totalSolveTimeMs: number;
+}
+
 export interface GameStats {
   bestScore: number;
   gamesPlayed: number;
@@ -27,4 +36,5 @@ export interface PlayerProfile {
   combinedTotalScore: number;
   /** Number of completed All Games Challenge runs. */
   challengeRunsCompleted: number;
+  ratedPuzzles: RatedPuzzleStats;
 }

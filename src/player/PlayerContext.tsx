@@ -8,6 +8,7 @@ import {
   loadProfiles,
   recordCombinedResult as recordCombinedResultInStorage,
   recordGameResult,
+  recordRatedPuzzleResult,
   saveCurrentUsername,
   saveProfile,
   validatePassword,
@@ -22,6 +23,7 @@ interface PlayerContextValue {
   signOut: () => void;
   recordResult: (gameId: GameId, score: number) => void;
   recordCombinedResult: (score: number) => void;
+  recordRatedPuzzle: (correct: boolean, elapsedMs: number) => void;
   existingUsernames: string[];
 }
 
@@ -125,6 +127,20 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [currentUsername],
   );
 
+  const recordRatedPuzzle = useCallback(
+    (correct: boolean, elapsedMs: number) => {
+      setProfiles((prev) => {
+        if (!currentUsername) return prev;
+        const current = prev[currentUsername];
+        if (!current) return prev;
+        const updated = recordRatedPuzzleResult(current, correct, elapsedMs);
+        void saveProfile(updated);
+        return { ...prev, [currentUsername]: updated };
+      });
+    },
+    [currentUsername],
+  );
+
   const profile = currentUsername ? profiles[currentUsername] ?? null : null;
   const existingUsernames = useMemo(() => Object.keys(profiles), [profiles]);
 
@@ -136,6 +152,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     signOut,
     recordResult,
     recordCombinedResult,
+    recordRatedPuzzle,
     existingUsernames,
   };
 

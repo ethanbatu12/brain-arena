@@ -1,6 +1,14 @@
 import { GAMES } from "../games";
-import { averageScore, combinedAverageScore, overallAverageScore } from "../player/storage";
+import { averageScore, avgSolveTimeMs, combinedAverageScore, overallAverageScore, puzzleWinPct } from "../player/storage";
 import type { PlayerProfile } from "../player/types";
+
+function formatTime(ms: number): string {
+  if (ms === 0) return "—";
+  const totalSec = Math.floor(ms / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
 
 interface ProfileProps {
   profile: PlayerProfile;
@@ -125,6 +133,42 @@ export function Profile({ profile, onBack, onSignOut }: ProfileProps) {
                 <span className="stat__label">{g.name} played</span>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="profile__section">
+        <h2 className="profile__section-title">Rated Puzzles</h2>
+        <div className="hud">
+          <div className="hud__stats">
+            <div className="stat">
+              <span className="stat__value rated__rating">{profile.ratedPuzzles.rating}</span>
+              <span className="stat__label">Current rating</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.ratedPuzzles.highestRating}</span>
+              <span className="stat__label">Peak rating</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.ratedPuzzles.totalCompleted}</span>
+              <span className="stat__label">Completed</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.ratedPuzzles.totalCorrect}</span>
+              <span className="stat__label">Correct</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.ratedPuzzles.totalIncorrect}</span>
+              <span className="stat__label">Incorrect</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{formatTime(avgSolveTimeMs(profile.ratedPuzzles))}</span>
+              <span className="stat__label">Avg solve time</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{round(puzzleWinPct(profile.ratedPuzzles))}%</span>
+              <span className="stat__label">Win %</span>
+            </div>
           </div>
         </div>
       </section>

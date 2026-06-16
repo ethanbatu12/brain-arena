@@ -1,10 +1,11 @@
 interface ChessLobbyProps {
   onFullChess: () => void;
   onPuzzleRush: () => void;
+  onRatedPuzzles: () => void;
   onBack: () => void;
 }
 
-export function ChessLobby({ onFullChess, onPuzzleRush, onBack }: ChessLobbyProps) {
+export function ChessLobby({ onFullChess, onPuzzleRush, onRatedPuzzles, onBack }: ChessLobbyProps) {
   return (
     <div className="app__shell home">
       <div className="app__head">
@@ -33,6 +34,17 @@ export function ChessLobby({ onFullChess, onPuzzleRush, onBack }: ChessLobbyProp
             Forks, pins, skewers, checkmates and more — increasing difficulty.
           </span>
           <span className="gamecard__cta">Rush ›</span>
+        </button>
+
+        <button className="gamecard gamecard--featured" style={{ ["--card-accent" as string]: "var(--chess-rated, #a78bfa)" }}
+          onClick={onRatedPuzzles}>
+          <span className="gamecard__tag">Rating · 1000+</span>
+          <span className="gamecard__name">Rated Puzzles</span>
+          <span className="gamecard__blurb">
+            Solve puzzles and earn a rating. Faster solutions earn more points.
+            Track your progress with your personal rating history.
+          </span>
+          <span className="gamecard__cta">Solve ›</span>
         </button>
       </div>
     </div>

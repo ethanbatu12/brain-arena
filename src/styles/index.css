@@ -21,6 +21,7 @@
   --challenge: #fb923c; /* all games challenge accent */
   --chess: #e2b44b;      /* chess section accent */
   --chess-puzzle: #60a5fa; /* puzzle rush accent */
+  --chess-rated: #a78bfa;  /* rated puzzles accent */
 
   --radius: 16px;
   --radius-sm: 10px;
@@ -1153,4 +1154,67 @@ button {
   color: var(--text-mute);
   margin: 0.5rem 0 0;
   text-transform: capitalize;
+}
+
+/* ── Rated Puzzles ── */
+.rated__rating {
+  color: var(--chess-rated);
+}
+
+.rated__gain {
+  color: var(--good);
+  font-weight: 700;
+}
+
+.rated__loss {
+  color: var(--bad);
+  font-weight: 700;
+}
+
+.rated__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.rated__timer-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.rated__elapsed {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-hi);
+}
+
+.rated__potential {
+  font-size: 0.75rem;
+  color: var(--text-mute);
+}
+
+.rated__result-banner {
+  font-size: 1.5rem;
+  font-weight: 700;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  text-align: center;
+}
+
+.rated__result-banner--correct {
+  background: color-mix(in srgb, var(--good) 15%, transparent);
+  color: var(--good);
+}
+
+.rated__result-banner--wrong {
+  background: color-mix(in srgb, var(--bad) 15%, transparent);
+  color: var(--bad);
 }

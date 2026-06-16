@@ -10,15 +10,16 @@ import { MathGame } from "./components/MathGame";
 import { MemoryGame } from "./components/MemoryGame";
 import { Profile } from "./components/Profile";
 import { PuzzleRush } from "./components/PuzzleRush";
+import { RatedPuzzles } from "./components/RatedPuzzles";
 import { SignIn } from "./components/SignIn";
 import { PlayerProvider, usePlayerProfile } from "./player/PlayerContext";
 import type { GameId } from "./player/types";
 
 export type { GameId };
-type Screen = "hub" | "profile" | "challenge" | "db" | "chess" | "chess-full" | "chess-puzzle" | GameId;
+type Screen = "hub" | "profile" | "challenge" | "db" | "chess" | "chess-full" | "chess-puzzle" | "chess-rated" | GameId;
 
 function AppShell() {
-  const { profile, loading, createAccount, signIn, signOut, recordCombinedResult } = usePlayerProfile();
+  const { profile, loading, createAccount, signIn, signOut, recordCombinedResult, recordRatedPuzzle } = usePlayerProfile();
   const [screen, setScreen] = useState<Screen>("hub");
   const goHub = () => setScreen("hub");
 
@@ -68,11 +69,19 @@ function AppShell() {
         <ChessLobby
           onFullChess={() => setScreen("chess-full")}
           onPuzzleRush={() => setScreen("chess-puzzle")}
+          onRatedPuzzles={() => setScreen("chess-rated")}
           onBack={goHub}
         />
       )}
       {screen === "chess-full" && <FullChessGame onExit={() => setScreen("chess")} />}
       {screen === "chess-puzzle" && <PuzzleRush onExit={() => setScreen("chess")} />}
+      {screen === "chess-rated" && (
+        <RatedPuzzles
+          ratedPuzzles={profile.ratedPuzzles}
+          onExit={() => setScreen("chess")}
+          onResult={recordRatedPuzzle}
+        />
+      )}
     </div>
   );
 }

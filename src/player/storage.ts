@@ -1,5 +1,5 @@
 import { indexedDbProfileStore, type ProfileStore } from "./db";
-import { GAME_IDS, type GameId, type GameStats, type PlayerProfile } from "./types";
+import { GAME_IDS, type GameId, type GameStats, type PlayerProfile, type RatedPuzzleStats } from "./types";
 
 const USERNAME_PATTERN = /^[A-Za-z0-9 _-]+$/;
 
@@ -7,6 +7,56 @@ const store: ProfileStore = indexedDbProfileStore;
 
 export function emptyGameStats(): GameStats {
   return { bestScore: 0, gamesPlayed: 0, totalScore: 0 };
+}
+
+export const INITIAL_PUZZLE_RATING = 1000;
+
+export function emptyRatedPuzzleStats(): RatedPuzzleStats {
+  return {
+    rating: INITIAL_PUZZLE_RATING,
+    highestRating: INITIAL_PUZZLE_RATING,
+    totalCompleted: 0,
+    totalCorrect: 0,
+    totalIncorrect: 0,
+    totalSolveTimeMs: 0,
+  };
+}
+
+/** Points gained for solving a puzzle based on elapsed seconds. */
+export function ratingGainForTime(elapsedMs: number): number {
+  const minutes = elapsedMs / 60_000;
+  if (minutes <= 1) return 20;
+  if (minutes <= 2) return 15;
+  return 10;
+}
+
+export function recordRatedPuzzleResult(
+  profile: PlayerProfile,
+  correct: boolean,
+  elapsedMs: number,
+): PlayerProfile {
+  const prev = profile.ratedPuzzles;
+  const gain = correct ? ratingGainForTime(elapsedMs) : -10;
+  const newRating = Math.max(0, prev.rating + gain);
+  const updated: RatedPuzzleStats = {
+    rating: newRating,
+    highestRating: Math.max(prev.highestRating, newRating),
+    totalCompleted: prev.totalCompleted + 1,
+    totalCorrect: prev.totalCorrect + (correct ? 1 : 0),
+    totalIncorrect: prev.totalIncorrect + (correct ? 0 : 1),
+    totalSolveTimeMs: prev.totalSolveTimeMs + (correct ? elapsedMs : 0),
+  };
+  return { ...profile, ratedPuzzles: updated };
+}
+
+export function puzzleWinPct(stats: RatedPuzzleStats): number {
+  if (stats.totalCompleted === 0) return 0;
+  return (stats.totalCorrect / stats.totalCompleted) * 100;
+}
+
+export function avgSolveTimeMs(stats: RatedPuzzleStats): number {
+  if (stats.totalCorrect === 0) return 0;
+  return stats.totalSolveTimeMs / stats.totalCorrect;
 }
 
 export function createProfile(username: string, passwordHash: string, passwordSalt: string): PlayerProfile {
@@ -24,6 +74,7 @@ export function createProfile(username: string, passwordHash: string, passwordSa
     combinedBestScore: 0,
     combinedTotalScore: 0,
     challengeRunsCompleted: 0,
+    ratedPuzzles: emptyRatedPuzzleStats(),
   };
 }
 
@@ -108,6 +159,7 @@ function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile {
     combinedBestScore: profile.combinedBestScore ?? 0,
     combinedTotalScore: profile.combinedTotalScore ?? 0,
     challengeRunsCompleted: profile.challengeRunsCompleted ?? 0,
+    ratedPuzzles: profile.ratedPuzzles ?? emptyRatedPuzzleStats(),
   } as PlayerProfile;
 }
 
