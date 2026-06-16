@@ -54,7 +54,9 @@ export interface ChessPuzzle {
   id: number;
   fen: string;
   solution: Move;
-  difficulty: "beginner" | "easy" | "medium" | "hard" | "expert";
+  difficulty: "beginner" | "intermediate" | "advanced" | "expert" | "master" | "grandmaster";
+  ratingMin: number;
+  ratingMax: number;
   theme: string;
   description: string;
 }

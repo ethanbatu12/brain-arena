@@ -206,11 +206,12 @@ export function chessReduce(state: ChessGameState, action: ChessAction): ChessGa
 
 export const PUZZLE_RUSH_MS = 60_000;
 const POINTS_PER_PUZZLE: Record<string, number> = {
-  beginner: 100,
-  easy: 150,
-  medium: 200,
-  hard: 300,
-  expert: 500,
+  beginner:     100,
+  intermediate: 150,
+  advanced:     200,
+  expert:       300,
+  master:       400,
+  grandmaster:  500,
 };
 const STREAK_BONUS = 50;
 
