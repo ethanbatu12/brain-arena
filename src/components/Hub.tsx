@@ -4,12 +4,13 @@ import type { GameId, PlayerProfile } from "../player/types";
 interface HubProps {
   profile: PlayerProfile;
   onPick: (id: GameId | "challenge") => void;
+  onChess: () => void;
   onProfile: () => void;
   onDb: () => void;
   onSignOut: () => void;
 }
 
-export function Hub({ profile, onPick, onProfile, onDb, onSignOut }: HubProps) {
+export function Hub({ profile, onPick, onChess, onProfile, onDb, onSignOut }: HubProps) {
   return (
     <div className="app__shell home">
       <div className="home__head">
@@ -75,6 +76,16 @@ export function Hub({ profile, onPick, onProfile, onDb, onSignOut }: HubProps) {
             <span className="gamecard__cta">Play ›</span>
           </button>
         ))}
+        <button
+          className="gamecard"
+          style={{ ["--card-accent" as string]: "var(--chess)" }}
+          onClick={onChess}
+        >
+          <span className="gamecard__tag">Chess</span>
+          <span className="gamecard__name">Chess</span>
+          <span className="gamecard__blurb">Full Chess vs AI · Puzzle Rush. Official rules, 5 difficulty levels.</span>
+          <span className="gamecard__cta">Play ›</span>
+        </button>
       </div>
     </div>
   );

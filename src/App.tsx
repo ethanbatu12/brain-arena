@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { AllGamesChallenge } from "./components/AllGamesChallenge";
 import { BalloonGame } from "./components/BalloonGame";
+import { ChessLobby } from "./components/ChessLobby";
 import { DbViewer } from "./components/DbViewer";
+import { FullChessGame } from "./components/FullChessGame";
 import { Hub } from "./components/Hub";
 import { LogicGame } from "./components/LogicGame";
 import { MathGame } from "./components/MathGame";
 import { MemoryGame } from "./components/MemoryGame";
 import { Profile } from "./components/Profile";
+import { PuzzleRush } from "./components/PuzzleRush";
 import { SignIn } from "./components/SignIn";
 import { PlayerProvider, usePlayerProfile } from "./player/PlayerContext";
 import type { GameId } from "./player/types";
 
 export type { GameId };
-type Screen = "hub" | "profile" | "challenge" | "db" | GameId;
+type Screen = "hub" | "profile" | "challenge" | "db" | "chess" | "chess-full" | "chess-puzzle" | GameId;
 
 function AppShell() {
   const { profile, loading, createAccount, signIn, signOut, recordCombinedResult } = usePlayerProfile();
@@ -37,6 +40,7 @@ function AppShell() {
         <Hub
           profile={profile}
           onPick={setScreen}
+          onChess={() => setScreen("chess")}
           onProfile={() => setScreen("profile")}
           onDb={() => setScreen("db")}
           onSignOut={signOut}
@@ -60,6 +64,15 @@ function AppShell() {
       {screen === "math" && <MathGame onExit={goHub} />}
       {screen === "logic" && <LogicGame onExit={goHub} />}
       {screen === "balloon" && <BalloonGame onExit={goHub} />}
+      {screen === "chess" && (
+        <ChessLobby
+          onFullChess={() => setScreen("chess-full")}
+          onPuzzleRush={() => setScreen("chess-puzzle")}
+          onBack={goHub}
+        />
+      )}
+      {screen === "chess-full" && <FullChessGame onExit={() => setScreen("chess")} />}
+      {screen === "chess-puzzle" && <PuzzleRush onExit={() => setScreen("chess")} />}
     </div>
   );
 }
