@@ -11,7 +11,10 @@ export type PatternKind =
   | "triangular"          // 1, 3, 6, 10, …
   | "alphabet-add"        // A, B, C, …  (step by 1 in alphabet)
   | "alphabet-skip"       // A, C, E, …  (step by 2 or more)
-  | "polynomial";         // n² + n, n(n+1), etc.
+  | "polynomial"          // n² + n, n(n+1), etc.
+  | "negative-arithmetic" // −8, −4, 0, 4, ?, 12  (arithmetic crossing zero or all-negative)
+  | "double-step"         // 3, 4, 6, 9, 13, ?, 22  (differences increase by a constant)
+  | "mixed-multiply";     // 1, 3, 7, 15, ?, 63  (×k + c at each step)
 
 export interface Pattern {
   /** All terms including the missing one (null marks the gap). */

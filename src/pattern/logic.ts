@@ -46,11 +46,11 @@ export function pointsForBand(band: number): number {
 
 /**
  * Map a Rated Patterns rating to a logic band (1–10).
- * Each 200 rating points = one band, so 600 → band 4, 1200 → band 7, etc.
- * Clamped to [MIN_LEVEL, MAX_LEVEL].
+ * Rating 1000 (start) → band 3; each 200 points adds one band.
+ * rating < 800 → band 1, 800–999 → band 2, 1000–1199 → band 3, …, 2400+ → band 10.
  */
 export function bandForRating(rating: number): number {
-  return Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, Math.floor(rating / 150) + 1));
+  return Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, Math.floor((rating - 600) / 200) + 1));
 }
 
 // ── prime helpers ─────────────────────────────────────────────────────────────
@@ -391,8 +391,7 @@ function buildAlphabetSkip(band: number, rng: Rng): Pattern {
 }
 
 function buildPolynomial(band: number, rng: Rng): Pattern {
-  // n² + c or n*(n+1)/2 or 2n²-1 etc.
-  // Keep it clean: use n*(n+k) for k ∈ {1,2,3}
+  // n*(n+k) for k ∈ {1,2,3,4,5}
   const k      = randInt(1, Math.min(band, 5), rng);
   const n0     = randInt(1, band <= 5 ? 4 : 7, rng);
   const length = 5;
@@ -413,6 +412,102 @@ function buildPolynomial(band: number, rng: Rng): Pattern {
   };
 }
 
+/**
+ * Negative arithmetic sequences — arithmetic with negative terms or crossing zero.
+ * e.g. −8, −4, 0, 4, ?, 12  or  −12, −9, −6, −3, ?, 3
+ */
+function buildNegativeArithmetic(band: number, rng: Rng): Pattern {
+  const maxStep  = band <= 5 ? 5 : band <= 8 ? 10 : 20;
+  const length   = band <= 6 ? 6 : 7;
+  const step     = randInt(1, maxStep, rng);
+  // Pick a negative start that makes the sequence cross zero (or stay negative)
+  const crossAt  = randInt(1, length - 2, rng); // which index hits 0 or positive
+  const start    = -(step * crossAt);            // so terms[crossAt] = 0
+  const nums     = Array.from({ length }, (_, i) => start + step * i);
+  const gap      = chooseGap(length, rng);
+  const answer   = nums[gap];
+  return {
+    terms: nums.map((v, i) => (i === gap ? null : v)) as (number | null)[],
+    gapIndex: gap,
+    answer: String(answer),
+    distractors: numericDistractors(answer, step, rng),
+    kind: "negative-arithmetic",
+    points: pointsForBand(band) + 10,
+  };
+}
+
+/**
+ * Double-step (second-difference) sequences.
+ * Differences increase by a constant: 3, 4, 6, 9, 13, ?, 22
+ * terms[i] = a0 + i*d0 + i*(i−1)/2 * dd
+ */
+function buildDoubleStep(band: number, rng: Rng): Pattern {
+  const maxA0   = band <= 6 ? 10 : 30;
+  const maxD0   = band <= 6 ? 5  : 15;
+  const maxDD   = band <= 7 ? 2  : 4;   // second difference
+  const length  = band <= 7 ? 6  : 7;
+  const a0      = randInt(1, maxA0, rng);
+  const d0      = randInt(1, maxD0, rng);
+  const dd      = randInt(1, maxDD, rng);
+  const nums    = Array.from({ length }, (_, i) => a0 + i * d0 + (i * (i - 1)) / 2 * dd);
+  const gap     = chooseGap(length, rng);
+  const answer  = nums[gap];
+  // Distractor step = local first difference at gap
+  const localStep = gap > 0 ? nums[gap] - nums[gap - 1] : d0;
+  return {
+    terms: nums.map((v, i) => (i === gap ? null : v)) as (number | null)[],
+    gapIndex: gap,
+    answer: String(answer),
+    distractors: numericDistractors(answer, localStep, rng),
+    kind: "double-step",
+    points: pointsForBand(band) + 15,
+  };
+}
+
+/**
+ * Mixed-multiply sequences: each term = prev × k + c.
+ * e.g. k=2, c=1: 1, 3, 7, 15, 31, ?, 127
+ *      k=3, c=−1: 2, 5, 14, 41, ?, 365
+ */
+function buildMixedMultiply(band: number, rng: Rng): Pattern {
+  const k       = randInt(2, band <= 8 ? 2 : 3, rng);
+  // c can be +1, −1, +2, −2 at high bands
+  const cOptions: number[] = band <= 8 ? [1, -1] : [1, -1, 2, -2];
+  const c       = pick(cOptions, rng);
+  const length  = 5;
+  // Keep terms bounded: first term × k^(length−1) ≤ 10 000
+  const maxStart = Math.floor(10_000 / Math.pow(k, length - 1));
+  const a0      = randInt(1, Math.max(1, maxStart), rng);
+  const nums: number[] = [a0];
+  for (let i = 1; i < length; i++) nums.push(nums[i - 1] * k + c);
+  // Ensure all terms are positive (they should be with k≥2, c≥−1, a0≥1)
+  if (nums.some((n) => n <= 0)) {
+    // Fallback: k=2, c=1 from a0=1
+    const safe: number[] = [1];
+    for (let i = 1; i < length; i++) safe.push(safe[i - 1] * 2 + 1);
+    const gap = chooseGap(length, rng);
+    return {
+      terms: safe.map((v, i) => (i === gap ? null : v)) as (number | null)[],
+      gapIndex: gap,
+      answer: String(safe[gap]),
+      distractors: numericDistractors(safe[gap], safe[gap > 0 ? gap - 1 : 1] * (k - 1), rng),
+      kind: "mixed-multiply",
+      points: pointsForBand(band) + 20,
+    };
+  }
+  const gap    = chooseGap(length, rng);
+  const answer = nums[gap];
+  const step   = gap > 0 ? nums[gap] - nums[gap - 1] : nums[1] - nums[0];
+  return {
+    terms: nums.map((v, i) => (i === gap ? null : v)) as (number | null)[],
+    gapIndex: gap,
+    answer: String(answer),
+    distractors: numericDistractors(answer, Math.max(1, step), rng),
+    kind: "mixed-multiply",
+    points: pointsForBand(band) + 20,
+  };
+}
+
 // ── kind pool per band ────────────────────────────────────────────────────────
 
 /**
@@ -420,25 +515,24 @@ function buildPolynomial(band: number, rng: Rng): Pattern {
  *
  * Design rules:
  *  - Number-based patterns make up the large majority at every band.
- *  - Letter patterns appear at most once in each pool (≈1-in-6 at low bands,
- *    absent from band 5+).
+ *  - Letter patterns appear at most once in each pool (≈1-in-7 at low bands,
+ *    absent from band 7+).
  *  - Band 1 is entry-level: only the simplest arithmetic sequences.
- *  - Difficulty widens gradually so some questions are very quick while
- *    higher bands require real thought.
+ *  - Difficulty widens gradually; higher bands require multi-step reasoning.
  *
  * The pool array is used for uniform random selection, so repeating a kind
  * gives it proportionally higher weight.
  */
 export function kindsForBand(band: number): PatternKind[] {
   if (band === 1) {
-    // Purely simple arithmetic — 2,4,6,?,10 style
+    // Entry-level: only simple arithmetic
     return [
       "arithmetic-add", "arithmetic-add", "arithmetic-add",
       "arithmetic-sub", "arithmetic-sub",
     ];
   }
   if (band === 2) {
-    // Still simple; no letters yet
+    // Still arithmetic; no letters or special types
     return [
       "arithmetic-add", "arithmetic-add",
       "arithmetic-sub", "arithmetic-sub",
@@ -446,40 +540,44 @@ export function kindsForBand(band: number): PatternKind[] {
     ];
   }
   if (band <= 4) {
-    // ~85 % numeric, ~15 % letter (1 out of 7 slots)
+    // ~85 % arithmetic, alternating introduced, rare letter (1 in 7)
     return [
       "arithmetic-add", "arithmetic-add",
       "arithmetic-sub", "arithmetic-sub",
       "alternating",
       "arithmetic-add",
-      "alphabet-add",   // ← only letter slot
+      "alphabet-add", // ← only letter slot
     ];
   }
   if (band <= 6) {
-    // Geometric + Fibonacci introduced; one rare letter slot (1 in 8)
+    // Geometric + Fibonacci + negative arithmetic; rare letter (1 in 9)
     return [
       "arithmetic-add", "arithmetic-sub",
       "geometric", "fibonacci",
       "triangular", "alternating",
+      "negative-arithmetic",
       "arithmetic-sub",
-      "alphabet-skip",  // ← only letter slot
+      "alphabet-skip", // ← only letter slot
     ];
   }
   if (band <= 8) {
-    // No letters; harder number types
+    // No letters; harder types including double-step, squares, cubes
     return [
       "geometric", "geometric-div",
       "fibonacci", "squares",
       "primes", "triangular",
       "polynomial", "alternating",
+      "negative-arithmetic",
+      "double-step",
     ];
   }
-  // Band 9–10: hardest pure-number types only
+  // Band 9–10: hardest pure-number types
   return [
     "fibonacci", "squares", "cubes",
     "primes", "polynomial", "geometric",
     "triangular", "alternating",
-    "geometric-div",
+    "geometric-div", "double-step",
+    "mixed-multiply", "negative-arithmetic",
   ];
 }
 
@@ -490,18 +588,21 @@ export function makePattern(levelF: number, rng: Rng): Pattern {
   const kind = pick(kindsForBand(band), rng);
 
   switch (kind) {
-    case "arithmetic-add":   return buildArithmeticAdd(band, rng);
-    case "arithmetic-sub":   return buildArithmeticSub(band, rng);
-    case "geometric":        return buildGeometric(band, rng);
-    case "geometric-div":    return buildGeometricDiv(band, rng);
-    case "squares":          return buildSquares(band, rng);
-    case "cubes":            return buildCubes(band, rng);
-    case "fibonacci":        return buildFibonacci(band, rng);
-    case "alternating":      return buildAlternating(band, rng);
-    case "primes":           return buildPrimes(band, rng);
-    case "triangular":       return buildTriangular(band, rng);
-    case "alphabet-add":     return buildAlphabetAdd(band, rng);
-    case "alphabet-skip":    return buildAlphabetSkip(band, rng);
-    case "polynomial":       return buildPolynomial(band, rng);
+    case "arithmetic-add":      return buildArithmeticAdd(band, rng);
+    case "arithmetic-sub":      return buildArithmeticSub(band, rng);
+    case "geometric":           return buildGeometric(band, rng);
+    case "geometric-div":       return buildGeometricDiv(band, rng);
+    case "squares":             return buildSquares(band, rng);
+    case "cubes":               return buildCubes(band, rng);
+    case "fibonacci":           return buildFibonacci(band, rng);
+    case "alternating":         return buildAlternating(band, rng);
+    case "primes":              return buildPrimes(band, rng);
+    case "triangular":          return buildTriangular(band, rng);
+    case "alphabet-add":        return buildAlphabetAdd(band, rng);
+    case "alphabet-skip":       return buildAlphabetSkip(band, rng);
+    case "polynomial":          return buildPolynomial(band, rng);
+    case "negative-arithmetic": return buildNegativeArithmetic(band, rng);
+    case "double-step":         return buildDoubleStep(band, rng);
+    case "mixed-multiply":      return buildMixedMultiply(band, rng);
   }
 }

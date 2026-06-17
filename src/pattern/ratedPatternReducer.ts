@@ -101,12 +101,13 @@ export function ratedPatternDelta(state: RatedPatternState): number {
 
 /** Rating tier label for display. */
 export function ratingTier(rating: number): string {
-  if (rating < 400)  return "Beginner";
-  if (rating < 600)  return "Easy";
-  if (rating < 800)  return "Intermediate";
-  if (rating < 1000) return "Advanced";
-  if (rating < 1200) return "Expert";
-  if (rating < 1400) return "Master";
-  if (rating < 1600) return "Elite";
+  if (rating < 1000) return "Provisional";
+  if (rating < 1200) return "Beginner";
+  if (rating < 1400) return "Easy";
+  if (rating < 1600) return "Intermediate";
+  if (rating < 1800) return "Advanced";
+  if (rating < 2000) return "Expert";
+  if (rating < 2200) return "Master";
+  if (rating < 2400) return "Elite";
   return "Grandmaster";
 }
