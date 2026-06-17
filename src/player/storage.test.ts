@@ -262,9 +262,9 @@ describe("recordRatedPatternRun", () => {
 
   it("gains rating on correct run", () => {
     const profile = createProfile("Alice", HASH, SALT);
-    const updated = recordRatedPatternRun(profile, 5, 5, 75); // 5 correct × +15
-    expect(updated.ratedPatterns.rating).toBe(RATED_PATTERN_INITIAL_RATING + 75);
-    expect(updated.ratedPatterns.highestRating).toBe(RATED_PATTERN_INITIAL_RATING + 75);
+    const updated = recordRatedPatternRun(profile, 5, 5, 50); // 5 correct × +10
+    expect(updated.ratedPatterns.rating).toBe(RATED_PATTERN_INITIAL_RATING + 50);
+    expect(updated.ratedPatterns.highestRating).toBe(RATED_PATTERN_INITIAL_RATING + 50);
     expect(updated.ratedPatterns.totalSolved).toBe(5);
     expect(updated.ratedPatterns.totalAttempted).toBe(5);
     expect(updated.ratedPatterns.gamesPlayed).toBe(1);

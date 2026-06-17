@@ -21,10 +21,10 @@ export const BONUS_POINTS = 50;
 export const RATED_PATTERN_INITIAL_RATING = 600;
 
 /** Rating gained per correct answer. */
-export const RATED_PATTERN_GAIN = 15;
+export const RATED_PATTERN_GAIN = 10;
 
 /** Rating lost when a wrong answer ends the run. */
-export const RATED_PATTERN_LOSS = 25;
+export const RATED_PATTERN_LOSS = 35;
 
 /** How many rating history entries to keep (for sparkline / recent history). */
 export const RATED_PATTERN_HISTORY_SIZE = 20;

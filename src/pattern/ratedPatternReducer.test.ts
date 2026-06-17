@@ -45,7 +45,7 @@ describe("ANSWER action — correct", () => {
     expect(next.phase).toBe("playing");
     expect(next.solved).toBe(1);
     expect(next.attempted).toBe(1);
-    expect(next.rating).toBe(RATED_PATTERN_INITIAL_RATING + RATED_PATTERN_GAIN);
+    expect(next.rating).toBe(RATED_PATTERN_INITIAL_RATING + RATED_PATTERN_GAIN); // +10
     expect(next.lastResult).toBe("correct");
   });
 

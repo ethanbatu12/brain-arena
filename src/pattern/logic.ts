@@ -50,7 +50,7 @@ export function pointsForBand(band: number): number {
  * Clamped to [MIN_LEVEL, MAX_LEVEL].
  */
 export function bandForRating(rating: number): number {
-  return Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, Math.floor(rating / 200) + 1));
+  return Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, Math.floor(rating / 150) + 1));
 }
 
 // ── prime helpers ─────────────────────────────────────────────────────────────
