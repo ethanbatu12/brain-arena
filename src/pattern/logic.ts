@@ -12,7 +12,7 @@
  *    harder pattern types (geometric, Fibonacci, polynomial, …).
  */
 
-import { MAX_LEVEL, MIN_LEVEL } from "./constants";
+import { BASE_POINTS, MAX_LEVEL, MIN_LEVEL } from "./constants";
 import type { Pattern, PatternKind } from "./types";
 import type { Rng } from "../game/rng";
 
@@ -39,9 +39,18 @@ function pick<T>(arr: readonly T[], rng: Rng): T {
   return arr[Math.floor(rng() * arr.length)];
 }
 
-/** Points for this difficulty band (50 base, +5 per band above 1). */
+/** Points for this difficulty band (BASE_POINTS base, +5 per band above 1). */
 export function pointsForBand(band: number): number {
-  return 50 + (band - 1) * 5;
+  return BASE_POINTS + (band - 1) * 5;
+}
+
+/**
+ * Map a Rated Patterns rating to a logic band (1–10).
+ * Each 200 rating points = one band, so 600 → band 4, 1200 → band 7, etc.
+ * Clamped to [MIN_LEVEL, MAX_LEVEL].
+ */
+export function bandForRating(rating: number): number {
+  return Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, Math.floor(rating / 200) + 1));
 }
 
 // ── prime helpers ─────────────────────────────────────────────────────────────
@@ -128,9 +137,9 @@ function chooseGap(length: number, rng: Rng): number {
 }
 
 function buildArithmeticAdd(band: number, rng: Rng): Pattern {
-  const maxStart = band <= 3 ? 10 : band <= 6 ? 50 : 200;
-  const maxStep  = band <= 3 ? 5  : band <= 6 ? 15  : 40;
-  const length   = band <= 3 ? 5  : band <= 6 ? 6   : 7;
+  const maxStart = band === 1 ? 5  : band <= 3 ? 10 : band <= 6 ? 50 : 200;
+  const maxStep  = band === 1 ? 3  : band <= 3 ? 5  : band <= 6 ? 15 : 40;
+  const length   = band === 1 ? 5  : band <= 3 ? 5  : band <= 6 ? 6  : 7;
   const start = randInt(1, maxStart, rng);
   const step  = randInt(1, maxStep, rng);
   const nums  = Array.from({ length }, (_, i) => start + step * i);
@@ -147,9 +156,9 @@ function buildArithmeticAdd(band: number, rng: Rng): Pattern {
 }
 
 function buildArithmeticSub(band: number, rng: Rng): Pattern {
-  const maxStart = band <= 3 ? 50  : band <= 6 ? 200  : 500;
-  const maxStep  = band <= 3 ? 5   : band <= 6 ? 15   : 40;
-  const length   = band <= 3 ? 5   : band <= 6 ? 6    : 7;
+  const maxStart = band === 1 ? 20  : band <= 3 ? 50  : band <= 6 ? 200 : 500;
+  const maxStep  = band === 1 ? 3   : band <= 3 ? 5   : band <= 6 ? 15  : 40;
+  const length   = band === 1 ? 5   : band <= 3 ? 5   : band <= 6 ? 6   : 7;
   const step  = randInt(1, maxStep, rng);
   const start = randInt(step * (length - 1), maxStart, rng); // ensures all terms positive
   const nums  = Array.from({ length }, (_, i) => start - step * i);
@@ -406,38 +415,71 @@ function buildPolynomial(band: number, rng: Rng): Pattern {
 
 // ── kind pool per band ────────────────────────────────────────────────────────
 
-/** Pattern kinds available at each integer band (1–10). */
+/**
+ * Pattern kinds available at each integer band (1–10).
+ *
+ * Design rules:
+ *  - Number-based patterns make up the large majority at every band.
+ *  - Letter patterns appear at most once in each pool (≈1-in-6 at low bands,
+ *    absent from band 5+).
+ *  - Band 1 is entry-level: only the simplest arithmetic sequences.
+ *  - Difficulty widens gradually so some questions are very quick while
+ *    higher bands require real thought.
+ *
+ * The pool array is used for uniform random selection, so repeating a kind
+ * gives it proportionally higher weight.
+ */
 export function kindsForBand(band: number): PatternKind[] {
-  if (band <= 2) {
-    return ["arithmetic-add", "arithmetic-sub", "alphabet-add"];
+  if (band === 1) {
+    // Purely simple arithmetic — 2,4,6,?,10 style
+    return [
+      "arithmetic-add", "arithmetic-add", "arithmetic-add",
+      "arithmetic-sub", "arithmetic-sub",
+    ];
+  }
+  if (band === 2) {
+    // Still simple; no letters yet
+    return [
+      "arithmetic-add", "arithmetic-add",
+      "arithmetic-sub", "arithmetic-sub",
+      "arithmetic-add",
+    ];
   }
   if (band <= 4) {
+    // ~85 % numeric, ~15 % letter (1 out of 7 slots)
     return [
-      "arithmetic-add", "arithmetic-sub",
-      "alphabet-add", "alphabet-skip",
+      "arithmetic-add", "arithmetic-add",
+      "arithmetic-sub", "arithmetic-sub",
       "alternating",
+      "arithmetic-add",
+      "alphabet-add",   // ← only letter slot
     ];
   }
   if (band <= 6) {
+    // Geometric + Fibonacci introduced; one rare letter slot (1 in 8)
     return [
       "arithmetic-add", "arithmetic-sub",
-      "geometric", "geometric-div",
-      "alternating", "fibonacci",
-      "alphabet-skip", "triangular",
+      "geometric", "fibonacci",
+      "triangular", "alternating",
+      "arithmetic-sub",
+      "alphabet-skip",  // ← only letter slot
     ];
   }
   if (band <= 8) {
+    // No letters; harder number types
     return [
       "geometric", "geometric-div",
       "fibonacci", "squares",
-      "triangular", "primes",
-      "alternating", "polynomial",
+      "primes", "triangular",
+      "polynomial", "alternating",
     ];
   }
+  // Band 9–10: hardest pure-number types only
   return [
     "fibonacci", "squares", "cubes",
     "primes", "polynomial", "geometric",
     "triangular", "alternating",
+    "geometric-div",
   ];
 }
 

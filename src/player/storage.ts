@@ -1,5 +1,16 @@
 import { indexedDbProfileStore, type ProfileStore } from "./db";
-import { GAME_IDS, type GameId, type GameStats, type PlayerProfile, type RatedPuzzleStats } from "./types";
+import {
+  GAME_IDS,
+  type GameId,
+  type GameStats,
+  type PlayerProfile,
+  type RatedPatternStats,
+  type RatedPuzzleStats,
+} from "./types";
+import {
+  RATED_PATTERN_HISTORY_SIZE,
+  RATED_PATTERN_INITIAL_RATING,
+} from "../pattern/constants";
 
 const USERNAME_PATTERN = /^[A-Za-z0-9 _-]+$/;
 
@@ -10,6 +21,41 @@ export function emptyGameStats(): GameStats {
 }
 
 export const INITIAL_PUZZLE_RATING = 1000;
+
+export function emptyRatedPatternStats(): RatedPatternStats {
+  return {
+    rating: RATED_PATTERN_INITIAL_RATING,
+    highestRating: RATED_PATTERN_INITIAL_RATING,
+    gamesPlayed: 0,
+    totalSolved: 0,
+    totalAttempted: 0,
+    longestStreak: 0,
+    ratingHistory: [],
+  };
+}
+
+export function recordRatedPatternRun(
+  profile: PlayerProfile,
+  solvedThisRun: number,
+  attemptedThisRun: number,
+  ratingDelta: number,
+): PlayerProfile {
+  const prev = profile.ratedPatterns;
+  const newRating = Math.max(0, prev.rating + ratingDelta);
+  const newHistory = [...prev.ratingHistory, newRating].slice(-RATED_PATTERN_HISTORY_SIZE);
+  return {
+    ...profile,
+    ratedPatterns: {
+      rating: newRating,
+      highestRating: Math.max(prev.highestRating, newRating),
+      gamesPlayed: prev.gamesPlayed + 1,
+      totalSolved: prev.totalSolved + solvedThisRun,
+      totalAttempted: prev.totalAttempted + attemptedThisRun,
+      longestStreak: Math.max(prev.longestStreak, solvedThisRun),
+      ratingHistory: newHistory,
+    },
+  };
+}
 
 export function emptyRatedPuzzleStats(): RatedPuzzleStats {
   return {
@@ -91,6 +137,7 @@ export function createProfile(username: string, passwordHash: string, passwordSa
     combinedTotalScore: 0,
     challengeRunsCompleted: 0,
     ratedPuzzles: emptyRatedPuzzleStats(),
+    ratedPatterns: emptyRatedPatternStats(),
   };
 }
 
@@ -176,6 +223,11 @@ function normalizeRatedPuzzles(stats: Partial<RatedPuzzleStats> | undefined): Ra
   };
 }
 
+function normalizeRatedPatterns(stats: Partial<RatedPatternStats> | undefined): RatedPatternStats {
+  if (!stats) return emptyRatedPatternStats();
+  return { ...emptyRatedPatternStats(), ...stats, ratingHistory: stats.ratingHistory ?? [] };
+}
+
 function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile {
   return {
     ...profile,
@@ -185,6 +237,7 @@ function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile {
     combinedTotalScore: profile.combinedTotalScore ?? 0,
     challengeRunsCompleted: profile.challengeRunsCompleted ?? 0,
     ratedPuzzles: normalizeRatedPuzzles(profile.ratedPuzzles),
+    ratedPatterns: normalizeRatedPatterns(profile.ratedPatterns),
   } as PlayerProfile;
 }
 

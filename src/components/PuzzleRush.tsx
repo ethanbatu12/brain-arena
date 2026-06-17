@@ -6,9 +6,11 @@ import { ChessBoard } from "./ChessBoard";
 
 interface PuzzleRushProps {
   onExit: () => void;
+  mode?: "solo" | "challenge";
+  onRoundComplete?: (score: number) => void;
 }
 
-export function PuzzleRush({ onExit }: PuzzleRushProps) {
+export function PuzzleRush({ onExit, mode = "solo", onRoundComplete }: PuzzleRushProps) {
   const [state, dispatch] = useReducer(puzzleRushReduce, puzzleRushInitialState());
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [selected, setSelected] = useReducer(
@@ -17,6 +19,23 @@ export function PuzzleRush({ onExit }: PuzzleRushProps) {
   );
 
   const puzzleChess = state.currentPuzzle ? loadFen(state.currentPuzzle.fen) : null;
+
+  // Auto-start in challenge mode
+  useEffect(() => {
+    if (mode === "challenge" && state.phase === "idle") {
+      dispatch({ type: "START" });
+    }
+  }, [mode, state.phase]);
+
+  // Notify challenge when over
+  const reportedRef = useRef(false);
+  useEffect(() => {
+    if (mode === "challenge" && state.phase === "over" && !reportedRef.current) {
+      reportedRef.current = true;
+      onRoundComplete?.(state.score);
+    }
+    if (state.phase !== "over") reportedRef.current = false;
+  }, [mode, state.phase, state.score, onRoundComplete]);
 
   // Tick timer
   useEffect(() => {

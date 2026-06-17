@@ -7,14 +7,26 @@ import { LogicGame } from "./LogicGame";
 import { MathGame } from "./MathGame";
 import { MemoryGame } from "./MemoryGame";
 import { PatternGame } from "./PatternGame";
+import { PuzzleRush } from "./PuzzleRush";
 
-const STAGES = {
+type StageId = (typeof GAME_IDS)[number] | "chess-rush";
+
+const ALL_STAGES: StageId[] = [...GAME_IDS, "chess-rush"];
+const TOTAL_STAGES = ALL_STAGES.length; // 6
+
+const GAME_STAGES = {
   memory: MemoryGame,
   math: MathGame,
   logic: LogicGame,
   balloon: BalloonGame,
   pattern: PatternGame,
-};
+} as const;
+
+function stageName(id: StageId): string {
+  if (id === "chess-rush") return "Chess Puzzle Rush";
+  const meta = GAMES.find((g) => g.id === id);
+  return meta?.name ?? id;
+}
 
 interface AllGamesChallengeProps {
   profile: PlayerProfile;
@@ -30,12 +42,12 @@ export function AllGamesChallenge({ profile, onExit, recordCombinedResult }: All
     const nextScores = [...scores, score];
     setScores(nextScores);
 
-    if (stageIndex < GAME_IDS.length - 1) {
+    if (stageIndex < TOTAL_STAGES - 1) {
       setStageIndex(stageIndex + 1);
     } else {
       const total = nextScores.reduce((sum, s) => sum + s, 0);
       recordCombinedResult(total);
-      setStageIndex(GAME_IDS.length);
+      setStageIndex(TOTAL_STAGES);
     }
   };
 
@@ -46,7 +58,7 @@ export function AllGamesChallenge({ profile, onExit, recordCombinedResult }: All
           <div className="overlay__card">
             <h2>All Games Challenge</h2>
             <p className="overlay__lead">
-              Play all four games back-to-back, one after another. Your scores from
+              Play all six games back-to-back, one after another. Your scores from
               every game add up into one combined total — this is the ultimate test.
             </p>
             <button className="btn btn--primary" onClick={() => setStageIndex(0)}>
@@ -66,7 +78,7 @@ export function AllGamesChallenge({ profile, onExit, recordCombinedResult }: All
     );
   }
 
-  if (stageIndex === GAME_IDS.length) {
+  if (stageIndex === TOTAL_STAGES) {
     const total = scores.reduce((sum, s) => sum + s, 0);
     const isNewBest = total >= profile.combinedBestScore;
 
@@ -78,14 +90,11 @@ export function AllGamesChallenge({ profile, onExit, recordCombinedResult }: All
             <div className="overlay__score">{total.toLocaleString()}</div>
             {isNewBest && <p className="overlay__lead">New combined best!</p>}
             <ul className="overlay__rules">
-              {GAME_IDS.map((id, i) => {
-                const meta = GAMES.find((g) => g.id === id);
-                return (
-                  <li key={id}>
-                    {meta?.name ?? id}: <b>{scores[i]?.toLocaleString() ?? 0}</b>
-                  </li>
-                );
-              })}
+              {ALL_STAGES.map((id, i) => (
+                <li key={id}>
+                  {stageName(id)}: <b>{scores[i]?.toLocaleString() ?? 0}</b>
+                </li>
+              ))}
             </ul>
             <button className="btn btn--primary" onClick={onExit}>
               Back to hub
@@ -96,14 +105,24 @@ export function AllGamesChallenge({ profile, onExit, recordCombinedResult }: All
     );
   }
 
-  const stageId = GAME_IDS[stageIndex];
-  const Stage = STAGES[stageId];
-  const meta = GAMES.find((g) => g.id === stageId);
+  const stageId = ALL_STAGES[stageIndex];
 
+  if (stageId === "chess-rush") {
+    return (
+      <div className="challenge">
+        <p className="challenge__progress hud__sub">
+          Game {stageIndex + 1} of {TOTAL_STAGES} · Chess Puzzle Rush
+        </p>
+        <PuzzleRush key={stageIndex} mode="challenge" onExit={onExit} onRoundComplete={handleRoundComplete} />
+      </div>
+    );
+  }
+
+  const Stage = GAME_STAGES[stageId];
   return (
     <div className="challenge">
       <p className="challenge__progress hud__sub">
-        Game {stageIndex + 1} of {GAME_IDS.length} · {meta?.name ?? stageId}
+        Game {stageIndex + 1} of {TOTAL_STAGES} · {stageName(stageId)}
       </p>
       <Stage key={stageIndex} mode="challenge" onExit={onExit} onRoundComplete={handleRoundComplete} />
     </div>

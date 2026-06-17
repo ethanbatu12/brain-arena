@@ -1,5 +1,20 @@
 export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern";
 
+export interface RatedPatternStats {
+  rating: number;
+  highestRating: number;
+  /** Number of completed rated runs (each run ends on first wrong answer). */
+  gamesPlayed: number;
+  /** Total patterns answered correctly across all runs. */
+  totalSolved: number;
+  /** Total patterns attempted across all runs. */
+  totalAttempted: number;
+  /** Longest single run (patterns solved before the first wrong answer). */
+  longestStreak: number;
+  /** Last N final ratings, for history display. */
+  ratingHistory: number[];
+}
+
 export const GAME_IDS: GameId[] = ["memory", "math", "logic", "balloon", "pattern"];
 
 /** Per-puzzle attempt tally for one user, keyed by puzzle id. */
@@ -45,4 +60,5 @@ export interface PlayerProfile {
   /** Number of completed All Games Challenge runs. */
   challengeRunsCompleted: number;
   ratedPuzzles: RatedPuzzleStats;
+  ratedPatterns: RatedPatternStats;
 }

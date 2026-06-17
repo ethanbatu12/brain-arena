@@ -5,16 +5,19 @@ import {
   clearCurrentUsername,
   combinedAverageScore,
   createProfile,
+  emptyRatedPatternStats,
   loadCurrentUsername,
   loadProfiles,
   overallAverageScore,
   recordCombinedResult,
   recordGameResult,
+  recordRatedPatternRun,
   saveCurrentUsername,
   saveProfile,
   validatePassword,
   validateUsername,
 } from "./storage";
+import { RATED_PATTERN_INITIAL_RATING } from "../pattern/constants";
 import { clearAllForTests, indexedDbProfileStore } from "./db";
 
 const HASH = "deadbeef";
@@ -247,6 +250,53 @@ describe("profiles persistence", () => {
     expect(loaded.Alice.combinedBestScore).toBe(0);
     expect(loaded.Alice.combinedTotalScore).toBe(0);
     expect(loaded.Alice.challengeRunsCompleted).toBe(0);
+  });
+});
+
+describe("recordRatedPatternRun", () => {
+  it("initializes ratedPatterns with default rating", () => {
+    const profile = createProfile("Alice", HASH, SALT);
+    expect(profile.ratedPatterns).toEqual(emptyRatedPatternStats());
+    expect(profile.ratedPatterns.rating).toBe(RATED_PATTERN_INITIAL_RATING);
+  });
+
+  it("gains rating on correct run", () => {
+    const profile = createProfile("Alice", HASH, SALT);
+    const updated = recordRatedPatternRun(profile, 5, 5, 75); // 5 correct × +15
+    expect(updated.ratedPatterns.rating).toBe(RATED_PATTERN_INITIAL_RATING + 75);
+    expect(updated.ratedPatterns.highestRating).toBe(RATED_PATTERN_INITIAL_RATING + 75);
+    expect(updated.ratedPatterns.totalSolved).toBe(5);
+    expect(updated.ratedPatterns.totalAttempted).toBe(5);
+    expect(updated.ratedPatterns.gamesPlayed).toBe(1);
+    expect(updated.ratedPatterns.longestStreak).toBe(5);
+  });
+
+  it("loses rating on wrong answer run", () => {
+    const profile = createProfile("Alice", HASH, SALT);
+    const updated = recordRatedPatternRun(profile, 0, 1, -25);
+    expect(updated.ratedPatterns.rating).toBe(RATED_PATTERN_INITIAL_RATING - 25);
+    expect(updated.ratedPatterns.highestRating).toBe(RATED_PATTERN_INITIAL_RATING); // unchanged
+  });
+
+  it("does not let rating drop below 0", () => {
+    const profile = createProfile("Alice", HASH, SALT);
+    const updated = recordRatedPatternRun(profile, 0, 1, -9999);
+    expect(updated.ratedPatterns.rating).toBe(0);
+  });
+
+  it("tracks longest streak across multiple runs", () => {
+    let profile = createProfile("Alice", HASH, SALT);
+    profile = recordRatedPatternRun(profile, 3, 4, 20);
+    profile = recordRatedPatternRun(profile, 7, 8, 80);
+    expect(profile.ratedPatterns.longestStreak).toBe(7);
+  });
+
+  it("normalizes profiles missing ratedPatterns field", async () => {
+    const legacy = createProfile("Alice", HASH, SALT) as unknown as Record<string, unknown>;
+    delete legacy.ratedPatterns;
+    await indexedDbProfileStore.putProfile(legacy as never);
+    const loaded = await loadProfiles();
+    expect(loaded.Alice.ratedPatterns).toEqual(emptyRatedPatternStats());
   });
 });
 

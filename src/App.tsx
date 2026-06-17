@@ -9,7 +9,9 @@ import { LogicGame } from "./components/LogicGame";
 import { MathGame } from "./components/MathGame";
 import { MemoryGame } from "./components/MemoryGame";
 import { PatternGame } from "./components/PatternGame";
+import { PatternLobby } from "./components/PatternLobby";
 import { Profile } from "./components/Profile";
+import { RatedPatterns } from "./components/RatedPatterns";
 import { PuzzleRush } from "./components/PuzzleRush";
 import { RatedPuzzles } from "./components/RatedPuzzles";
 import { SignIn } from "./components/SignIn";
@@ -17,7 +19,7 @@ import { PlayerProvider, usePlayerProfile } from "./player/PlayerContext";
 import type { GameId } from "./player/types";
 
 export type { GameId };
-type Screen = "hub" | "profile" | "challenge" | "db" | "chess" | "chess-full" | "chess-puzzle" | "chess-rated" | GameId;
+type Screen = "hub" | "profile" | "challenge" | "db" | "chess" | "chess-full" | "chess-puzzle" | "chess-rated" | "pattern-lobby" | "pattern-timed" | "pattern-rated" | GameId;
 
 function AppShell() {
   const { profile, loading, createAccount, signIn, signOut, recordCombinedResult, recordRatedPuzzle } = usePlayerProfile();
@@ -66,7 +68,24 @@ function AppShell() {
       {screen === "math" && <MathGame onExit={goHub} />}
       {screen === "logic" && <LogicGame onExit={goHub} />}
       {screen === "balloon" && <BalloonGame onExit={goHub} />}
-      {screen === "pattern" && <PatternGame onExit={goHub} />}
+      {screen === "pattern" && (
+        <PatternLobby
+          ratedPatterns={profile.ratedPatterns}
+          onTimed={() => setScreen("pattern-timed")}
+          onRated={() => setScreen("pattern-rated")}
+          onBack={goHub}
+        />
+      )}
+      {screen === "pattern-lobby" && (
+        <PatternLobby
+          ratedPatterns={profile.ratedPatterns}
+          onTimed={() => setScreen("pattern-timed")}
+          onRated={() => setScreen("pattern-rated")}
+          onBack={goHub}
+        />
+      )}
+      {screen === "pattern-timed" && <PatternGame onExit={() => setScreen("pattern")} />}
+      {screen === "pattern-rated" && <RatedPatterns onExit={() => setScreen("pattern")} />}
       {screen === "chess" && (
         <ChessLobby
           onFullChess={() => setScreen("chess-full")}

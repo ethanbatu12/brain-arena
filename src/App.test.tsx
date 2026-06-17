@@ -7,6 +7,7 @@ import { GAME_MS } from "./game/constants";
 import { MATH_GAME_MS } from "./math/constants";
 import { CUBE_GAME_MS } from "./cube/constants";
 import { PATTERN_GAME_MS } from "./pattern/constants";
+import { PUZZLE_RUSH_MS } from "./chess/reducer";
 import { clearAllForTests } from "./player/db";
 import App from "./App";
 
@@ -287,7 +288,7 @@ describe("<App /> All Games Challenge", () => {
     vi.useRealTimers();
   });
 
-  it("runs all four games back-to-back, combines scores, and updates the profile", async () => {
+  it("runs all six games back-to-back, combines scores, and updates the profile", async () => {
     const user = userEvent.setup();
     const { container } = await renderApp();
     await signUp(user, "Alice");
@@ -306,29 +307,33 @@ describe("<App /> All Games Challenge", () => {
     };
 
     // Stage 1: Memory Matrix (auto-started)
-    expect(screen.getByText(/game 1 of 5/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 1 of 6/i)).toBeInTheDocument();
     finishStage(GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
     // Stage 2: Mental Math
-    expect(screen.getByText(/game 2 of 5/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 2 of 6/i)).toBeInTheDocument();
     finishStage(MATH_GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
     // Stage 3: Logic Challenge
-    expect(screen.getByText(/game 3 of 5/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 3 of 6/i)).toBeInTheDocument();
     finishStage(CUBE_GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
     // Stage 4: Balloon Order
-    expect(screen.getByText(/game 4 of 5/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 4 of 6/i)).toBeInTheDocument();
     finishStage(BALLOON_GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
     // Stage 5: Fill in the Pattern
-    expect(screen.getByText(/game 5 of 5/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 5 of 6/i)).toBeInTheDocument();
     finishStage(PATTERN_GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
+
+    // Stage 6: Chess Puzzle Rush (auto-advances via onRoundComplete when timer ends)
+    expect(screen.getByText(/game 6 of 6/i)).toBeInTheDocument();
+    finishStage(PUZZLE_RUSH_MS);
 
     vi.useRealTimers();
 

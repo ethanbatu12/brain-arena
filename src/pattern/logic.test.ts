@@ -38,9 +38,9 @@ describe("nextLevel", () => {
 });
 
 describe("pointsForBand", () => {
-  it("is 50 at band 1 and grows with band", () => {
-    expect(pointsForBand(1)).toBe(50);
-    expect(pointsForBand(10)).toBe(95);
+  it("is 75 at band 1 and grows with band", () => {
+    expect(pointsForBand(1)).toBe(75);
+    expect(pointsForBand(10)).toBe(120);
     expect(pointsForBand(5)).toBeGreaterThan(pointsForBand(3));
   });
 });
@@ -105,8 +105,9 @@ describe("makePattern — structural invariants across all bands", () => {
 
   it("only produces letter values for alphabet kinds", () => {
     let sawAlpha = false;
+    // Band 1 has no alphabet kinds; use band 3 where alphabet-add can appear
     for (let seed = 0; seed < 200; seed++) {
-      const p = makePattern(1, mulberry32(seed));
+      const p = makePattern(3, mulberry32(seed));
       if (p.kind === "alphabet-add" || p.kind === "alphabet-skip") {
         sawAlpha = true;
         // Every non-null term is a single uppercase letter
@@ -180,16 +181,17 @@ describe("makePattern — structural invariants across all bands", () => {
     }
   });
 
-  it("produces every easy kind across many seeds at band 1", () => {
+  it("produces only arithmetic kinds at band 1 (no letters)", () => {
     const seen = new Set<string>();
     for (let seed = 0; seed < 500; seed++) {
       const p = makePattern(1, mulberry32(seed));
       seen.add(p.kind);
     }
-    // All three band-1 kinds should appear
     expect(seen.has("arithmetic-add")).toBe(true);
     expect(seen.has("arithmetic-sub")).toBe(true);
-    expect(seen.has("alphabet-add")).toBe(true);
+    // Band 1 must not have letter kinds
+    expect(seen.has("alphabet-add")).toBe(false);
+    expect(seen.has("alphabet-skip")).toBe(false);
   });
 
   it("produces harder kinds at high bands", () => {
