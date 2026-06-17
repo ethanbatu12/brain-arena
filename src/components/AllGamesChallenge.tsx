@@ -6,12 +6,14 @@ import { BalloonGame } from "./BalloonGame";
 import { LogicGame } from "./LogicGame";
 import { MathGame } from "./MathGame";
 import { MemoryGame } from "./MemoryGame";
+import { PatternGame } from "./PatternGame";
 
 const STAGES = {
   memory: MemoryGame,
   math: MathGame,
   logic: LogicGame,
   balloon: BalloonGame,
+  pattern: PatternGame,
 };
 
 interface AllGamesChallengeProps {
@@ -101,7 +103,7 @@ export function AllGamesChallenge({ profile, onExit, recordCombinedResult }: All
   return (
     <div className="challenge">
       <p className="challenge__progress hud__sub">
-        Game {stageIndex + 1} of {GAME_IDS.length} · {meta?.name}
+        Game {stageIndex + 1} of {GAME_IDS.length} · {meta?.name ?? stageId}
       </p>
       <Stage key={stageIndex} mode="challenge" onExit={onExit} onRoundComplete={handleRoundComplete} />
     </div>

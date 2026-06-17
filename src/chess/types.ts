@@ -50,15 +50,40 @@ export interface MoveFlags {
 
 export type PromotionPiece = "Q" | "R" | "B" | "N";
 
+/** High-level category used for display + database filtering. Never reveals the move. */
+export type PuzzleType =
+  | "mate"        // forced checkmate
+  | "material"    // win decisive material
+  | "fork"
+  | "pin"
+  | "skewer"
+  | "discovered"  // discovered attack / check
+  | "promotion"
+  | "endgame"     // endgame conversion (K+P, rook endings, …)
+  | "defensive"   // the only move that survives
+  | "sacrifice"
+  | "tactic";     // general combination
+
 export interface ChessPuzzle {
   id: number;
   fen: string;
-  solution: Move;
+  /**
+   * The forced best line as alternating moves: player, opponent reply, player, …
+   * Player moves are at EVEN indices (0, 2, 4); forced opponent replies at ODD indices.
+   * A single-element array is a one-move puzzle.
+   */
+  solution: Move[];
   difficulty: "beginner" | "intermediate" | "advanced" | "expert" | "master" | "grandmaster";
   ratingMin: number;
   ratingMax: number;
+  /** Category for DB filtering / post-solve display. */
+  puzzleType: PuzzleType;
+  /** Short tactic tag (e.g. "fork"). Shown only AFTER the puzzle is over. */
   theme: string;
+  /** Vague task shown BEFORE solving — must NOT name a piece, square, or direction. */
   description: string;
+  /** Why the solution works. Shown ONLY after the puzzle ends; may name squares. */
+  explanation: string;
 }
 
 export interface PuzzleRushState {

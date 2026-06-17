@@ -1,6 +1,12 @@
-export type GameId = "memory" | "math" | "logic" | "balloon";
+export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern";
 
-export const GAME_IDS: GameId[] = ["memory", "math", "logic", "balloon"];
+export const GAME_IDS: GameId[] = ["memory", "math", "logic", "balloon", "pattern"];
+
+/** Per-puzzle attempt tally for one user, keyed by puzzle id. */
+export interface PuzzleResultStat {
+  attempts: number;
+  solves: number;
+}
 
 export interface RatedPuzzleStats {
   rating: number;
@@ -9,6 +15,8 @@ export interface RatedPuzzleStats {
   totalCorrect: number;
   totalIncorrect: number;
   totalSolveTimeMs: number;
+  /** Success/failure stats per puzzle id, so progress can be tracked per puzzle per user. */
+  puzzleStats: Record<number, PuzzleResultStat>;
 }
 
 export interface GameStats {

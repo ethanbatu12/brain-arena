@@ -262,11 +262,12 @@ export function puzzleRushReduce(state: PuzzleRushState, action: PuzzleRushActio
 
     case "SUBMIT_MOVE": {
       if (state.phase !== "playing" || !state.currentPuzzle) return state;
-      const { solution } = state.currentPuzzle;
+      // PuzzleRush is a one-move-per-puzzle mode, so it only checks the first move of the line.
+      const firstMove = state.currentPuzzle.solution[0];
       const correct =
-        action.move.from === solution.from &&
-        action.move.to === solution.to &&
-        (!solution.promotion || action.move.promotion === solution.promotion);
+        action.move.from === firstMove.from &&
+        action.move.to === firstMove.to &&
+        (!firstMove.promotion || action.move.promotion === firstMove.promotion);
 
       if (correct) {
         const streak = state.streak + 1;

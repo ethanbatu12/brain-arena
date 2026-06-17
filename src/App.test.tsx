@@ -6,6 +6,7 @@ import { MIN_LEVEL, BALLOON_GAME_MS } from "./balloon/constants";
 import { GAME_MS } from "./game/constants";
 import { MATH_GAME_MS } from "./math/constants";
 import { CUBE_GAME_MS } from "./cube/constants";
+import { PATTERN_GAME_MS } from "./pattern/constants";
 import { clearAllForTests } from "./player/db";
 import App from "./App";
 
@@ -305,23 +306,28 @@ describe("<App /> All Games Challenge", () => {
     };
 
     // Stage 1: Memory Matrix (auto-started)
-    expect(screen.getByText(/game 1 of 4/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 1 of 5/i)).toBeInTheDocument();
     finishStage(GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
     // Stage 2: Mental Math
-    expect(screen.getByText(/game 2 of 4/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 2 of 5/i)).toBeInTheDocument();
     finishStage(MATH_GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
     // Stage 3: Logic Challenge
-    expect(screen.getByText(/game 3 of 4/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 3 of 5/i)).toBeInTheDocument();
     finishStage(CUBE_GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
     // Stage 4: Balloon Order
-    expect(screen.getByText(/game 4 of 4/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 4 of 5/i)).toBeInTheDocument();
     finishStage(BALLOON_GAME_MS);
+    fireEvent.click(screen.getByRole("button", { name: /continue/i }));
+
+    // Stage 5: Fill in the Pattern
+    expect(screen.getByText(/game 5 of 5/i)).toBeInTheDocument();
+    finishStage(PATTERN_GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
     vi.useRealTimers();

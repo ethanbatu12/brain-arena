@@ -8,6 +8,7 @@ import { Hub } from "./components/Hub";
 import { LogicGame } from "./components/LogicGame";
 import { MathGame } from "./components/MathGame";
 import { MemoryGame } from "./components/MemoryGame";
+import { PatternGame } from "./components/PatternGame";
 import { Profile } from "./components/Profile";
 import { PuzzleRush } from "./components/PuzzleRush";
 import { RatedPuzzles } from "./components/RatedPuzzles";
@@ -65,6 +66,7 @@ function AppShell() {
       {screen === "math" && <MathGame onExit={goHub} />}
       {screen === "logic" && <LogicGame onExit={goHub} />}
       {screen === "balloon" && <BalloonGame onExit={goHub} />}
+      {screen === "pattern" && <PatternGame onExit={goHub} />}
       {screen === "chess" && (
         <ChessLobby
           onFullChess={() => setScreen("chess-full")}

@@ -37,6 +37,13 @@ export const GAMES: GameMeta[] = [
     blurb: "Tap the balloons from smallest to largest before time runs out.",
     accent: "var(--balloon)",
   },
+  {
+    id: "pattern",
+    name: "Fill in the Pattern",
+    tag: "Pattern recognition",
+    blurb: "Spot the rule, find the missing term. Sequences grow harder as you go.",
+    accent: "var(--pattern)",
+  },
 ];
 
 export interface ChallengeMeta {
@@ -51,6 +58,6 @@ export const CHALLENGE_META: ChallengeMeta = {
   id: "challenge",
   name: "All Games Challenge",
   tag: "Ultimate test",
-  blurb: "Play all four games back-to-back. Your scores combine into one ultimate total.",
+  blurb: "Play all five games back-to-back. Your scores combine into one ultimate total.",
   accent: "var(--challenge)",
 };

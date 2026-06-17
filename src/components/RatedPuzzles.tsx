@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ChessPuzzle, Move, Square } from "../chess/types";
-import { legalMoves, loadFen } from "../chess/engine";
+import type { ChessPuzzle, ChessState, Color, Move, Square } from "../chess/types";
+import { legalMoves, loadFen, makeMove } from "../chess/engine";
 import { getPuzzleForRating, tierForRating } from "../chess/puzzles";
 import { ratingGainForTime } from "../player/storage";
 import type { RatedPuzzleStats } from "../player/types";
@@ -8,7 +8,7 @@ import type { RatedPuzzleStats } from "../player/types";
 interface RatedPuzzlesProps {
   ratedPuzzles: RatedPuzzleStats;
   onExit: () => void;
-  onResult: (correct: boolean, elapsedMs: number) => void;
+  onResult: (correct: boolean, elapsedMs: number, puzzleId?: number) => void;
 }
 
 type Phase = "idle" | "solving" | "result";
@@ -40,6 +40,19 @@ const TIER_DESCRIPTIONS: Record<string, string> = {
   grandmaster:  "Long forcing lines requiring near-perfect foresight.",
 };
 
+const TIER_RANGES: Record<string, string> = {
+  beginner: "0–400", intermediate: "401–800", advanced: "801–1200",
+  expert: "1201–1600", master: "1601–2000", grandmaster: "2001+",
+};
+
+const REVEAL_MS = 2500;   // how long the correct move stays highlighted after a miss
+const REPLY_MS = 600;     // delay before the forced opponent reply is played
+
+const PIECE_UNICODE: Record<string, string> = {
+  wK: "♔", wQ: "♕", wR: "♖", wB: "♗", wN: "♘", wP: "♙",
+  bK: "♚", bQ: "♛", bR: "♜", bB: "♝", bN: "♞", bP: "♟",
+};
+
 function formatTime(ms: number): string {
   const totalSec = Math.floor(ms / 1000);
   const m = Math.floor(totalSec / 60);
@@ -51,91 +64,137 @@ function squareName(idx: number): string {
   return String.fromCharCode(97 + (idx % 8)) + (Math.floor(idx / 8) + 1);
 }
 
-const PIECE_UNICODE: Record<string, string> = {
-  wK: "♔", wQ: "♕", wR: "♖", wB: "♗", wN: "♘", wP: "♙",
-  bK: "♚", bQ: "♛", bR: "♜", bB: "♝", bN: "♞", bP: "♟",
-};
+function solutionLine(p: ChessPuzzle): string {
+  return p.solution
+    .map((m) => `${squareName(m.from)}→${squareName(m.to)}${m.promotion ? "=" + m.promotion : ""}`)
+    .join("   ");
+}
 
 export function RatedPuzzles({ ratedPuzzles, onExit, onResult }: RatedPuzzlesProps) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [currentPuzzle, setCurrentPuzzle] = useState<ChessPuzzle | null>(null);
+  const [gameState, setGameState] = useState<ChessState | null>(null);
+  const [orientation, setOrientation] = useState<Color>("w");
+  const [stepIndex, setStepIndex] = useState(0);
+  const [showingSolution, setShowingSolution] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState<{ sq: Square | null; legal: Move[] }>({ sq: null, legal: [] });
   const [lastResult, setLastResult] = useState<{ correct: boolean; gain: number; elapsedMs: number } | null>(null);
-  const startTimeRef = useRef<number>(0);
   const [elapsed, setElapsed] = useState(0);
+
+  const startTimeRef = useRef<number>(0);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const usedIdsRef = useRef<Set<number>>(new Set());
 
-  const puzzleChess = phase === "solving" && currentPuzzle ? loadFen(currentPuzzle.fen) : null;
+  const clearTimeouts = useCallback(() => {
+    for (const t of timeoutsRef.current) clearTimeout(t);
+    timeoutsRef.current = [];
+  }, []);
 
-  // Pick a puzzle appropriate for the current rating, avoiding recent repeats
+  const schedule = useCallback((fn: () => void, ms: number) => {
+    const t = setTimeout(fn, ms);
+    timeoutsRef.current.push(t);
+  }, []);
+
+  // Pick a puzzle for the current rating, avoiding recent repeats
   const pickPuzzle = useCallback((rating: number): ChessPuzzle => {
     const puzzle = getPuzzleForRating(rating, usedIdsRef.current);
     usedIdsRef.current.add(puzzle.id);
-    // Reset used set when it grows large so puzzles can repeat after a long session
     if (usedIdsRef.current.size >= 8) usedIdsRef.current.clear();
     return puzzle;
   }, []);
 
-  // Live timer
+  const beginPuzzle = useCallback((rating: number) => {
+    clearTimeouts();
+    const puzzle = pickPuzzle(rating);
+    const state = loadFen(puzzle.fen);
+    setCurrentPuzzle(puzzle);
+    setGameState(state);
+    setOrientation(state.turn);
+    setStepIndex(0);
+    setShowingSolution(false);
+    setBusy(false);
+    setSelected({ sq: null, legal: [] });
+    setLastResult(null);
+    startTimeRef.current = Date.now();
+    setElapsed(0);
+    setPhase("solving");
+  }, [clearTimeouts, pickPuzzle]);
+
+  // Live timer (paused once the answer is locked in)
   useEffect(() => {
-    if (phase === "solving") {
-      startTimeRef.current = Date.now();
-      setElapsed(0);
-      tickRef.current = setInterval(() => setElapsed(Date.now() - startTimeRef.current), 500);
-    } else {
-      if (tickRef.current) clearInterval(tickRef.current);
+    if (phase === "solving" && !showingSolution) {
+      tickRef.current = setInterval(() => setElapsed(Date.now() - startTimeRef.current), 250);
     }
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
-  }, [phase, currentPuzzle]);
+  }, [phase, showingSolution]);
 
-  // Reset selection when puzzle changes
-  useEffect(() => {
+  // Clean up timers on unmount
+  useEffect(() => () => clearTimeouts(), [clearTimeouts]);
+
+  const finishWith = useCallback((correct: boolean, elapsedMs: number, puzzleId: number) => {
+    const gain = correct ? ratingGainForTime(elapsedMs) : -10;
+    onResult(correct, elapsedMs, puzzleId);
+    setLastResult({ correct, gain, elapsedMs });
+    setPhase("result");
+  }, [onResult]);
+
+  const attemptMove = useCallback((move: Move) => {
+    if (!gameState || !currentPuzzle) return;
+    const elapsedMs = Date.now() - startTimeRef.current;
+    const expected = currentPuzzle.solution[stepIndex];
+    const isCorrect =
+      move.from === expected.from &&
+      move.to === expected.to &&
+      (!expected.promotion || move.promotion === expected.promotion);
+
     setSelected({ sq: null, legal: [] });
-  }, [currentPuzzle]);
 
-  const startPuzzle = useCallback(() => {
-    setCurrentPuzzle(pickPuzzle(ratedPuzzles.rating));
-    setLastResult(null);
-    setPhase("solving");
-  }, [pickPuzzle, ratedPuzzles.rating]);
-
-  // Rating is already updated in ratedPuzzles prop by the time user clicks Next
-  const nextPuzzle = useCallback(() => {
-    setCurrentPuzzle(pickPuzzle(ratedPuzzles.rating));
-    setLastResult(null);
-    setPhase("solving");
-  }, [pickPuzzle, ratedPuzzles.rating]);
-
-  function handleSquareClick(sq: Square) {
-    if (phase !== "solving" || !puzzleChess || !currentPuzzle) return;
-
-    if (selected.sq !== null) {
-      const move = selected.legal.find((m) => m.to === sq);
-      if (move) {
-        const elapsedMs = Date.now() - startTimeRef.current;
-        const { solution } = currentPuzzle;
-        const correct =
-          move.from === solution.from &&
-          move.to === solution.to &&
-          (!solution.promotion || move.promotion === solution.promotion);
-
-        const gain = correct ? ratingGainForTime(elapsedMs) : -10;
-        setLastResult({ correct, gain, elapsedMs });
-        setSelected({ sq: null, legal: [] });
-        setPhase("result");
-        onResult(correct, elapsedMs);
-        return;
-      }
+    if (!isCorrect) {
+      // Reveal the correct move on the board, then show the result screen.
+      setShowingSolution(true);
+      schedule(() => {
+        setShowingSolution(false);
+        finishWith(false, elapsedMs, currentPuzzle.id);
+      }, REVEAL_MS);
+      return;
     }
 
-    const piece = puzzleChess.board[sq];
-    if (piece && piece.color === puzzleChess.turn) {
-      setSelected({ sq, legal: legalMoves(puzzleChess, sq) });
+    // Correct: play the move on the live board.
+    const afterPlayer = makeMove(gameState, move);
+    setGameState(afterPlayer);
+
+    const isLastStep = stepIndex >= currentPuzzle.solution.length - 1;
+    if (isLastStep) {
+      finishWith(true, elapsedMs, currentPuzzle.id);
+      return;
+    }
+
+    // A forced opponent reply follows — play it automatically after a beat.
+    setBusy(true);
+    const reply = currentPuzzle.solution[stepIndex + 1];
+    schedule(() => {
+      setGameState((gs) => (gs ? makeMove(gs, reply) : gs));
+      setStepIndex((i) => i + 2);
+      setBusy(false);
+    }, REPLY_MS);
+  }, [gameState, currentPuzzle, stepIndex, schedule, finishWith]);
+
+  const handleSquareClick = useCallback((sqIdx: Square) => {
+    if (phase !== "solving" || showingSolution || busy || !gameState) return;
+
+    if (selected.sq !== null) {
+      const move = selected.legal.find((m) => m.to === sqIdx);
+      if (move) { attemptMove(move); return; }
+    }
+    const piece = gameState.board[sqIdx];
+    if (piece && piece.color === gameState.turn) {
+      setSelected({ sq: sqIdx, legal: legalMoves(gameState, sqIdx) });
     } else {
       setSelected({ sq: null, legal: [] });
     }
-  }
+  }, [phase, showingSolution, busy, gameState, selected, attemptMove]);
 
   const tier = tierForRating(ratedPuzzles.rating);
   const tierLabel = TIER_LABELS[tier.difficulty];
@@ -181,14 +240,13 @@ export function RatedPuzzles({ ratedPuzzles, onExit, onResult }: RatedPuzzlesPro
           <h2 className="profile__section-title">Difficulty Tiers</h2>
           <div className="rated__tier-table">
             {Object.entries(TIER_LABELS).map(([key, label]) => {
-              const t = { beginner: "0–400", intermediate: "401–800", advanced: "801–1200", expert: "1201–1600", master: "1601–2000", grandmaster: "2001+" }[key];
               const active = key === tier.difficulty;
               return (
                 <div key={key} className={`rated__tier-row${active ? " rated__tier-row--active" : ""}`}
                   style={active ? { borderColor: TIER_COLORS[key], background: `${TIER_COLORS[key]}18` } : undefined}>
                   <span className="rated__tier-dot" style={{ background: TIER_COLORS[key] }} />
                   <span className="rated__tier-name" style={active ? { color: TIER_COLORS[key] } : undefined}>{label}</span>
-                  <span className="rated__tier-range">{t}</span>
+                  <span className="rated__tier-range">{TIER_RANGES[key]}</span>
                 </div>
               );
             })}
@@ -200,10 +258,10 @@ export function RatedPuzzles({ ratedPuzzles, onExit, onResult }: RatedPuzzlesPro
           <ul className="overlay__rules">
             <li>Solve within <b>1 minute</b>: <span className="rated__gain">+20</span></li>
             <li>Solve within <b>2 minutes</b>: <span className="rated__gain">+15</span></li>
-            <li>Solve after <b>2 minutes</b>: <span className="rated__gain">+10</span></li>
+            <li>Solve after <b>3 minutes</b>: <span className="rated__gain">+10</span> (floor)</li>
             <li>Wrong answer: <span className="rated__loss">−10</span> (floor 0)</li>
           </ul>
-          <button className="btn btn--primary" style={{ marginTop: "1.5rem" }} onClick={startPuzzle}>
+          <button className="btn btn--primary" style={{ marginTop: "1.5rem" }} onClick={() => beginPuzzle(ratedPuzzles.rating)}>
             Start Solving
           </button>
         </section>
@@ -215,7 +273,6 @@ export function RatedPuzzles({ ratedPuzzles, onExit, onResult }: RatedPuzzlesPro
   if (phase === "result" && lastResult && currentPuzzle) {
     const { correct, gain, elapsedMs } = lastResult;
     const newTier = tierForRating(ratedPuzzles.rating);
-    const tierChanged = newTier.difficulty !== tier.difficulty;
 
     return (
       <div className="app__shell">
@@ -254,27 +311,17 @@ export function RatedPuzzles({ ratedPuzzles, onExit, onResult }: RatedPuzzlesPro
             </div>
           </div>
 
-          {tierChanged && (
-            <div className="rated__tier-change" style={{ borderColor: TIER_COLORS[newTier.difficulty] }}>
-              <span style={{ color: TIER_COLORS[newTier.difficulty] }}>
-                Tier changed → {TIER_LABELS[newTier.difficulty]}
-              </span>
-              <span className="rated__tier-desc">{TIER_DESCRIPTIONS[newTier.difficulty]}</span>
-            </div>
-          )}
-
+          {/* Solution + explanation are revealed only now that the puzzle is over. */}
           <p className="chess-puzzle__theme" style={{ marginTop: "1rem" }}>
-            Theme: {currentPuzzle.theme} · {TIER_LABELS[currentPuzzle.difficulty]}
+            {TIER_LABELS[currentPuzzle.difficulty]} · {currentPuzzle.theme}
           </p>
-          <p className="chess-puzzle__prompt">{currentPuzzle.description}</p>
-          {correct && (
-            <p className="chess-puzzle__prompt" style={{ color: "var(--good)" }}>
-              Solution: {squareName(currentPuzzle.solution.from)} → {squareName(currentPuzzle.solution.to)}
-            </p>
-          )}
+          <p className="chess-puzzle__prompt" style={{ color: correct ? "var(--good)" : "var(--bad, #ef4444)" }}>
+            Solution: {solutionLine(currentPuzzle)}
+          </p>
+          <p className="chess-puzzle__prompt">{currentPuzzle.explanation}</p>
 
           <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
-            <button className="btn btn--primary" onClick={nextPuzzle}>Next Puzzle</button>
+            <button className="btn btn--primary" onClick={() => beginPuzzle(ratedPuzzles.rating)}>Next Puzzle</button>
             <button className="btn btn--ghost" onClick={onExit}>Back to Chess</button>
           </div>
         </section>
@@ -283,13 +330,19 @@ export function RatedPuzzles({ ratedPuzzles, onExit, onResult }: RatedPuzzlesPro
   }
 
   // ── Solving ───────────────────────────────────────────────────────────────
-  if (!puzzleChess || !currentPuzzle) return null;
+  if (!gameState || !currentPuzzle) return null;
 
   const legalTargets = new Set(selected.legal.map((m) => m.to));
-  const legalCaptures = new Set(selected.legal.filter((m) => puzzleChess.board[m.to] !== null).map((m) => m.to));
-  const flipped = puzzleChess.turn === "b";
+  const legalCaptures = new Set(selected.legal.filter((m) => gameState.board[m.to] !== null).map((m) => m.to));
+  const flipped = orientation === "b";
   const ranks = flipped ? [0,1,2,3,4,5,6,7] : [7,6,5,4,3,2,1,0];
   const files = flipped ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
+
+  // Highlight the correct move only while revealing it after a wrong attempt.
+  const revealMove = showingSolution ? currentPuzzle.solution[stepIndex] : null;
+
+  const totalPlayerMoves = Math.ceil(currentPuzzle.solution.length / 2);
+  const currentPlayerMove = Math.floor(stepIndex / 2) + 1;
 
   return (
     <div className="app__shell chess-puzzle">
@@ -316,7 +369,10 @@ export function RatedPuzzles({ ratedPuzzles, onExit, onResult }: RatedPuzzlesPro
       </div>
 
       <p className="chess-puzzle__prompt">
-        {puzzleChess.turn === "w" ? "White" : "Black"} to move — <em>{currentPuzzle.description}</em>
+        {gameState.turn === "w" ? "White" : "Black"} to move — <em>{currentPuzzle.description}</em>
+        {totalPlayerMoves > 1 && (
+          <span className="rated__step"> · move {currentPlayerMove} of {totalPlayerMoves}</span>
+        )}
       </p>
 
       <div className="chess-board" role="grid" aria-label="Chess board">
@@ -324,15 +380,19 @@ export function RatedPuzzles({ ratedPuzzles, onExit, onResult }: RatedPuzzlesPro
           <div key={r} className="chess-board__rank" role="row">
             {files.map((f) => {
               const sqIdx = r * 8 + f;
-              const piece = puzzleChess.board[sqIdx];
+              const piece = gameState.board[sqIdx];
               const isLight = (f + r) % 2 === 1;
               const isSelected = sqIdx === selected.sq;
               const isLegal = legalTargets.has(sqIdx);
               const isCapture = legalCaptures.has(sqIdx);
+              const isRevealFrom = revealMove?.from === sqIdx;
+              const isRevealTo = revealMove?.to === sqIdx;
               const classes = [
                 "chess-board__sq",
                 isLight ? "chess-board__sq--light" : "chess-board__sq--dark",
                 isSelected ? "chess-board__sq--selected" : "",
+                isRevealFrom ? "chess-board__sq--solution-from" : "",
+                isRevealTo ? "chess-board__sq--solution-to" : "",
               ].filter(Boolean).join(" ");
               return (
                 <div key={sqIdx} className={classes} onClick={() => handleSquareClick(sqIdx)} role="gridcell">
@@ -358,9 +418,11 @@ export function RatedPuzzles({ ratedPuzzles, onExit, onResult }: RatedPuzzlesPro
         ))}
       </div>
 
-      <p className="chess-puzzle__theme" style={{ color: tierColor }}>
-        {TIER_LABELS[currentPuzzle.difficulty]} · {currentPuzzle.theme}
-      </p>
+      {showingSolution && (
+        <p className="chess-puzzle__theme" style={{ color: "var(--bad, #ef4444)" }}>
+          Not quite — here is the best move.
+        </p>
+      )}
     </div>
   );
 }

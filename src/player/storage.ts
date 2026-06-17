@@ -19,10 +19,14 @@ export function emptyRatedPuzzleStats(): RatedPuzzleStats {
     totalCorrect: 0,
     totalIncorrect: 0,
     totalSolveTimeMs: 0,
+    puzzleStats: {},
   };
 }
 
-/** Points gained for solving a puzzle based on elapsed seconds. */
+/**
+ * Points gained for solving a puzzle based on elapsed time.
+ * ≤1 min: +20, then −5 per extra minute, floored at +10 after 3 minutes.
+ */
 export function ratingGainForTime(elapsedMs: number): number {
   const minutes = elapsedMs / 60_000;
   if (minutes <= 1) return 20;
@@ -34,10 +38,21 @@ export function recordRatedPuzzleResult(
   profile: PlayerProfile,
   correct: boolean,
   elapsedMs: number,
+  puzzleId?: number,
 ): PlayerProfile {
   const prev = profile.ratedPuzzles;
   const gain = correct ? ratingGainForTime(elapsedMs) : -10;
   const newRating = Math.max(0, prev.rating + gain);
+
+  const puzzleStats = { ...prev.puzzleStats };
+  if (puzzleId !== undefined) {
+    const cell = puzzleStats[puzzleId] ?? { attempts: 0, solves: 0 };
+    puzzleStats[puzzleId] = {
+      attempts: cell.attempts + 1,
+      solves: cell.solves + (correct ? 1 : 0),
+    };
+  }
+
   const updated: RatedPuzzleStats = {
     rating: newRating,
     highestRating: Math.max(prev.highestRating, newRating),
@@ -45,6 +60,7 @@ export function recordRatedPuzzleResult(
     totalCorrect: prev.totalCorrect + (correct ? 1 : 0),
     totalIncorrect: prev.totalIncorrect + (correct ? 0 : 1),
     totalSolveTimeMs: prev.totalSolveTimeMs + (correct ? elapsedMs : 0),
+    puzzleStats,
   };
   return { ...profile, ratedPuzzles: updated };
 }
@@ -151,6 +167,15 @@ export function combinedAverageScore(profile: PlayerProfile): number {
   return profile.combinedTotalScore / profile.challengeRunsCompleted;
 }
 
+function normalizeRatedPuzzles(stats: Partial<RatedPuzzleStats> | undefined): RatedPuzzleStats {
+  if (!stats) return emptyRatedPuzzleStats();
+  return {
+    ...emptyRatedPuzzleStats(),
+    ...stats,
+    puzzleStats: stats.puzzleStats ?? {},
+  };
+}
+
 function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile {
   return {
     ...profile,
@@ -159,7 +184,7 @@ function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile {
     combinedBestScore: profile.combinedBestScore ?? 0,
     combinedTotalScore: profile.combinedTotalScore ?? 0,
     challengeRunsCompleted: profile.challengeRunsCompleted ?? 0,
-    ratedPuzzles: profile.ratedPuzzles ?? emptyRatedPuzzleStats(),
+    ratedPuzzles: normalizeRatedPuzzles(profile.ratedPuzzles),
   } as PlayerProfile;
 }
 

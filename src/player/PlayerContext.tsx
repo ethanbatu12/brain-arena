@@ -23,7 +23,7 @@ interface PlayerContextValue {
   signOut: () => void;
   recordResult: (gameId: GameId, score: number) => void;
   recordCombinedResult: (score: number) => void;
-  recordRatedPuzzle: (correct: boolean, elapsedMs: number) => void;
+  recordRatedPuzzle: (correct: boolean, elapsedMs: number, puzzleId?: number) => void;
   existingUsernames: string[];
 }
 
@@ -128,12 +128,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   );
 
   const recordRatedPuzzle = useCallback(
-    (correct: boolean, elapsedMs: number) => {
+    (correct: boolean, elapsedMs: number, puzzleId?: number) => {
       setProfiles((prev) => {
         if (!currentUsername) return prev;
         const current = prev[currentUsername];
         if (!current) return prev;
-        const updated = recordRatedPuzzleResult(current, correct, elapsedMs);
+        const updated = recordRatedPuzzleResult(current, correct, elapsedMs, puzzleId);
         void saveProfile(updated);
         return { ...prev, [currentUsername]: updated };
       });
