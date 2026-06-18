@@ -18,6 +18,7 @@ import {
 import { applyAchievements, checkAchievements } from "./achievements";
 import { getDailyGameId, recordDailyChallengeResult } from "./dailyChallenge";
 import { getToday, updateStreak } from "./streak";
+import { pushToGlobalLeaderboard } from "../leaderboard/globalLeaderboard";
 
 /** Apply streak update + achievement check to an already-updated profile. */
 function applyPostGameEffects(profile: PlayerProfile): {
@@ -139,6 +140,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const { updated: final, newAchievements } = applyPostGameEffects(updated);
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(final);
+        void pushToGlobalLeaderboard(final);
         return { ...prev, [currentUsername]: final };
       });
     },
@@ -155,6 +157,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const { updated, newAchievements } = applyPostGameEffects(afterResult);
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(updated);
+        void pushToGlobalLeaderboard(updated);
         return { ...prev, [currentUsername]: updated };
       });
     },
@@ -171,6 +174,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const { updated, newAchievements } = applyPostGameEffects(afterResult);
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(updated);
+        void pushToGlobalLeaderboard(updated);
         return { ...prev, [currentUsername]: updated };
       });
     },
@@ -187,6 +191,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const { updated, newAchievements } = applyPostGameEffects(afterResult);
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(updated);
+        void pushToGlobalLeaderboard(updated);
         return { ...prev, [currentUsername]: updated };
       });
     },

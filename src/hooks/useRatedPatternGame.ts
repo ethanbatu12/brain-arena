@@ -7,7 +7,6 @@ import {
   type RatedPatternState,
 } from "../pattern/ratedPatternReducer";
 import { usePlayerProfile } from "../player/PlayerContext";
-import { RATED_PATTERN_GAIN, RATED_PATTERN_LOSS } from "../pattern/constants";
 
 export function useRatedPatternGame() {
   const { profile, recordRatedPatternRun } = usePlayerProfile();
@@ -29,13 +28,12 @@ export function useRatedPatternGame() {
   useEffect(() => {
     if (state.phase === "over" && !recordedRef.current) {
       recordedRef.current = true;
-      const ratingDelta =
-        state.solved * RATED_PATTERN_GAIN -
-        (state.lastResult === "wrong" ? RATED_PATTERN_LOSS : 0);
+      // Net rating delta over the whole session
+      const ratingDelta = state.rating - state.startRating;
       recordRatedPatternRun(state.solved, state.attempted, ratingDelta);
     }
     if (state.phase !== "over") recordedRef.current = false;
-  }, [state.phase, state.solved, state.attempted, state.lastResult, recordRatedPatternRun]);
+  }, [state.phase, state.rating, state.startRating, state.solved, state.attempted, recordRatedPatternRun]);
 
   const start = useCallback(() => {
     rngRef.current = mulberry32((Math.random() * 2 ** 31) >>> 0);
@@ -48,5 +46,9 @@ export function useRatedPatternGame() {
     dispatch({ type: "ANSWER", value });
   }, []);
 
-  return { state, start, reset, answer };
+  const next = useCallback(() => dispatch({ type: "NEXT" }), []);
+
+  const quit = useCallback(() => dispatch({ type: "QUIT" }), []);
+
+  return { state, start, reset, answer, next, quit };
 }

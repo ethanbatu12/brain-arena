@@ -4,16 +4,20 @@ import {
   RATED_PATTERN_LOSS,
 } from "./constants";
 import { bandForRating, makePattern } from "./logic";
-import type { Pattern, PatternPhase } from "./types";
+import type { Pattern } from "./types";
 import type { Rng } from "../game/rng";
 
+export type RatedPatternPhase = "idle" | "playing" | "feedback" | "over";
+
 export interface RatedPatternState {
-  phase: PatternPhase;
+  phase: RatedPatternPhase;
   current: Pattern | null;
   rating: number;
-  /** Solved correctly in this run (ends on first wrong answer). */
+  /** Rating at the moment the current session started (for net delta calculation). */
+  startRating: number;
+  /** Solved correctly in this session. */
   solved: number;
-  /** Total attempted in this run. */
+  /** Total attempted in this session. */
   attempted: number;
   lastResult: "correct" | "wrong" | null;
   flashId: number;
@@ -22,6 +26,8 @@ export interface RatedPatternState {
 export type RatedPatternAction =
   | { type: "START" }
   | { type: "ANSWER"; value: string }
+  | { type: "NEXT" }
+  | { type: "QUIT" }
   | { type: "RESET" };
 
 export function ratedPatternInitialState(rating: number = RATED_PATTERN_INITIAL_RATING): RatedPatternState {
@@ -29,6 +35,7 @@ export function ratedPatternInitialState(rating: number = RATED_PATTERN_INITIAL_
     phase: "idle",
     current: null,
     rating,
+    startRating: rating,
     solved: 0,
     attempted: 0,
     lastResult: null,
@@ -51,6 +58,7 @@ export function ratedPatternReduce(
         ...state,
         phase: "playing",
         current: makePattern(band, rng),
+        startRating: state.rating,
         solved: 0,
         attempted: 0,
         lastResult: null,
@@ -62,41 +70,39 @@ export function ratedPatternReduce(
       if (state.phase !== "playing" || !state.current) return state;
       const correct = action.value === state.current.answer;
       const attempted = state.attempted + 1;
+      const solved = correct ? state.solved + 1 : state.solved;
+      const newRating = correct
+        ? state.rating + RATED_PATTERN_GAIN
+        : Math.max(0, state.rating - RATED_PATTERN_LOSS);
 
-      if (!correct) {
-        const newRating = Math.max(0, state.rating - RATED_PATTERN_LOSS);
-        return {
-          ...state,
-          phase: "over",
-          rating: newRating,
-          attempted,
-          lastResult: "wrong",
-          flashId: state.flashId + 1,
-        };
-      }
-
-      const solved = state.solved + 1;
-      const newRating = state.rating + RATED_PATTERN_GAIN;
-      const band = bandForRating(newRating);
       return {
         ...state,
-        current: makePattern(band, rng),
+        phase: "feedback",
         rating: newRating,
         solved,
         attempted,
-        lastResult: "correct",
+        lastResult: correct ? "correct" : "wrong",
         flashId: state.flashId + 1,
       };
     }
 
+    case "NEXT": {
+      if (state.phase !== "feedback") return state;
+      const band = bandForRating(state.rating);
+      return {
+        ...state,
+        phase: "playing",
+        current: makePattern(band, rng),
+        flashId: state.flashId + 1,
+      };
+    }
+
+    case "QUIT":
+      return { ...state, phase: "over" };
+
     default:
       return state;
   }
-}
-
-/** Rating delta for the completed run (positive if any patterns solved, negative on wrong). */
-export function ratedPatternDelta(state: RatedPatternState): number {
-  return state.solved * RATED_PATTERN_GAIN - (state.phase === "over" && state.lastResult === "wrong" ? RATED_PATTERN_LOSS : 0);
 }
 
 /** Rating tier label for display. */

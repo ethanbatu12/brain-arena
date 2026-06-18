@@ -1,5 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GAMES } from "../games";
+import {
+  fetchGlobalLeaderboard,
+  isGlobalLeaderboardEnabled,
+  type GlobalEntry,
+} from "../leaderboard/globalLeaderboard";
 import { ratingTier } from "../pattern/ratedPatternReducer";
 import type { GameId, PlayerProfile } from "../player/types";
 
@@ -12,6 +17,8 @@ type SortKey =
   | "games-played"
   | "streak"
   | "challenge-runs";
+
+type Scope = "local" | "global";
 
 interface LeaderboardProps {
   profiles: PlayerProfile[];
@@ -27,55 +34,46 @@ interface Row {
   isCurrentUser: boolean;
 }
 
-function buildRows(profiles: PlayerProfile[], key: SortKey): Row[] {
-  return profiles
-    .map((p) => {
-      let value: number;
-      let label: string;
+function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): Row {
+  let value: number;
+  let label: string;
+  if (key === "memory" || key === "math" || key === "logic" || key === "balloon" || key === "pattern") {
+    value = p.games[key].bestScore;
+    label = String(value);
+  } else {
+    switch (key) {
+      case "score":          value = p.combinedBestScore; label = String(value); break;
+      case "pattern-rating": value = p.ratedPatterns.rating; label = `${value} (${ratingTier(value)})`; break;
+      case "chess-rating":   value = p.ratedPuzzles.rating; label = String(value); break;
+      case "chess-puzzle-rating": value = p.ratedPuzzles.highestRating; label = String(value); break;
+      case "games-played":   value = p.totalGamesPlayed; label = String(value); break;
+      case "streak":         value = p.streak.longestStreak; label = `${value} days`; break;
+      case "challenge-runs": value = p.challengeRunsCompleted; label = String(value); break;
+      default:               value = 0; label = "0";
+    }
+  }
+  return { username: p.username, avatar: p.avatar ?? "🧠", value, label, isCurrentUser: p.username === currentUsername };
+}
 
-      // Per-game best scores
-      if (key === "memory" || key === "math" || key === "logic" || key === "balloon" || key === "pattern") {
-        value = p.games[key].bestScore;
-        label = String(value);
-      } else {
-        switch (key) {
-          case "score":
-            value = p.combinedBestScore;
-            label = String(value);
-            break;
-          case "pattern-rating":
-            value = p.ratedPatterns.rating;
-            label = `${value} (${ratingTier(value)})`;
-            break;
-          case "chess-rating":
-            value = p.ratedPuzzles.rating;
-            label = String(value);
-            break;
-          case "chess-puzzle-rating":
-            value = p.ratedPuzzles.highestRating;
-            label = String(value);
-            break;
-          case "games-played":
-            value = p.totalGamesPlayed;
-            label = String(value);
-            break;
-          case "streak":
-            value = p.streak.longestStreak;
-            label = `${value} days`;
-            break;
-          case "challenge-runs":
-            value = p.challengeRunsCompleted;
-            label = String(value);
-            break;
-          default:
-            value = 0;
-            label = "0";
-        }
-      }
-
-      return { username: p.username, avatar: p.avatar ?? "🧠", value, label, isCurrentUser: false };
-    })
-    .sort((a, b) => b.value - a.value);
+function globalEntryToRow(e: GlobalEntry, key: SortKey, currentUsername: string): Row {
+  let value: number;
+  let label: string;
+  switch (key) {
+    case "score":               value = e.combined_best_score; label = String(value); break;
+    case "pattern-rating":      value = e.pattern_rating; label = `${value} (${ratingTier(value)})`; break;
+    case "chess-rating":        value = e.chess_rating; label = String(value); break;
+    case "chess-puzzle-rating": value = e.chess_peak_rating; label = String(value); break;
+    case "games-played":        value = e.total_games_played; label = String(value); break;
+    case "streak":              value = e.longest_streak; label = `${value} days`; break;
+    case "challenge-runs":      value = e.challenge_runs; label = String(value); break;
+    case "memory":              value = e.memory_best; label = String(value); break;
+    case "math":                value = e.math_best; label = String(value); break;
+    case "logic":               value = e.logic_best; label = String(value); break;
+    case "balloon":             value = e.balloon_best; label = String(value); break;
+    case "pattern":             value = e.pattern_best; label = String(value); break;
+    default:                    value = 0; label = "0";
+  }
+  return { username: e.username, avatar: e.avatar ?? "🧠", value, label, isCurrentUser: e.username === currentUsername };
 }
 
 interface TabGroup {
@@ -109,11 +107,36 @@ const TAB_GROUPS: TabGroup[] = [
 
 export function Leaderboard({ profiles, currentUsername, onBack }: LeaderboardProps) {
   const [activeKey, setActiveKey] = useState<SortKey>("score");
+  const [scope, setScope] = useState<Scope>("local");
+  const [globalEntries, setGlobalEntries] = useState<GlobalEntry[]>([]);
+  const [globalLoading, setGlobalLoading] = useState(false);
+  const [globalError, setGlobalError] = useState(false);
 
-  const rows = buildRows(profiles, activeKey).map((r) => ({
-    ...r,
-    isCurrentUser: r.username === currentUsername,
-  }));
+  const globalEnabled = isGlobalLeaderboardEnabled();
+
+  useEffect(() => {
+    if (scope !== "global" || !globalEnabled) return;
+    setGlobalLoading(true);
+    setGlobalError(false);
+    fetchGlobalLeaderboard()
+      .then((entries) => {
+        setGlobalEntries(entries);
+        setGlobalLoading(false);
+      })
+      .catch(() => {
+        setGlobalError(true);
+        setGlobalLoading(false);
+      });
+  }, [scope, globalEnabled]);
+
+  const rows: Row[] =
+    scope === "global"
+      ? globalEntries
+          .map((e) => globalEntryToRow(e, activeKey, currentUsername))
+          .sort((a, b) => b.value - a.value)
+      : profiles
+          .map((p) => profileToRow(p, activeKey, currentUsername))
+          .sort((a, b) => b.value - a.value);
 
   return (
     <div className="app__shell">
@@ -122,13 +145,49 @@ export function Leaderboard({ profiles, currentUsername, onBack }: LeaderboardPr
           <h1 className="app__logo">
             Leader<span>board</span>
           </h1>
-          <p className="app__tag">Local rankings — all players on this device</p>
+          <p className="app__tag">
+            {scope === "local" ? "Players on this device" : "Global — all players worldwide"}
+          </p>
         </div>
         <button className="app__back" onClick={onBack}>
           ‹ Back to hub
         </button>
       </div>
 
+      {/* ── Local / Global scope toggle ─────────────────────────────── */}
+      <div className="leaderboard__scope">
+        <button
+          className={`leaderboard__scope-btn${scope === "local" ? " leaderboard__scope-btn--active" : ""}`}
+          onClick={() => setScope("local")}
+        >
+          📍 Local
+        </button>
+        <button
+          className={`leaderboard__scope-btn${scope === "global" ? " leaderboard__scope-btn--active" : ""}`}
+          onClick={() => setScope("global")}
+          disabled={!globalEnabled}
+          title={globalEnabled ? "Global leaderboard" : "Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable"}
+        >
+          🌐 Global{!globalEnabled && " (not configured)"}
+        </button>
+      </div>
+
+      {scope === "global" && !globalEnabled && (
+        <div className="leaderboard__setup">
+          <h3>Set up the global leaderboard</h3>
+          <p>
+            Create a free <a href="https://supabase.com" target="_blank" rel="noreferrer">Supabase</a> project
+            and add two environment variables to a <code>.env</code> file in the project root:
+          </p>
+          <pre className="leaderboard__setup-code">{`VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key`}</pre>
+          <p>Then run this SQL in your Supabase SQL editor:</p>
+          <pre className="leaderboard__setup-code">{SETUP_SQL}</pre>
+          <p>Rebuild the app and the global leaderboard will activate automatically.</p>
+        </div>
+      )}
+
+      {/* ── Stat category tabs ─────────────────────────────────────── */}
       <div className="leaderboard__groups">
         {TAB_GROUPS.map((group) => (
           <div key={group.heading} className="leaderboard__group">
@@ -150,13 +209,18 @@ export function Leaderboard({ profiles, currentUsername, onBack }: LeaderboardPr
         ))}
       </div>
 
-      {rows.length === 0 ? (
+      {/* ── Rows ────────────────────────────────────────────────────── */}
+      {globalLoading ? (
+        <p className="leaderboard__empty">Loading global scores…</p>
+      ) : globalError ? (
+        <p className="leaderboard__empty">Could not load global leaderboard. Check your connection.</p>
+      ) : rows.length === 0 ? (
         <p className="leaderboard__empty">No players yet.</p>
       ) : (
         <div className="leaderboard__list">
           {rows.map((row, idx) => (
             <div
-              key={row.username}
+              key={`${row.username}-${idx}`}
               className={`leaderboard__row${row.isCurrentUser ? " leaderboard__row--you" : ""}`}
             >
               <span className="leaderboard__rank">
@@ -175,3 +239,28 @@ export function Leaderboard({ profiles, currentUsername, onBack }: LeaderboardPr
     </div>
   );
 }
+
+const SETUP_SQL = `CREATE TABLE leaderboard_entries (
+  device_id   TEXT NOT NULL,
+  username    TEXT NOT NULL,
+  avatar      TEXT DEFAULT '🧠',
+  combined_best_score   INTEGER DEFAULT 0,
+  total_games_played    INTEGER DEFAULT 0,
+  longest_streak        INTEGER DEFAULT 0,
+  pattern_rating        INTEGER DEFAULT 1000,
+  chess_rating          INTEGER DEFAULT 1000,
+  chess_peak_rating     INTEGER DEFAULT 1000,
+  memory_best           INTEGER DEFAULT 0,
+  math_best             INTEGER DEFAULT 0,
+  logic_best            INTEGER DEFAULT 0,
+  balloon_best          INTEGER DEFAULT 0,
+  pattern_best          INTEGER DEFAULT 0,
+  challenge_runs        INTEGER DEFAULT 0,
+  updated_at            TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (device_id, username)
+);
+
+ALTER TABLE leaderboard_entries ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read"   ON leaderboard_entries FOR SELECT TO anon USING (true);
+CREATE POLICY "Public upsert" ON leaderboard_entries FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Public update" ON leaderboard_entries FOR UPDATE TO anon USING (true);`;

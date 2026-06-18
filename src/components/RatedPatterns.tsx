@@ -1,4 +1,5 @@
 import { useRatedPatternGame } from "../hooks/useRatedPatternGame";
+import { RATED_PATTERN_GAIN, RATED_PATTERN_LOSS } from "../pattern/constants";
 import { ratingTier } from "../pattern/ratedPatternReducer";
 import { usePlayerProfile } from "../player/PlayerContext";
 import type { Pattern } from "../pattern/types";
@@ -8,105 +9,207 @@ interface RatedPatternsProps {
 }
 
 export function RatedPatterns({ onExit }: RatedPatternsProps) {
-  const { state, start, reset, answer } = useRatedPatternGame();
+  const { state, start, reset, answer, next, quit } = useRatedPatternGame();
   const { profile } = usePlayerProfile();
   const { phase } = state;
 
-  const stats = profile?.ratedPatterns;
-  const displayRating = phase === "idle" ? (stats?.rating ?? state.rating) : state.rating;
+  const storedRating = profile?.ratedPatterns.rating ?? state.rating;
 
-  return (
-    <div className="app__shell">
-      <div className="app__head">
-        <button className="app__back" onClick={onExit} aria-label="Back to menu">
-          ‹ Menu
-        </button>
-        <h1 className="app__logo">
-          Rated<span>Patterns</span>
-        </h1>
-        <p className="app__tag">survive as long as you can</p>
-      </div>
-
-      <header className="hud">
-        <div className="hud__stats">
-          <Stat label="Rating" value={displayRating.toString()} />
-          <Stat label="Tier" value={ratingTier(displayRating)} />
-          {phase === "playing" && <Stat label="Solved" value={state.solved.toString()} />}
-          {stats && <Stat label="Best" value={stats.highestRating.toString()} />}
+  // ── Idle ─────────────────────────────────────────────────────────────────
+  if (phase === "idle") {
+    return (
+      <div className="app__shell">
+        <div className="app__head">
+          <h1 className="app__logo">Rated <span>Patterns</span></h1>
+          <button className="app__back" onClick={onExit}>‹ Back</button>
         </div>
-      </header>
 
-      <main className="app__stage">
-        {phase === "playing" && state.current && (
+        <section className="profile__section">
+          <h2 className="profile__section-title">Your Rating</h2>
+          <div className="hud">
+            <div className="hud__stats">
+              <div className="stat">
+                <span className="stat__value rated__rating">{storedRating}</span>
+                <span className="stat__label">Current rating</span>
+              </div>
+              <div className="stat">
+                <span className="stat__value">{ratingTier(storedRating)}</span>
+                <span className="stat__label">Tier</span>
+              </div>
+              <div className="stat">
+                <span className="stat__value">{profile?.ratedPatterns.highestRating ?? storedRating}</span>
+                <span className="stat__label">Peak rating</span>
+              </div>
+              <div className="stat">
+                <span className="stat__value">{profile?.ratedPatterns.totalSolved ?? 0}</span>
+                <span className="stat__label">Total solved</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="profile__section">
+          <h2 className="profile__section-title">How it works</h2>
+          <ul className="overlay__rules">
+            <li>Each puzzle adjusts your rating — no run-ending wrong answers</li>
+            <li>Correct answer: <b>+{RATED_PATTERN_GAIN} rating</b></li>
+            <li>Wrong answer: <b>−{RATED_PATTERN_LOSS} rating</b></li>
+            <li>Harder patterns appear at higher ratings</li>
+            <li>No time limit — think carefully!</li>
+            <li>End your session any time with the Quit button</li>
+          </ul>
+          <button className="btn btn--primary" style={{ marginTop: "1.5rem" }} onClick={start}>
+            Start Session
+          </button>
+        </section>
+      </div>
+    );
+  }
+
+  // ── Session over ─────────────────────────────────────────────────────────
+  if (phase === "over") {
+    const delta = state.rating - state.startRating;
+    return (
+      <div className="app__shell">
+        <div className="app__head">
+          <h1 className="app__logo">Rated <span>Patterns</span></h1>
+        </div>
+
+        <section className="profile__section">
+          <h2 className="profile__section-title">Session Complete</h2>
+          <div className="hud">
+            <div className="hud__stats">
+              <div className="stat">
+                <span className={`stat__value ${delta >= 0 ? "rated__gain" : "rated__loss"}`}>
+                  {delta >= 0 ? "+" : ""}{delta}
+                </span>
+                <span className="stat__label">Rating change</span>
+              </div>
+              <div className="stat">
+                <span className="stat__value rated__rating">{state.rating}</span>
+                <span className="stat__label">New rating</span>
+              </div>
+              <div className="stat">
+                <span className="stat__value">{state.solved}</span>
+                <span className="stat__label">Solved</span>
+              </div>
+              <div className="stat">
+                <span className="stat__value">{state.attempted}</span>
+                <span className="stat__label">Attempted</span>
+              </div>
+            </div>
+          </div>
+          <p style={{ marginTop: "1rem", color: "var(--text-dim)" }}>
+            {ratingTier(state.rating)} · {state.attempted > 0 ? Math.round((state.solved / state.attempted) * 100) : 0}% accuracy
+          </p>
+          <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
+            <button className="btn btn--primary" onClick={start}>New Session</button>
+            <button className="btn btn--ghost" onClick={() => { reset(); onExit(); }}>Menu</button>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  // ── Feedback (result of last answer) ─────────────────────────────────────
+  if (phase === "feedback" && state.current) {
+    const correct = state.lastResult === "correct";
+    const ratingChange = correct ? RATED_PATTERN_GAIN : -RATED_PATTERN_LOSS;
+    const sessionDelta = state.rating - state.startRating;
+
+    return (
+      <div className="app__shell">
+        <div className="app__head">
+          <h1 className="app__logo">Rated <span>Patterns</span></h1>
+          <button className="app__back" onClick={quit}>Quit</button>
+        </div>
+
+        <section className="profile__section">
+          <div className={`rated__result-banner rated__result-banner--${correct ? "correct" : "wrong"}`}>
+            {correct ? "✓ Correct!" : "✗ Wrong"}
+          </div>
+
+          {!correct && (
+            <div className="rated-pattern__answer-reveal">
+              <span className="rated-pattern__answer-label">The correct answer was</span>
+              <span className="rated-pattern__answer-value">{state.current.answer}</span>
+            </div>
+          )}
+
+          <div className="hud" style={{ marginTop: "1rem" }}>
+            <div className="hud__stats">
+              <div className="stat">
+                <span className={`stat__value ${ratingChange >= 0 ? "rated__gain" : "rated__loss"}`}>
+                  {ratingChange >= 0 ? "+" : ""}{ratingChange}
+                </span>
+                <span className="stat__label">Rating change</span>
+              </div>
+              <div className="stat">
+                <span className="stat__value rated__rating">{state.rating}</span>
+                <span className="stat__label">Rating</span>
+              </div>
+              <div className="stat">
+                <span className={`stat__value ${sessionDelta >= 0 ? "rated__gain" : "rated__loss"}`}>
+                  {sessionDelta >= 0 ? "+" : ""}{sessionDelta}
+                </span>
+                <span className="stat__label">Session Δ</span>
+              </div>
+              <div className="stat">
+                <span className="stat__value">{state.solved}/{state.attempted}</span>
+                <span className="stat__label">Solved</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
+            <button className="btn btn--primary" onClick={next}>Next Pattern</button>
+            <button className="btn btn--ghost" onClick={quit}>End Session</button>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  // ── Playing ───────────────────────────────────────────────────────────────
+  if (phase === "playing" && state.current) {
+    const sessionDelta = state.rating - state.startRating;
+    return (
+      <div className="app__shell">
+        <div className="app__head">
+          <h1 className="app__logo">Rated <span>Patterns</span></h1>
+          <button className="app__back" onClick={quit}>Quit</button>
+        </div>
+
+        <div className="rated__header">
+          <div className="stat">
+            <span className="stat__value rated__rating">{state.rating}</span>
+            <span className="stat__label">{ratingTier(state.rating)}</span>
+          </div>
+          <div className="stat">
+            <span className={`stat__value ${sessionDelta >= 0 ? "rated__gain" : "rated__loss"}`}>
+              {sessionDelta >= 0 ? "+" : ""}{sessionDelta}
+            </span>
+            <span className="stat__label">Session Δ</span>
+          </div>
+          <div className="stat">
+            <span className="stat__value">{state.solved}/{state.attempted}</span>
+            <span className="stat__label">Solved</span>
+          </div>
+        </div>
+
+        <main className="app__stage">
           <PatternCard
             pattern={state.current}
             flashId={state.flashId}
             lastResult={state.lastResult}
             onAnswer={answer}
           />
-        )}
+        </main>
+      </div>
+    );
+  }
 
-        {phase === "idle" && (
-          <Overlay>
-            <h2>Rated Patterns</h2>
-            <p className="overlay__lead">
-              Answer pattern sequences correctly to gain rating. One wrong answer ends your run.
-            </p>
-            <ul className="overlay__rules">
-              <li>Correct answer: <b>+15 rating</b></li>
-              <li>Wrong answer: <b>−25 rating</b> (run ends)</li>
-              <li>Harder patterns at higher ratings</li>
-              <li>No time limit — think carefully!</li>
-            </ul>
-            {stats && (
-              <p className="overlay__best">
-                Current rating: <b>{stats.rating}</b> · {ratingTier(stats.rating)}
-              </p>
-            )}
-            <button className="btn btn--primary" onClick={start}>
-              Start Run
-            </button>
-          </Overlay>
-        )}
-
-        {phase === "over" && (
-          <Overlay>
-            <h2>{state.lastResult === "wrong" ? "Run Over!" : "Complete"}</h2>
-            <div className="overlay__score">{state.rating}</div>
-            <p className="overlay__lead">
-              {state.lastResult === "wrong"
-                ? `Solved ${state.solved} · wrong answer ended the run`
-                : `Solved ${state.solved}`}
-              {" "}· {ratingTier(state.rating)}
-            </p>
-            <div className="overlay__actions">
-              <button className="btn btn--primary" onClick={start}>
-                Play again
-              </button>
-              <button
-                className="btn btn--ghost"
-                onClick={() => {
-                  reset();
-                  onExit();
-                }}
-              >
-                Menu
-              </button>
-            </div>
-          </Overlay>
-        )}
-      </main>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="stat">
-      <span className="stat__value">{value}</span>
-      <span className="stat__label">{label}</span>
-    </div>
-  );
+  return null;
 }
 
 function PatternCard({
@@ -165,12 +268,4 @@ function shuffleOptions(opts: string[], seed: number): string[] {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
-}
-
-function Overlay({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="overlay">
-      <div className="overlay__card">{children}</div>
-    </div>
-  );
 }
