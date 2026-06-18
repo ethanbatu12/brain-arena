@@ -1,8 +1,18 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import type { AiDifficulty, Color } from "../chess/types";
 import { getBestMove } from "../chess/ai";
+import { parseUciMove, toFen } from "../chess/engine";
 import { chessReduce, initialChessGameState } from "../chess/reducer";
+import { getStockfish } from "../chess/StockfishService";
 import { ChessBoard } from "./ChessBoard";
+
+const STOCKFISH_DEPTH: Record<AiDifficulty, number> = {
+  beginner: 1,
+  easy:     3,
+  medium:   6,
+  hard:     12,
+  expert:   18,
+};
 
 const PIECE_UNICODE: Record<string, string> = {
   wK: "♔", wQ: "♕", wR: "♖", wB: "♗", wN: "♘", wP: "♙",
@@ -32,19 +42,39 @@ export function FullChessGame({ onExit }: FullChessGameProps) {
     setSetup({ phase: "playing" });
   }, [setup.color, setup.difficulty]);
 
-  // AI move trigger
+  // AI move trigger — uses Stockfish with minimax fallback
   useEffect(() => {
     if (setup.phase !== "playing") return;
     const { chess, playerColor, aiDifficulty } = game;
     if (chess.turn === playerColor) return;
     if (chess.status === "checkmate" || chess.status === "stalemate" || chess.status === "draw") return;
 
-    aiTimerRef.current = setTimeout(() => {
-      const move = getBestMove(chess, aiDifficulty);
-      if (move) dispatch({ type: "AI_MOVE", move });
+    let cancelled = false;
+    const sf = getStockfish();
+
+    aiTimerRef.current = setTimeout(async () => {
+      if (cancelled) return;
+      try {
+        const fen = toFen(chess);
+        const depth = STOCKFISH_DEPTH[aiDifficulty];
+        const uci = await sf.getBestMove(fen, depth);
+        if (!cancelled) {
+          dispatch({ type: "AI_MOVE", move: parseUciMove(uci) });
+        }
+      } catch {
+        // Stockfish unavailable or cancelled — fall back to minimax
+        if (!cancelled) {
+          const move = getBestMove(chess, aiDifficulty);
+          if (move) dispatch({ type: "AI_MOVE", move });
+        }
+      }
     }, 400);
 
-    return () => { if (aiTimerRef.current) clearTimeout(aiTimerRef.current); };
+    return () => {
+      cancelled = true;
+      if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
+      sf.stop();
+    };
   }, [game.chess, game.playerColor, game.aiDifficulty, setup.phase]);
 
   if (setup.phase === "setup") {

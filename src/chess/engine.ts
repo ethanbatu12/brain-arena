@@ -162,6 +162,26 @@ export function boardToFenPieces(board: Board): string {
   return ranks.join("/");
 }
 
+/** Serialize the full chess state to a FEN string. */
+export function toFen(state: ChessState): string {
+  const castleStr = [
+    state.castling.wKingSide ? "K" : "",
+    state.castling.wQueenSide ? "Q" : "",
+    state.castling.bKingSide ? "k" : "",
+    state.castling.bQueenSide ? "q" : "",
+  ].join("") || "-";
+  const ep = state.enPassant !== null ? squareName(state.enPassant) : "-";
+  return `${boardToFenPieces(state.board)} ${state.turn} ${castleStr} ${ep} ${state.halfMoveClock} ${state.fullMoveNumber}`;
+}
+
+/** Parse a UCI move string (e.g. "e2e4", "e7e8q") into a Move. */
+export function parseUciMove(uci: string): import("./types").Move {
+  const from = parseSquare(uci.slice(0, 2));
+  const to = parseSquare(uci.slice(2, 4));
+  const promo = uci.length === 5 ? uci[4].toUpperCase() as import("./types").PieceType : undefined;
+  return { from, to, promotion: promo };
+}
+
 export function positionKey(state: ChessState): string {
   const castleStr = [
     state.castling.wKingSide ? "K" : "",

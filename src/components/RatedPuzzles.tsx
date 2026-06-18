@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChessPuzzle, ChessState, Color, Move, Square } from "../chess/types";
-import { legalMoves, loadFen, makeMove } from "../chess/engine";
+import { legalMoves, loadFen, makeMove, toFen } from "../chess/engine";
 import { getPuzzleForRating, tierForRating } from "../chess/puzzles";
+import { getStockfish } from "../chess/StockfishService";
 import { ratingGainForTime } from "../player/storage";
 import type { RatedPuzzleStats } from "../player/types";
+
+const VERIFY_DEPTH = 18;
 
 interface RatedPuzzlesProps {
   ratedPuzzles: RatedPuzzleStats;
@@ -140,25 +143,39 @@ export function RatedPuzzles({ ratedPuzzles, onExit, onResult }: RatedPuzzlesPro
     setPhase("result");
   }, [onResult]);
 
-  const attemptMove = useCallback((move: Move) => {
+  const attemptMove = useCallback(async (move: Move) => {
     if (!gameState || !currentPuzzle) return;
     const elapsedMs = Date.now() - startTimeRef.current;
     const expected = currentPuzzle.solution[stepIndex];
-    const isCorrect =
+    const matchesStored =
       move.from === expected.from &&
       move.to === expected.to &&
       (!expected.promotion || move.promotion === expected.promotion);
 
     setSelected({ sq: null, legal: [] });
 
-    if (!isCorrect) {
-      // Reveal the correct move on the board, then show the result screen.
-      setShowingSolution(true);
-      schedule(() => {
-        setShowingSolution(false);
-        finishWith(false, elapsedMs, currentPuzzle.id);
-      }, REVEAL_MS);
-      return;
+    if (!matchesStored) {
+      // Ask Stockfish whether the player's move is actually the engine's top choice
+      // (handles valid alternative solutions the puzzle bank doesn't list).
+      let isAlternative = false;
+      try {
+        const sf = getStockfish();
+        if (sf.isAvailable()) {
+          const fen = toFen(gameState);
+          const moveUci = squareName(move.from) + squareName(move.to) + (move.promotion?.toLowerCase() ?? "");
+          const best = await sf.getBestMove(fen, VERIFY_DEPTH);
+          isAlternative = best === moveUci;
+        }
+      } catch { /* fallthrough to wrong */ }
+
+      if (!isAlternative) {
+        setShowingSolution(true);
+        schedule(() => {
+          setShowingSolution(false);
+          finishWith(false, elapsedMs, currentPuzzle.id);
+        }, REVEAL_MS);
+        return;
+      }
     }
 
     // Correct: play the move on the live board.
