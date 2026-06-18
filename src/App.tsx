@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { AchievementToast } from "./components/AchievementToast";
 import { AllGamesChallenge } from "./components/AllGamesChallenge";
 import { BalloonGame } from "./components/BalloonGame";
 import { ChessLobby } from "./components/ChessLobby";
 import { DbViewer } from "./components/DbViewer";
 import { FullChessGame } from "./components/FullChessGame";
 import { Hub } from "./components/Hub";
+import { Leaderboard } from "./components/Leaderboard";
 import { LogicGame } from "./components/LogicGame";
 import { MathGame } from "./components/MathGame";
 import { MemoryGame } from "./components/MemoryGame";
@@ -19,10 +21,34 @@ import { PlayerProvider, usePlayerProfile } from "./player/PlayerContext";
 import type { GameId } from "./player/types";
 
 export type { GameId };
-type Screen = "hub" | "profile" | "challenge" | "db" | "chess" | "chess-full" | "chess-puzzle" | "chess-rated" | "pattern-lobby" | "pattern-timed" | "pattern-rated" | GameId;
+type Screen =
+  | "hub"
+  | "profile"
+  | "leaderboard"
+  | "challenge"
+  | "db"
+  | "chess"
+  | "chess-full"
+  | "chess-puzzle"
+  | "chess-rated"
+  | "pattern-lobby"
+  | "pattern-timed"
+  | "pattern-rated"
+  | GameId;
 
 function AppShell() {
-  const { profile, loading, createAccount, signIn, signOut, recordCombinedResult, recordRatedPuzzle } = usePlayerProfile();
+  const {
+    profile,
+    loading,
+    allProfiles,
+    pendingAchievements,
+    dismissPendingAchievements,
+    createAccount,
+    signIn,
+    signOut,
+    recordCombinedResult,
+    recordRatedPuzzle,
+  } = usePlayerProfile();
   const [screen, setScreen] = useState<Screen>("hub");
   const goHub = () => setScreen("hub");
 
@@ -38,8 +64,18 @@ function AppShell() {
     return <SignIn onCreateAccount={createAccount} onSignIn={signIn} />;
   }
 
+  // Show the first pending achievement as a toast; dismiss removes it from queue.
+  const topAchievement = pendingAchievements[0] ?? null;
+
   return (
     <div className="app">
+      {topAchievement && (
+        <AchievementToast
+          achievement={topAchievement}
+          onDismiss={dismissPendingAchievements}
+        />
+      )}
+
       {screen === "hub" && (
         <Hub
           profile={profile}
@@ -47,6 +83,7 @@ function AppShell() {
           onChess={() => setScreen("chess")}
           onProfile={() => setScreen("profile")}
           onDb={() => setScreen("db")}
+          onLeaderboard={() => setScreen("leaderboard")}
           onSignOut={signOut}
         />
       )}
@@ -58,6 +95,13 @@ function AppShell() {
             signOut();
             goHub();
           }}
+        />
+      )}
+      {screen === "leaderboard" && (
+        <Leaderboard
+          profiles={allProfiles}
+          currentUsername={profile.username}
+          onBack={goHub}
         />
       )}
       {screen === "db" && <DbViewer onBack={goHub} />}

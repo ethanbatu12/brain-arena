@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { generateSalt, hashPassword, verifyPassword } from "./crypto";
-import type { GameId, PlayerProfile } from "./types";
+import type { AchievementRecord, GameId, PlayerProfile } from "./types";
 import {
   clearCurrentUsername,
   createProfile,
@@ -15,10 +15,29 @@ import {
   validatePassword,
   validateUsername,
 } from "./storage";
+import { applyAchievements, checkAchievements } from "./achievements";
+import { getDailyGameId, recordDailyChallengeResult } from "./dailyChallenge";
+import { getToday, updateStreak } from "./streak";
+
+/** Apply streak update + achievement check to an already-updated profile. */
+function applyPostGameEffects(profile: PlayerProfile): {
+  updated: PlayerProfile;
+  newAchievements: AchievementRecord[];
+} {
+  const today = getToday();
+  const withStreak: PlayerProfile = { ...profile, streak: updateStreak(profile.streak, today) };
+  const newIds = checkAchievements(withStreak);
+  const updated = applyAchievements(withStreak, newIds);
+  const newAchievements = updated.achievements.filter((a) => newIds.includes(a.id));
+  return { updated, newAchievements };
+}
 
 interface PlayerContextValue {
   profile: PlayerProfile | null;
   loading: boolean;
+  allProfiles: PlayerProfile[];
+  pendingAchievements: AchievementRecord[];
+  dismissPendingAchievements: () => void;
   createAccount: (username: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   signIn: (username: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   signOut: () => void;
@@ -26,6 +45,7 @@ interface PlayerContextValue {
   recordCombinedResult: (score: number) => void;
   recordRatedPuzzle: (correct: boolean, elapsedMs: number, puzzleId?: number) => void;
   recordRatedPatternRun: (solved: number, attempted: number, ratingDelta: number) => void;
+  setAvatar: (avatar: string) => void;
   existingUsernames: string[];
 }
 
@@ -35,6 +55,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [profiles, setProfiles] = useState<Record<string, PlayerProfile>>({});
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pendingAchievements, setPendingAchievements] = useState<AchievementRecord[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,6 +70,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, []);
+
+  const dismissPendingAchievements = useCallback(() => setPendingAchievements([]), []);
 
   const createAccount = useCallback(
     async (rawUsername: string, rawPassword: string): Promise<{ ok: true } | { ok: false; error: string }> => {
@@ -107,9 +130,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         if (!currentUsername) return prev;
         const current = prev[currentUsername];
         if (!current) return prev;
-        const updated = recordGameResult(current, gameId, score);
-        void saveProfile(updated);
-        return { ...prev, [currentUsername]: updated };
+        let updated = recordGameResult(current, gameId, score);
+        // Auto-record daily challenge if today's game matches
+        const today = getToday();
+        if (getDailyGameId(today) === gameId) {
+          updated = recordDailyChallengeResult(updated, today, gameId, score);
+        }
+        const { updated: final, newAchievements } = applyPostGameEffects(updated);
+        if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
+        void saveProfile(final);
+        return { ...prev, [currentUsername]: final };
       });
     },
     [currentUsername],
@@ -121,7 +151,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         if (!currentUsername) return prev;
         const current = prev[currentUsername];
         if (!current) return prev;
-        const updated = recordCombinedResultInStorage(current, score);
+        const afterResult = recordCombinedResultInStorage(current, score);
+        const { updated, newAchievements } = applyPostGameEffects(afterResult);
+        if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(updated);
         return { ...prev, [currentUsername]: updated };
       });
@@ -135,7 +167,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         if (!currentUsername) return prev;
         const current = prev[currentUsername];
         if (!current) return prev;
-        const updated = recordRatedPuzzleResult(current, correct, elapsedMs, puzzleId);
+        const afterResult = recordRatedPuzzleResult(current, correct, elapsedMs, puzzleId);
+        const { updated, newAchievements } = applyPostGameEffects(afterResult);
+        if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(updated);
         return { ...prev, [currentUsername]: updated };
       });
@@ -149,7 +183,23 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         if (!currentUsername) return prev;
         const current = prev[currentUsername];
         if (!current) return prev;
-        const updated = recordRatedPatternRunInStorage(current, solved, attempted, ratingDelta);
+        const afterResult = recordRatedPatternRunInStorage(current, solved, attempted, ratingDelta);
+        const { updated, newAchievements } = applyPostGameEffects(afterResult);
+        if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
+        void saveProfile(updated);
+        return { ...prev, [currentUsername]: updated };
+      });
+    },
+    [currentUsername],
+  );
+
+  const setAvatar = useCallback(
+    (avatar: string) => {
+      setProfiles((prev) => {
+        if (!currentUsername) return prev;
+        const current = prev[currentUsername];
+        if (!current) return prev;
+        const updated = { ...current, avatar };
         void saveProfile(updated);
         return { ...prev, [currentUsername]: updated };
       });
@@ -158,11 +208,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   );
 
   const profile = currentUsername ? profiles[currentUsername] ?? null : null;
+  const allProfiles = useMemo(() => Object.values(profiles), [profiles]);
   const existingUsernames = useMemo(() => Object.keys(profiles), [profiles]);
 
   const value: PlayerContextValue = {
     profile,
     loading,
+    allProfiles,
+    pendingAchievements,
+    dismissPendingAchievements,
     createAccount,
     signIn,
     signOut,
@@ -170,6 +224,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     recordCombinedResult,
     recordRatedPuzzle,
     recordRatedPatternRun,
+    setAvatar,
     existingUsernames,
   };
 

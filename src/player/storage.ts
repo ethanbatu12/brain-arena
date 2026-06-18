@@ -6,11 +6,13 @@ import {
   type PlayerProfile,
   type RatedPatternStats,
   type RatedPuzzleStats,
+  type StreakData,
 } from "./types";
 import {
   RATED_PATTERN_HISTORY_SIZE,
   RATED_PATTERN_INITIAL_RATING,
 } from "../pattern/constants";
+import { emptyStreak } from "./streak";
 
 const USERNAME_PATTERN = /^[A-Za-z0-9 _-]+$/;
 
@@ -138,6 +140,10 @@ export function createProfile(username: string, passwordHash: string, passwordSa
     challengeRunsCompleted: 0,
     ratedPuzzles: emptyRatedPuzzleStats(),
     ratedPatterns: emptyRatedPatternStats(),
+    streak: emptyStreak(),
+    achievements: [],
+    dailyChallenges: [],
+    avatar: "🧠",
   };
 }
 
@@ -228,6 +234,11 @@ function normalizeRatedPatterns(stats: Partial<RatedPatternStats> | undefined): 
   return { ...emptyRatedPatternStats(), ...stats, ratingHistory: stats.ratingHistory ?? [] };
 }
 
+function normalizeStreak(s: Partial<StreakData> | undefined): StreakData {
+  if (!s) return emptyStreak();
+  return { ...emptyStreak(), ...s };
+}
+
 function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile {
   return {
     ...profile,
@@ -238,6 +249,10 @@ function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile {
     challengeRunsCompleted: profile.challengeRunsCompleted ?? 0,
     ratedPuzzles: normalizeRatedPuzzles(profile.ratedPuzzles),
     ratedPatterns: normalizeRatedPatterns(profile.ratedPatterns),
+    streak: normalizeStreak(profile.streak),
+    achievements: profile.achievements ?? [],
+    dailyChallenges: profile.dailyChallenges ?? [],
+    avatar: profile.avatar ?? "🧠",
   } as PlayerProfile;
 }
 

@@ -1,4 +1,6 @@
 import { CHALLENGE_META, GAMES } from "../games";
+import { getDailyGameId, getTodaysDailyRecord } from "../player/dailyChallenge";
+import { getToday } from "../player/streak";
 import type { GameId, PlayerProfile } from "../player/types";
 
 interface HubProps {
@@ -7,26 +9,32 @@ interface HubProps {
   onChess: () => void;
   onProfile: () => void;
   onDb: () => void;
+  onLeaderboard: () => void;
   onSignOut: () => void;
 }
 
-export function Hub({ profile, onPick, onChess, onProfile, onDb, onSignOut }: HubProps) {
+export function Hub({ profile, onPick, onChess, onProfile, onDb, onLeaderboard, onSignOut }: HubProps) {
+  const today = getToday();
+  const dailyGameId = getDailyGameId(today);
+  const dailyGameMeta = GAMES.find((g) => g.id === dailyGameId)!;
+  const dailyRecord = getTodaysDailyRecord(profile, today);
+  const { currentStreak, longestStreak } = profile.streak;
+
   return (
     <div className="app__shell home">
+      {/* ── Header ──────────────────────────────────────────────────── */}
       <div className="home__head">
-        <h1 className="home__title">
-          Brain<span>Arena</span>
-        </h1>
-        <p className="home__sub">Quick games that measure how your mind performs.</p>
-      </div>
-
-      <div className="home__player">
-        <div className="home__greeting">
-          Welcome back, <strong>{profile.username}</strong>
+        <div className="home__brand">
+          <h1 className="home__title">
+            Brain<span>Arena</span>
+          </h1>
         </div>
         <div className="home__player-actions">
           <button className="btn btn--ghost" onClick={onProfile}>
             Profile
+          </button>
+          <button className="btn btn--ghost" onClick={onLeaderboard}>
+            Leaderboard
           </button>
           <button className="btn btn--ghost" onClick={onDb}>
             Database
@@ -37,6 +45,25 @@ export function Hub({ profile, onPick, onChess, onProfile, onDb, onSignOut }: Hu
         </div>
       </div>
 
+      {/* ── Player greeting ─────────────────────────────────────────── */}
+      <div className="home__player">
+        <div className="home__avatar">{profile.avatar ?? "🧠"}</div>
+        <div className="home__player-info">
+          <p className="home__greeting">
+            Welcome back, <strong>{profile.username}</strong>
+          </p>
+          <div className="home__streak-row">
+            <span className="home__streak-badge" title={`Longest streak: ${longestStreak} days`}>
+              🔥 {currentStreak} day streak
+            </span>
+            {longestStreak > currentStreak && (
+              <span className="home__streak-best">Best: {longestStreak}</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Quick stats ─────────────────────────────────────────────── */}
       <div className="home__summary hud__stats">
         <div className="stat">
           <span className="stat__value">{profile.overallBestScore}</span>
@@ -46,10 +73,37 @@ export function Hub({ profile, onPick, onChess, onProfile, onDb, onSignOut }: Hu
           <span className="stat__value">{profile.totalGamesPlayed}</span>
           <span className="stat__label">Games played</span>
         </div>
+        <div className="stat">
+          <span className="stat__value">{profile.ratedPatterns.rating}</span>
+          <span className="stat__label">Pattern rating</span>
+        </div>
+        <div className="stat">
+          <span className="stat__value">{profile.ratedPuzzles.rating}</span>
+          <span className="stat__label">Chess rating</span>
+        </div>
       </div>
 
+      {/* ── Daily challenge card ─────────────────────────────────────── */}
       <button
-        key={CHALLENGE_META.id}
+        className={`daily-card${dailyRecord?.completed ? " daily-card--done" : ""}`}
+        style={{ ["--card-accent" as string]: dailyGameMeta.accent }}
+        onClick={() => onPick(dailyGameId)}
+        aria-label="Today's Challenge"
+      >
+        <div className="daily-card__left">
+          <span className="daily-card__label">Today's Challenge</span>
+          <span className="daily-card__game">{dailyGameMeta.name}</span>
+          {dailyRecord?.completed ? (
+            <span className="daily-card__status">✓ Completed — best {dailyRecord.score}</span>
+          ) : (
+            <span className="daily-card__status">Tap to play</span>
+          )}
+        </div>
+        <span className="daily-card__cta">{dailyRecord?.completed ? "✓" : "›"}</span>
+      </button>
+
+      {/* ── All Games Challenge ──────────────────────────────────────── */}
+      <button
         className="gamecard gamecard--featured"
         style={{ ["--card-accent" as string]: CHALLENGE_META.accent }}
         onClick={() => onPick("challenge")}
@@ -61,6 +115,7 @@ export function Hub({ profile, onPick, onChess, onProfile, onDb, onSignOut }: Hu
         <span className="gamecard__cta">Play ›</span>
       </button>
 
+      {/* ── Individual games grid ────────────────────────────────────── */}
       <div className="home__grid">
         {GAMES.map((g) => (
           <button

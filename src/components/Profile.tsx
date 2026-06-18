@@ -1,6 +1,10 @@
 import { GAMES } from "../games";
+import { ACHIEVEMENT_DEFS } from "../player/achievements";
+import { usePlayerProfile } from "../player/PlayerContext";
 import { averageScore, avgSolveTimeMs, combinedAverageScore, overallAverageScore, puzzleWinPct } from "../player/storage";
 import type { PlayerProfile } from "../player/types";
+
+const AVATARS = ["🧠", "🎯", "🏆", "⚡", "🔥", "💎", "🦁", "🌟", "🚀", "🎮"];
 
 function formatTime(ms: number): string {
   if (ms === 0) return "—";
@@ -21,6 +25,10 @@ function round(value: number): number {
 }
 
 export function Profile({ profile, onBack, onSignOut }: ProfileProps) {
+  const { setAvatar } = usePlayerProfile();
+
+  const unlockedIds = new Set(profile.achievements.map((a) => a.id));
+
   return (
     <div className="app__shell">
       <div className="app__head">
@@ -35,6 +43,74 @@ export function Profile({ profile, onBack, onSignOut }: ProfileProps) {
         </button>
       </div>
 
+      {/* ── Avatar ──────────────────────────────────────────────────── */}
+      <section className="profile__section">
+        <h2 className="profile__section-title">Avatar</h2>
+        <div className="avatar-picker">
+          {AVATARS.map((emoji) => (
+            <button
+              key={emoji}
+              className={`avatar-option${profile.avatar === emoji ? " avatar-option--active" : ""}`}
+              onClick={() => setAvatar(emoji)}
+              aria-label={`Select avatar ${emoji}`}
+              aria-pressed={profile.avatar === emoji}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Streak ──────────────────────────────────────────────────── */}
+      <section className="profile__section">
+        <h2 className="profile__section-title">Daily Streak</h2>
+        <div className="hud">
+          <div className="hud__stats">
+            <div className="stat">
+              <span className="stat__value">🔥 {profile.streak.currentStreak}</span>
+              <span className="stat__label">Current streak</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.streak.longestStreak}</span>
+              <span className="stat__label">Longest streak</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.streak.lastPlayedDate ?? "—"}</span>
+              <span className="stat__label">Last played</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Achievements ────────────────────────────────────────────── */}
+      <section className="profile__section">
+        <h2 className="profile__section-title">
+          Achievements ({unlockedIds.size} / {ACHIEVEMENT_DEFS.length})
+        </h2>
+        <div className="achievement-grid">
+          {ACHIEVEMENT_DEFS.map((def) => {
+            const record = profile.achievements.find((a) => a.id === def.id);
+            const unlocked = !!record;
+            return (
+              <div
+                key={def.id}
+                className={`achievement-badge${unlocked ? " achievement-badge--unlocked" : ""}`}
+                title={
+                  unlocked
+                    ? `${def.description} — Unlocked ${new Date(record!.unlockedAt).toLocaleDateString()}`
+                    : def.description
+                }
+              >
+                <span className="achievement-badge__icon">{def.icon}</span>
+                <span className="achievement-badge__label">{def.label}</span>
+                {!unlocked && <span className="achievement-badge__lock">🔒</span>}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── Account Information ──────────────────────────────────────── */}
       <section className="profile__section">
         <h2 className="profile__section-title">Account Information</h2>
         <div className="hud">
@@ -47,6 +123,7 @@ export function Profile({ profile, onBack, onSignOut }: ProfileProps) {
         </div>
       </section>
 
+      {/* ── High Scores ─────────────────────────────────────────────── */}
       <section className="profile__section">
         <h2 className="profile__section-title">High Scores</h2>
         <div className="hud">
@@ -93,6 +170,7 @@ export function Profile({ profile, onBack, onSignOut }: ProfileProps) {
         </div>
       </section>
 
+      {/* ── Average Scores ──────────────────────────────────────────── */}
       <section className="profile__section">
         <h2 className="profile__section-title">Average Scores</h2>
         <div className="hud">
@@ -115,6 +193,7 @@ export function Profile({ profile, onBack, onSignOut }: ProfileProps) {
         </div>
       </section>
 
+      {/* ── Gameplay Statistics ──────────────────────────────────────── */}
       <section className="profile__section">
         <h2 className="profile__section-title">Gameplay Statistics</h2>
         <div className="hud">
@@ -137,6 +216,7 @@ export function Profile({ profile, onBack, onSignOut }: ProfileProps) {
         </div>
       </section>
 
+      {/* ── Rated Puzzles ───────────────────────────────────────────── */}
       <section className="profile__section">
         <h2 className="profile__section-title">Rated Puzzles</h2>
         <div className="hud">

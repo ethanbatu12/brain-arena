@@ -1,5 +1,40 @@
 export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern";
 
+export interface StreakData {
+  currentStreak: number;
+  longestStreak: number;
+  lastPlayedDate: string | null; // "YYYY-MM-DD"
+}
+
+export type AchievementId =
+  | "first-game"
+  | "games-10"
+  | "games-50"
+  | "games-100"
+  | "high-score-500"
+  | "high-score-1000"
+  | "challenge-first"
+  | "challenge-5"
+  | "streak-3"
+  | "streak-7"
+  | "streak-30"
+  | "chess-rating-1200"
+  | "chess-rating-1500"
+  | "pattern-rating-1200"
+  | "pattern-rating-1500";
+
+export interface AchievementRecord {
+  id: AchievementId;
+  unlockedAt: string; // ISO timestamp
+}
+
+export interface DailyChallengeRecord {
+  date: string;    // "YYYY-MM-DD"
+  gameId: GameId;
+  score: number;
+  completed: boolean;
+}
+
 export interface RatedPatternStats {
   rating: number;
   highestRating: number;
@@ -61,4 +96,9 @@ export interface PlayerProfile {
   challengeRunsCompleted: number;
   ratedPuzzles: RatedPuzzleStats;
   ratedPatterns: RatedPatternStats;
+  streak: StreakData;
+  achievements: AchievementRecord[];
+  dailyChallenges: DailyChallengeRecord[];
+  /** Emoji avatar selected by the user. */
+  avatar: string;
 }
