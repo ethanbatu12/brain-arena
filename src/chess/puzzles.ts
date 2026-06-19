@@ -33,7 +33,7 @@ export const PUZZLES: ChessPuzzle[] = [
     solution: [{ from: sq("h5"), to: sq("f7") }],
     difficulty: "beginner", puzzleType: "mate", theme: "checkmate",
     description: "There is a forced checkmate — find it.",
-    explanation: "Qxf7# is mate: the queen is protected by the bishop on c4 and the king has no escape.",
+    explanation: "Qxf7# is Scholar's Mate: the queen is protected by the bishop on c4 and the king has no escape.",
   },
   {
     id: 102, ratingMin: 0, ratingMax: 400,
@@ -44,12 +44,13 @@ export const PUZZLES: ChessPuzzle[] = [
     explanation: "Ra8# is a back-rank mate; the king is trapped behind its own f7/g7/h7 pawns.",
   },
   {
+    // Re8# — White King d6, White Rook e7, Black King d8. Re8 mates.
     id: 103, ratingMin: 0, ratingMax: 400,
-    fen: "6k1/8/6K1/8/8/8/8/7Q w - - 0 1",
-    solution: [{ from: sq("h1"), to: sq("h7") }],
-    difficulty: "beginner", puzzleType: "mate", theme: "queen-mate",
+    fen: "3k4/4R3/3K4/8/8/8/8/8 w - - 0 1",
+    solution: [{ from: sq("e7"), to: sq("e8") }],
+    difficulty: "beginner", puzzleType: "mate", theme: "back-rank",
     description: "Deliver a forced checkmate.",
-    explanation: "Qh7# — the king on g8 is boxed in by its own king's support on g6 and the queen.",
+    explanation: "Re8# — the rook seals the back rank while the king covers all escape squares.",
   },
   {
     id: 104, ratingMin: 0, ratingMax: 400,
@@ -60,20 +61,22 @@ export const PUZZLES: ChessPuzzle[] = [
     explanation: "Rb8# is a two-rook ladder mate: one rook seals the 7th rank, the other mates on the 8th.",
   },
   {
+    // Qg6# — White King f5, White Queen g4, Black King h6.
     id: 105, ratingMin: 0, ratingMax: 400,
-    fen: "3k4/3Q4/3K4/8/8/8/8/8 w - - 0 1",
-    solution: [{ from: sq("d7"), to: sq("c7") }],
+    fen: "8/8/7k/5K2/6Q1/8/8/8 w - - 0 1",
+    solution: [{ from: sq("g4"), to: sq("g6") }],
     difficulty: "beginner", puzzleType: "mate", theme: "queen-mate",
     description: "Deliver a forced checkmate.",
-    explanation: "Qc7# — the white king on d6 guards the escape squares while the queen mates.",
+    explanation: "Qg6# — the queen covers every escape square while the king guards the rest.",
   },
   {
+    // Rd8# — King f8 blocked by own knight on e7 and pawns f7/g7/h7.
     id: 106, ratingMin: 0, ratingMax: 400,
-    fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
-    solution: [{ from: sq("f3"), to: sq("e5") }],
-    difficulty: "beginner", puzzleType: "material", theme: "free-piece",
-    description: "Win material.",
-    explanation: "Nxe5 wins the undefended e5 pawn for free.",
+    fen: "5k2/4nppp/8/8/8/8/8/3R2K1 w - - 0 1",
+    solution: [{ from: sq("d1"), to: sq("d8") }],
+    difficulty: "beginner", puzzleType: "mate", theme: "back-rank",
+    description: "There is a forced checkmate — find it.",
+    explanation: "Rd8# — the king is smothered by its own pieces on the back rank.",
   },
   {
     id: 107, ratingMin: 0, ratingMax: 400,
@@ -85,11 +88,12 @@ export const PUZZLES: ChessPuzzle[] = [
   },
   {
     id: 108, ratingMin: 0, ratingMax: 400,
-    fen: "k7/2K5/8/8/8/8/6Q1/8 w - - 0 1",
-    solution: [{ from: sq("g2"), to: sq("a2") }],
-    difficulty: "beginner", puzzleType: "mate", theme: "queen-mate",
+    // Rc8# — White King b6, White Rook c6, Black King a8.
+    fen: "k7/8/1KR5/8/8/8/8/8 w - - 0 1",
+    solution: [{ from: sq("c6"), to: sq("c8") }],
+    difficulty: "beginner", puzzleType: "mate", theme: "rook-mate",
     description: "Deliver a forced checkmate.",
-    explanation: "Qa2# mates: the queen covers the a-file while the king on c7 guards b7 and b8.",
+    explanation: "Rc8# — the rook mates on the back rank while the king covers a7 and b7.",
   },
   {
     id: 109, ratingMin: 0, ratingMax: 400,
@@ -97,7 +101,7 @@ export const PUZZLES: ChessPuzzle[] = [
     solution: [{ from: sq("g2"), to: sq("g1"), promotion: "Q" }],
     difficulty: "beginner", puzzleType: "promotion", theme: "promotion",
     description: "Find the winning move.",
-    explanation: "Promoting with g1=Q wins immediately — a new queen decides the game.",
+    explanation: "g1=Q promotes and wins immediately — a new queen decides the game.",
   },
   {
     id: 110, ratingMin: 0, ratingMax: 400,
@@ -116,32 +120,35 @@ export const PUZZLES: ChessPuzzle[] = [
     explanation: "a8=Q queens the pawn; the black king is too far away to stop it.",
   },
   {
+    // Fixed: Qg7# (not Qf8 which allows escape to h7).
     id: 112, ratingMin: 0, ratingMax: 400,
     fen: "7k/5Q2/6K1/8/8/8/8/8 w - - 0 1",
-    solution: [{ from: sq("f7"), to: sq("f8") }],
+    solution: [{ from: sq("f7"), to: sq("g7") }],
     difficulty: "beginner", puzzleType: "mate", theme: "queen-mate",
     description: "Deliver a forced checkmate.",
-    explanation: "Qf8# — supported by the king on g6, the queen covers every escape square.",
+    explanation: "Qg7# — the queen on g7 covers all escape squares with the king's help on g6.",
   },
 
   // ══════════════════════════════════════════════════════════════════════════
   // INTERMEDIATE  (401–800)  — Basic forks, pins, skewers, 2-move combos
   // ══════════════════════════════════════════════════════════════════════════
   {
+    // Nf6+ royal fork — knight attacks king and queen simultaneously.
     id: 201, ratingMin: 401, ratingMax: 800,
-    fen: "r1bqkb1r/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4",
-    solution: [{ from: sq("f3"), to: sq("g5") }],
-    difficulty: "intermediate", puzzleType: "tactic", theme: "double-attack",
-    description: "Find the strongest move.",
-    explanation: "Ng5 hits f7 and threatens the queenside fork, creating a double threat.",
+    fen: "4k3/3q4/8/8/6N1/8/8/4K3 w - - 0 1",
+    solution: [{ from: sq("g4"), to: sq("f6") }],
+    difficulty: "intermediate", puzzleType: "fork", theme: "royal-fork",
+    description: "One move wins material.",
+    explanation: "Nf6+ is a royal fork: it checks the king and attacks the queen, winning it next move.",
   },
   {
+    // Rxe6+ — rook captures pinned queen giving check (queen defended by rook on e7 but can't recapture due to check).
     id: 202, ratingMin: 401, ratingMax: 800,
-    fen: "r2qkb1r/ppp2ppp/2np1n2/4p1B1/2B1P3/2NP4/PPP2PPP/R2QK2R w KQkq - 0 7",
-    solution: [{ from: sq("c4"), to: sq("f7") }],
-    difficulty: "intermediate", puzzleType: "fork", theme: "fork",
-    description: "One move wins material.",
-    explanation: "Bxf7+ forks the king and queen, winning decisive material.",
+    fen: "4k3/4r3/4q3/8/8/4R3/8/4K3 w - - 0 1",
+    solution: [{ from: sq("e3"), to: sq("e6") }],
+    difficulty: "intermediate", puzzleType: "tactic", theme: "pin",
+    description: "Find the strongest move.",
+    explanation: "Rxe6+ captures the queen with check; the rook on e7 cannot recapture because the king is in check.",
   },
   {
     id: 203, ratingMin: 401, ratingMax: 800,
@@ -152,20 +159,22 @@ export const PUZZLES: ChessPuzzle[] = [
     explanation: "Rxe2+ wins the queen, which is pinned to its king on the e-file.",
   },
   {
+    // Rxe7 — skewer: rook takes queen, king must recapture, net +4 points.
     id: 205, ratingMin: 401, ratingMax: 800,
-    fen: "r5k1/5ppp/8/8/8/8/5PPP/3RK1R1 w - - 0 1",
-    solution: [{ from: sq("d1"), to: sq("d8") }],
+    fen: "5k2/4q3/8/8/8/4R3/8/4K3 w - - 0 1",
+    solution: [{ from: sq("e3"), to: sq("e7") }],
     difficulty: "intermediate", puzzleType: "skewer", theme: "skewer",
     description: "Find the move that wins material.",
-    explanation: "Rd8+ skewers the king and the a8 rook, winning the rook.",
+    explanation: "Rxe7+ — the rook takes the queen with check. After the king recaptures, White is up decisive material.",
   },
   {
+    // Nc2 fork — Black knight forks White King on e1 and Rook on a1.
     id: 206, ratingMin: 401, ratingMax: 800,
-    fen: "r1bq1rk1/pppp1ppp/2n2n2/2b5/3NP3/2P5/PP3PPP/RNBQKB1R w KQ - 0 7",
-    solution: [{ from: sq("d4"), to: sq("c6") }],
+    fen: "r2qk3/5ppp/8/8/3n4/8/5PPP/R3K3 b - - 0 1",
+    solution: [{ from: sq("d4"), to: sq("c2") }],
     difficulty: "intermediate", puzzleType: "fork", theme: "fork",
     description: "One move wins material.",
-    explanation: "Nxc6 forks the queen and is hard to meet without losing material.",
+    explanation: "Nc2+ forks the white king and rook, winning the rook on the next move.",
   },
   {
     id: 207, ratingMin: 401, ratingMax: 800,
@@ -184,12 +193,13 @@ export const PUZZLES: ChessPuzzle[] = [
     explanation: "dxe5 attacks the queen and the knight at once, netting a piece.",
   },
   {
+    // Rxe4 — Black rook captures undefended white queen.
     id: 210, ratingMin: 401, ratingMax: 800,
-    fen: "r3k2r/pp1b1ppp/2p1pn2/q2p2B1/3P4/2NB1N2/PPP2PPP/R2QK2R w KQkq - 0 9",
-    solution: [{ from: sq("g5"), to: sq("f6") }],
-    difficulty: "intermediate", puzzleType: "discovered", theme: "discovered-attack",
-    description: "There is a hidden tactic — find it.",
-    explanation: "Bxf6 removes a key defender and opens lines against Black's position.",
+    fen: "4k3/8/4r3/8/4Q3/8/8/6K1 b - - 0 1",
+    solution: [{ from: sq("e6"), to: sq("e4") }],
+    difficulty: "intermediate", puzzleType: "material", theme: "winning-queen",
+    description: "Win material.",
+    explanation: "Rxe4 captures the undefended queen — with White's king too far away to recapture, Black wins a queen for free.",
   },
   {
     id: 211, ratingMin: 401, ratingMax: 800,
@@ -209,31 +219,37 @@ export const PUZZLES: ChessPuzzle[] = [
   },
 
   // ══════════════════════════════════════════════════════════════════════════
-  // ADVANCED  (801–1200)  — Multi-step tactics, early sacrifices
+  // ADVANCED  (801–1200)  — Multi-step tactics, back-rank invasions
   // ══════════════════════════════════════════════════════════════════════════
   {
+    // Rxd8+ — open d-file, back-rank invasion wins the rook.
     id: 303, ratingMin: 801, ratingMax: 1200,
-    fen: "4r1k1/pp3ppp/8/3q4/3P4/2PQ4/PP4PP/5RK1 b - - 0 1",
-    solution: [{ from: sq("e8"), to: sq("e1") }],
+    fen: "3r2k1/pp3ppp/2p5/8/8/2P5/PP3PPP/3R2K1 w - - 0 1",
+    solution: [{ from: sq("d1"), to: sq("d8") }],
     difficulty: "advanced", puzzleType: "tactic", theme: "back-rank",
     description: "Find the strongest move.",
-    explanation: "Rxe1+ exploits the back rank before White can reorganize the defense.",
+    explanation: "Rxd8+ invades the back rank; after Rxd8 the rooks are traded and White's superior endgame is decisive.",
   },
   {
+    // Smothered mate: Qg8+! Rxg8 Nf7#
     id: 306, ratingMin: 801, ratingMax: 1200,
-    fen: "r1bq1rk1/pp2ppbp/2np1np1/8/3NP3/2N1BP2/PPPQ2PP/R3KB1R w KQ - 0 9",
-    solution: [{ from: sq("d4"), to: sq("f5") }],
-    difficulty: "advanced", puzzleType: "sacrifice", theme: "sacrifice",
-    description: "Find the strongest continuation.",
-    explanation: "Nf5 sacrifices to rip open the lines toward Black's king.",
+    fen: "5r1k/6pp/7N/3Q4/8/8/6PP/6K1 w - - 0 1",
+    solution: [
+      { from: sq("d5"), to: sq("g8") },
+      { from: sq("f8"), to: sq("g8") },
+      { from: sq("h6"), to: sq("f7") },
+    ],
+    difficulty: "advanced", puzzleType: "mate", theme: "smothered-mate",
+    description: "Find the forced mate.",
+    explanation: "Qg8+!! forces Rxg8, then Nf7# is a smothered mate — the king is boxed in by its own rook and pawns.",
   },
   {
     id: 307, ratingMin: 801, ratingMax: 1200,
     fen: "r4rk1/pp3ppp/2p5/8/2B5/8/PP3PPP/3R2K1 w - - 0 1",
-    solution: [{ from: sq("d1"), to: sq("d8") }],
-    difficulty: "advanced", puzzleType: "tactic", theme: "back-rank",
+    solution: [{ from: sq("d1"), to: sq("d7") }],
+    difficulty: "advanced", puzzleType: "tactic", theme: "seventh-rank",
     description: "Find the strongest move.",
-    explanation: "Rd8 invades the back rank with decisive effect.",
+    explanation: "Rd7 invades the seventh rank, attacking multiple pawns with decisive effect.",
   },
   {
     id: 308, ratingMin: 801, ratingMax: 1200,
@@ -252,12 +268,13 @@ export const PUZZLES: ChessPuzzle[] = [
     explanation: "Rxd8+ uses the open file to force a decisive material gain.",
   },
   {
+    // Clearance + back-rank: Rxd8+ wins the rook.
     id: 310, ratingMin: 801, ratingMax: 1200,
-    fen: "r3k2r/pp1n1ppp/2pb1n2/3pp1q1/3PP1b1/2NB1N2/PPP1QPPP/R1B1K2R w KQkq - 0 9",
-    solution: [{ from: sq("f3"), to: sq("e5") }],
-    difficulty: "advanced", puzzleType: "fork", theme: "fork",
-    description: "One move wins material.",
-    explanation: "Nxe5 grabs a central pawn while hitting multiple targets.",
+    fen: "r4rk1/pp3ppp/8/8/8/8/PP3PPP/3R1RK1 w - - 0 1",
+    solution: [{ from: sq("d1"), to: sq("d8") }],
+    difficulty: "advanced", puzzleType: "tactic", theme: "back-rank",
+    description: "Find the strongest move.",
+    explanation: "Rd8 invades the back rank, winning the rook and gaining a decisive advantage.",
   },
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -281,14 +298,6 @@ export const PUZZLES: ChessPuzzle[] = [
   },
   {
     id: 403, ratingMin: 1201, ratingMax: 1600,
-    fen: "2r3k1/1p3ppp/p7/8/8/1P6/P4PPP/3R2K1 w - - 0 1",
-    solution: [{ from: sq("d1"), to: sq("d8") }],
-    difficulty: "expert", puzzleType: "endgame", theme: "conversion",
-    description: "Find the best move to convert.",
-    explanation: "Rxd8+ simplifies into a winning rook endgame.",
-  },
-  {
-    id: 404, ratingMin: 1201, ratingMax: 1600,
     fen: "r2q1rk1/1p1b1ppp/p2bpn2/3p4/3P4/1BNQBN2/PP3PPP/R3R1K1 w - - 0 12",
     solution: [{ from: sq("e3"), to: sq("g5") }],
     difficulty: "expert", puzzleType: "tactic", theme: "double-attack",
@@ -296,7 +305,7 @@ export const PUZZLES: ChessPuzzle[] = [
     explanation: "Bg5 creates multiple threats Black cannot meet at once.",
   },
   {
-    id: 405, ratingMin: 1201, ratingMax: 1600,
+    id: 404, ratingMin: 1201, ratingMax: 1600,
     fen: "1rb2rk1/p4ppp/1pn1p3/3pP3/q2P1B2/2RQ2N1/PP3PPP/4RBK1 w - - 0 1",
     solution: [{ from: sq("g3"), to: sq("f5") }],
     difficulty: "expert", puzzleType: "sacrifice", theme: "sacrifice",
@@ -304,7 +313,7 @@ export const PUZZLES: ChessPuzzle[] = [
     explanation: "Nf5 sacrifices to open dangerous lines against the king.",
   },
   {
-    id: 407, ratingMin: 1201, ratingMax: 1600,
+    id: 405, ratingMin: 1201, ratingMax: 1600,
     fen: "3r1r1k/1p3ppp/p1n1p3/2q5/3P4/1BN1Q3/PP3PPP/R4RK1 w - - 0 1",
     solution: [{ from: sq("e3"), to: sq("h6") }],
     difficulty: "expert", puzzleType: "mate", theme: "mating-net",
@@ -312,7 +321,7 @@ export const PUZZLES: ChessPuzzle[] = [
     explanation: "Qh6 sets up a mating threat Black cannot neutralize.",
   },
   {
-    id: 408, ratingMin: 1201, ratingMax: 1600,
+    id: 407, ratingMin: 1201, ratingMax: 1600,
     fen: "r4rk1/1bqn1ppp/pp2p3/2pp4/3P4/P1N1PN2/BP3PPP/R2Q1RK1 w - - 0 12",
     solution: [{ from: sq("c3"), to: sq("d5") }],
     difficulty: "expert", puzzleType: "fork", theme: "fork",
@@ -320,7 +329,7 @@ export const PUZZLES: ChessPuzzle[] = [
     explanation: "Nd5 forks the queen and the e7 square, winning material.",
   },
   {
-    id: 409, ratingMin: 1201, ratingMax: 1600,
+    id: 408, ratingMin: 1201, ratingMax: 1600,
     fen: "2rq1rk1/1b2bppp/p2ppn2/1p6/3NP3/1BN1B3/PPP2PPP/R2Q1RK1 w - - 0 11",
     solution: [{ from: sq("d4"), to: sq("c6") }],
     difficulty: "expert", puzzleType: "sacrifice", theme: "sacrifice",
@@ -328,14 +337,13 @@ export const PUZZLES: ChessPuzzle[] = [
     explanation: "Nxc6 wrecks the structure and wins material on the follow-up.",
   },
   {
-    // ── Verified multi-step puzzle: classic queen-sacrifice smothered mate ──
-    // 1. Qg8+!! Rxg8 (forced) 2. Nf7# — the rook on g8 and pawns g7/h7 smother the king.
+    // Smothered mate: Qg8+! Rxg8 Nf7# (same pattern, different puzzle id for rated mode)
     id: 411, ratingMin: 1201, ratingMax: 1600,
     fen: "5r1k/6pp/7N/3Q4/8/8/6PP/6K1 w - - 0 1",
     solution: [
-      { from: sq("d5"), to: sq("g8") },  // Qg8+  (defended by Nh6, so the king can't take)
-      { from: sq("f8"), to: sq("g8") },  // Rxg8  (only legal reply)
-      { from: sq("h6"), to: sq("f7") },  // Nf7#  (smothered mate)
+      { from: sq("d5"), to: sq("g8") },
+      { from: sq("f8"), to: sq("g8") },
+      { from: sq("h6"), to: sq("f7") },
     ],
     difficulty: "expert", puzzleType: "mate", theme: "smothered-mate",
     description: "There is a forced mate — find the whole sequence.",
@@ -508,12 +516,12 @@ export function getPuzzleById(id: number): ChessPuzzle | undefined {
   return PUZZLES.find((p) => p.id === id);
 }
 
-// ── PuzzleRush sequence (mixes tiers, ramps up over a 60-second run) ──────────
+// ── PuzzleRush sequence — weighted toward beginner/intermediate for fast solving ──
 export function getPuzzleSequence(): ChessPuzzle[] {
   const order: ChessPuzzle["difficulty"][] = [
-    "beginner", "intermediate", "beginner", "intermediate", "advanced",
-    "intermediate", "advanced", "expert", "advanced", "expert",
-    "master", "expert", "master", "grandmaster", "master",
+    "beginner", "beginner", "intermediate", "beginner", "intermediate",
+    "beginner", "intermediate", "advanced", "intermediate", "advanced",
+    "expert", "advanced", "expert", "master", "grandmaster",
   ];
   const byDiff: Record<string, ChessPuzzle[]> = {};
   for (const p of PUZZLES) {
