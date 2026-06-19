@@ -239,14 +239,24 @@ function normalizeStreak(s: Partial<StreakData> | undefined): StreakData {
   return { ...emptyStreak(), ...s };
 }
 
-function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile {
+export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile {
+  // Ensure every game key exists so recordGameResult never crashes on missing keys
+  const games = {} as Record<GameId, GameStats>;
+  for (const id of GAME_IDS) {
+    const g = (profile.games as Record<string, GameStats> | undefined)?.[id];
+    games[id] = g ?? emptyGameStats();
+  }
   return {
     ...profile,
     passwordHash: profile.passwordHash ?? "",
     passwordSalt: profile.passwordSalt ?? "",
+    games,
     combinedBestScore: profile.combinedBestScore ?? 0,
     combinedTotalScore: profile.combinedTotalScore ?? 0,
     challengeRunsCompleted: profile.challengeRunsCompleted ?? 0,
+    totalGamesPlayed: profile.totalGamesPlayed ?? 0,
+    overallBestScore: profile.overallBestScore ?? 0,
+    overallTotalScore: profile.overallTotalScore ?? 0,
     ratedPuzzles: normalizeRatedPuzzles(profile.ratedPuzzles),
     ratedPatterns: normalizeRatedPatterns(profile.ratedPatterns),
     streak: normalizeStreak(profile.streak),

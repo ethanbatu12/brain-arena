@@ -10,6 +10,7 @@ import {
   recordGameResult,
   recordRatedPatternRun as recordRatedPatternRunInStorage,
   recordRatedPuzzleResult,
+  normalizeProfile,
   saveCurrentUsername,
   saveProfile,
   validatePassword,
@@ -125,7 +126,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           return { ok: false, error: "Invalid username or password." };
         }
         // Restore the profile from cloud data
-        profile = { ...createProfile(username, cloud.password_hash, cloud.password_salt), ...(cloud.profile_data as object) } as typeof profile;
+        profile = normalizeProfile({ ...createProfile(username, cloud.password_hash, cloud.password_salt), ...(cloud.profile_data as object) });
         await saveProfile(profile);
         setProfiles((prev) => ({ ...prev, [username]: profile! }));
         await saveCurrentUsername(username);

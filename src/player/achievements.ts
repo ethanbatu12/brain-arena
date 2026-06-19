@@ -114,6 +114,148 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
     icon: "🔮",
     check: (p) => p.ratedPatterns.highestRating >= 1500,
   },
+  // ── More game milestones ──────────────────────────────────────────────────
+  {
+    id: "games-250",
+    label: "250 Games",
+    description: "Play 250 games.",
+    icon: "🏅",
+    check: (p) => p.totalGamesPlayed >= 250,
+  },
+  {
+    id: "games-500",
+    label: "500 Games",
+    description: "Play 500 games.",
+    icon: "👑",
+    check: (p) => p.totalGamesPlayed >= 500,
+  },
+  // ── Higher score milestones ───────────────────────────────────────────────
+  {
+    id: "high-score-2500",
+    label: "Score Legend",
+    description: "Earn 2500 points in a single game.",
+    icon: "🚀",
+    check: (p) => p.overallBestScore >= 2500,
+  },
+  {
+    id: "high-score-5000",
+    label: "Unstoppable",
+    description: "Earn 5000 points in a single game.",
+    icon: "💥",
+    check: (p) => p.overallBestScore >= 5000,
+  },
+  // ── Challenge milestones ──────────────────────────────────────────────────
+  {
+    id: "challenge-25",
+    label: "Challenge Legend",
+    description: "Complete 25 All Games Challenges.",
+    icon: "🏆",
+    check: (p) => p.challengeRunsCompleted >= 25,
+  },
+  // ── Long streaks ──────────────────────────────────────────────────────────
+  {
+    id: "streak-100",
+    label: "Century Streak",
+    description: "Play 100 days in a row.",
+    icon: "🌈",
+    check: (p) => p.streak.longestStreak >= 100,
+  },
+  // ── Chess ratings ─────────────────────────────────────────────────────────
+  {
+    id: "chess-rating-1800",
+    label: "Chess Master",
+    description: "Reach a chess rating of 1800.",
+    icon: "👑",
+    check: (p) => p.ratedPuzzles.highestRating >= 1800,
+  },
+  {
+    id: "chess-rating-2000",
+    label: "Chess Grandmaster",
+    description: "Reach a chess rating of 2000.",
+    icon: "🏆",
+    check: (p) => p.ratedPuzzles.highestRating >= 2000,
+  },
+  // ── Pattern ratings ───────────────────────────────────────────────────────
+  {
+    id: "pattern-rating-1800",
+    label: "Pattern Master",
+    description: "Reach a pattern rating of 1800.",
+    icon: "🧠",
+    check: (p) => p.ratedPatterns.highestRating >= 1800,
+  },
+  // ── Per-game bests ────────────────────────────────────────────────────────
+  {
+    id: "memory-best-500",
+    label: "Memory Pro",
+    description: "Score 500 in Memory Matrix.",
+    icon: "🟦",
+    check: (p) => p.games.memory.bestScore >= 500,
+  },
+  {
+    id: "memory-best-1000",
+    label: "Memory Elite",
+    description: "Score 1000 in Memory Matrix.",
+    icon: "🟣",
+    check: (p) => p.games.memory.bestScore >= 1000,
+  },
+  {
+    id: "math-best-500",
+    label: "Math Pro",
+    description: "Score 500 in Mental Math.",
+    icon: "➕",
+    check: (p) => p.games.math.bestScore >= 500,
+  },
+  {
+    id: "math-best-1000",
+    label: "Math Elite",
+    description: "Score 1000 in Mental Math.",
+    icon: "🔢",
+    check: (p) => p.games.math.bestScore >= 1000,
+  },
+  {
+    id: "logic-best-500",
+    label: "Logic Pro",
+    description: "Score 500 in Logic Challenge.",
+    icon: "🟧",
+    check: (p) => p.games.logic.bestScore >= 500,
+  },
+  {
+    id: "logic-best-1000",
+    label: "Logic Elite",
+    description: "Score 1000 in Logic Challenge.",
+    icon: "🧊",
+    check: (p) => p.games.logic.bestScore >= 1000,
+  },
+  {
+    id: "balloon-best-500",
+    label: "Balloon Pro",
+    description: "Score 500 in Balloon Pop.",
+    icon: "🎈",
+    check: (p) => p.games.balloon.bestScore >= 500,
+  },
+  // ── Explorer ──────────────────────────────────────────────────────────────
+  {
+    id: "all-games-played",
+    label: "Explorer",
+    description: "Play every game at least once.",
+    icon: "🌍",
+    check: (p) => Object.values(p.games).every((g) => g.gamesPlayed >= 1),
+  },
+  // ── Daily challenge ───────────────────────────────────────────────────────
+  {
+    id: "daily-first",
+    label: "Daily Player",
+    description: "Complete your first daily challenge.",
+    icon: "📅",
+    check: (p) => (p.dailyChallenges ?? []).some((d) => d.completed),
+  },
+  {
+    id: "daily-7",
+    label: "Daily Devotee",
+    description: "Complete 7 daily challenges.",
+    icon: "🗓️",
+    check: (p) => (p.dailyChallenges ?? []).filter((d) => d.completed).length >= 7,
+  },
 ];
 
 /** Returns ids of achievements newly unlocked by this profile state. */
