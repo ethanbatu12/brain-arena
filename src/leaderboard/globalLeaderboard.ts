@@ -115,13 +115,34 @@ export async function fetchGlobalLeaderboard(): Promise<GlobalEntry[]> {
         banned = new Set(banRows.map((r) => r.username));
       }
     } catch { /* ignore */ }
-    // Deduplicate by username — keep the row with the highest combined_best_score
+    // Deduplicate by username — merge best value of every numeric field across all rows
     const seen = new Map<string, GlobalEntry>();
     for (const row of rows) {
       if (banned.has(row.username)) continue;
       const existing = seen.get(row.username);
-      if (!existing || row.combined_best_score > existing.combined_best_score) {
-        seen.set(row.username, row);
+      if (!existing) {
+        seen.set(row.username, { ...row });
+      } else {
+        seen.set(row.username, {
+          ...existing,
+          combined_best_score: Math.max(existing.combined_best_score, row.combined_best_score),
+          total_games_played:  Math.max(existing.total_games_played,  row.total_games_played),
+          longest_streak:      Math.max(existing.longest_streak,      row.longest_streak),
+          pattern_rating:      Math.max(existing.pattern_rating,      row.pattern_rating),
+          chess_rating:        Math.max(existing.chess_rating,        row.chess_rating),
+          chess_peak_rating:   Math.max(existing.chess_peak_rating,   row.chess_peak_rating),
+          memory_best:         Math.max(existing.memory_best,         row.memory_best),
+          math_best:           Math.max(existing.math_best,           row.math_best),
+          logic_best:          Math.max(existing.logic_best,          row.logic_best),
+          balloon_best:        Math.max(existing.balloon_best,        row.balloon_best),
+          pattern_best:        Math.max(existing.pattern_best,        row.pattern_best),
+          challenge_runs:      Math.max(existing.challenge_runs,      row.challenge_runs),
+          memory_avg:          Math.max(existing.memory_avg  ?? 0,    row.memory_avg  ?? 0),
+          math_avg:            Math.max(existing.math_avg    ?? 0,    row.math_avg    ?? 0),
+          logic_avg:           Math.max(existing.logic_avg   ?? 0,    row.logic_avg   ?? 0),
+          balloon_avg:         Math.max(existing.balloon_avg ?? 0,    row.balloon_avg ?? 0),
+          pattern_avg:         Math.max(existing.pattern_avg ?? 0,    row.pattern_avg ?? 0),
+        });
       }
     }
     return Array.from(seen.values()).sort((a, b) => b.combined_best_score - a.combined_best_score).slice(0, 100);
