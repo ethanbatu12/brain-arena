@@ -54,7 +54,7 @@ export function Hub({ profile, onPick, onChess, onProfile, onDb, onLeaderboard, 
           </p>
           <div className="home__streak-row">
             <span className="home__streak-badge" title={`Longest streak: ${longestStreak} days`}>
-              🔥 {currentStreak} day streak
+              🔥 {Math.max(currentStreak, 1)} day streak
             </span>
             {longestStreak > currentStreak && (
               <span className="home__streak-best">Best: {longestStreak}</span>
