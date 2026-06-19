@@ -23,9 +23,9 @@ describe("ratedPatternInitialState", () => {
     expect(s.attempted).toBe(0);
   });
 
-  it("defaults to RATED_PATTERN_INITIAL_RATING (1400)", () => {
+  it("defaults to RATED_PATTERN_INITIAL_RATING (1800)", () => {
     expect(ratedPatternInitialState().rating).toBe(RATED_PATTERN_INITIAL_RATING);
-    expect(RATED_PATTERN_INITIAL_RATING).toBe(1400);
+    expect(RATED_PATTERN_INITIAL_RATING).toBe(1800);
   });
 });
 
@@ -184,8 +184,8 @@ describe("ratingTier", () => {
 });
 
 describe("bandForRating", () => {
-  it("maps initial rating 1400 to band 5", () => {
-    expect(bandForRating(1400)).toBe(5);
+  it("maps initial rating 1800 to band 7", () => {
+    expect(bandForRating(1800)).toBe(7);
   });
 
   it("scales up by one band per 200 rating points above 600", () => {
