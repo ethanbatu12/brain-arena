@@ -19,6 +19,8 @@ import { applyAchievements, checkAchievements } from "./achievements";
 import { getDailyGameId, recordDailyChallengeResult } from "./dailyChallenge";
 import { getToday, updateStreak } from "./streak";
 import { pushToGlobalLeaderboard } from "../leaderboard/globalLeaderboard";
+import { fetchCloudProfile, isUsernameTaken, pushCloudProfile } from "./cloudSync";
+import { verifyPassword as verifyPw } from "./crypto";
 
 /** Apply streak update + achievement check to an already-updated profile. */
 function applyPostGameEffects(profile: PlayerProfile): {
@@ -85,7 +87,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       const { username } = usernameResult;
       const { password } = passwordResult;
 
-      if (profiles[username]) {
+      if (profiles[username] || await isUsernameTaken(username)) {
         return { ok: false, error: "Username already taken." };
       }
 
@@ -95,6 +97,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
       await saveProfile(profile);
       await saveCurrentUsername(username);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { passwordHash: _h, passwordSalt: _s, ...profileData } = profile;
+      void pushCloudProfile(username, hash, salt, profileData as Record<string, unknown>);
       setProfiles((prev) => ({ ...prev, [username]: profile }));
       setCurrentUsername(username);
       return { ok: true };
@@ -108,8 +113,25 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       if (!usernameResult.ok) return { ok: false, error: "Invalid username or password." };
 
       const { username } = usernameResult;
-      const profile = profiles[username];
-      if (!profile || !(await verifyPassword(rawPassword, profile.passwordSalt, profile.passwordHash))) {
+      let profile = profiles[username];
+
+      // Not found locally — try fetching from the cloud
+      if (!profile) {
+        const cloud = await fetchCloudProfile(username);
+        if (!cloud) return { ok: false, error: "Invalid username or password." };
+        if (!(await verifyPw(rawPassword, cloud.password_salt, cloud.password_hash))) {
+          return { ok: false, error: "Invalid username or password." };
+        }
+        // Restore the profile from cloud data
+        profile = { ...createProfile(username, cloud.password_hash, cloud.password_salt), ...(cloud.profile_data as object) } as typeof profile;
+        await saveProfile(profile);
+        setProfiles((prev) => ({ ...prev, [username]: profile! }));
+        await saveCurrentUsername(username);
+        setCurrentUsername(username);
+        return { ok: true };
+      }
+
+      if (!(await verifyPassword(rawPassword, profile.passwordSalt, profile.passwordHash))) {
         return { ok: false, error: "Invalid username or password." };
       }
 
@@ -141,6 +163,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(final);
         void pushToGlobalLeaderboard(final);
+        void pushCloudProfile(final.username, final.passwordHash, final.passwordSalt, final as unknown as Record<string, unknown>);
         return { ...prev, [currentUsername]: final };
       });
     },
