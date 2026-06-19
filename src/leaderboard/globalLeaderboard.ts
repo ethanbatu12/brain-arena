@@ -1,3 +1,4 @@
+import { averageScore } from "../player/storage";
 import type { PlayerProfile } from "../player/types";
 
 const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "")
@@ -44,6 +45,11 @@ export interface GlobalEntry {
   balloon_best: number;
   pattern_best: number;
   challenge_runs: number;
+  memory_avg: number;
+  math_avg: number;
+  logic_avg: number;
+  balloon_avg: number;
+  pattern_avg: number;
   updated_at: string;
 }
 
@@ -64,6 +70,11 @@ function profileToEntry(profile: PlayerProfile): Record<string, unknown> {
     balloon_best: profile.games.balloon.bestScore,
     pattern_best: profile.games.pattern.bestScore,
     challenge_runs: profile.challengeRunsCompleted,
+    memory_avg: Math.round(averageScore(profile.games.memory)),
+    math_avg: Math.round(averageScore(profile.games.math)),
+    logic_avg: Math.round(averageScore(profile.games.logic)),
+    balloon_avg: Math.round(averageScore(profile.games.balloon)),
+    pattern_avg: Math.round(averageScore(profile.games.pattern)),
     updated_at: new Date().toISOString(),
   };
 }

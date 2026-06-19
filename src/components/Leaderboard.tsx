@@ -6,10 +6,14 @@ import {
   type GlobalEntry,
 } from "../leaderboard/globalLeaderboard";
 import { ratingTier } from "../pattern/ratedPatternReducer";
+import { averageScore } from "../player/storage";
 import type { GameId, PlayerProfile } from "../player/types";
+
+type AvgKey = "memory-avg" | "math-avg" | "logic-avg" | "balloon-avg" | "pattern-avg";
 
 type SortKey =
   | GameId
+  | AvgKey
   | "score"
   | "pattern-rating"
   | "chess-rating"
@@ -34,12 +38,24 @@ interface Row {
   isCurrentUser: boolean;
 }
 
+const AVG_GAME_MAP: Partial<Record<AvgKey, GameId>> = {
+  "memory-avg": "memory",
+  "math-avg": "math",
+  "logic-avg": "logic",
+  "balloon-avg": "balloon",
+  "pattern-avg": "pattern",
+};
+
 function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): Row {
   let value: number;
   let label: string;
   if (key === "memory" || key === "math" || key === "logic" || key === "balloon" || key === "pattern") {
     value = p.games[key].bestScore;
     label = String(value);
+  } else if (key in AVG_GAME_MAP) {
+    const gameId = AVG_GAME_MAP[key as AvgKey]!;
+    value = Math.round(averageScore(p.games[gameId]));
+    label = value === 0 ? "—" : String(value);
   } else {
     switch (key) {
       case "score":          value = p.combinedBestScore; label = String(value); break;
@@ -71,6 +87,11 @@ function globalEntryToRow(e: GlobalEntry, key: SortKey, currentUsername: string)
     case "logic":               value = e.logic_best; label = String(value); break;
     case "balloon":             value = e.balloon_best; label = String(value); break;
     case "pattern":             value = e.pattern_best; label = String(value); break;
+    case "memory-avg":          value = e.memory_avg ?? 0; label = value === 0 ? "—" : String(value); break;
+    case "math-avg":            value = e.math_avg ?? 0; label = value === 0 ? "—" : String(value); break;
+    case "logic-avg":           value = e.logic_avg ?? 0; label = value === 0 ? "—" : String(value); break;
+    case "balloon-avg":         value = e.balloon_avg ?? 0; label = value === 0 ? "—" : String(value); break;
+    case "pattern-avg":         value = e.pattern_avg ?? 0; label = value === 0 ? "—" : String(value); break;
     default:                    value = 0; label = "0";
   }
   return { username: e.username, avatar: e.avatar ?? "🧠", value, label, isCurrentUser: e.username === currentUsername };
@@ -92,8 +113,12 @@ const TAB_GROUPS: TabGroup[] = [
     ],
   },
   {
-    heading: "Individual Games",
+    heading: "Individual Games (Best)",
     tabs: GAMES.map((g) => ({ key: g.id as SortKey, label: g.name })),
+  },
+  {
+    heading: "Individual Games (Avg)",
+    tabs: GAMES.map((g) => ({ key: `${g.id}-avg` as SortKey, label: g.name })),
   },
   {
     heading: "Ratings",
@@ -256,6 +281,11 @@ const SETUP_SQL = `CREATE TABLE leaderboard_entries (
   balloon_best          INTEGER DEFAULT 0,
   pattern_best          INTEGER DEFAULT 0,
   challenge_runs        INTEGER DEFAULT 0,
+  memory_avg            INTEGER DEFAULT 0,
+  math_avg              INTEGER DEFAULT 0,
+  logic_avg             INTEGER DEFAULT 0,
+  balloon_avg           INTEGER DEFAULT 0,
+  pattern_avg           INTEGER DEFAULT 0,
   updated_at            TIMESTAMPTZ DEFAULT NOW(),
   PRIMARY KEY (device_id, username)
 );
