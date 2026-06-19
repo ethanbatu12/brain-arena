@@ -80,3 +80,22 @@ export async function isUsernameTaken(username: string): Promise<boolean> {
   const profile = await fetchCloudProfile(username);
   return profile !== null;
 }
+
+/** Get total number of registered players. */
+export async function getTotalPlayers(): Promise<number> {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/${TABLE}?select=username`,
+      { headers: { ...headers(), Prefer: "count=exact" } },
+    );
+    const count = res.headers.get("content-range");
+    if (count) {
+      const total = count.split("/")[1];
+      if (total && total !== "*") return parseInt(total, 10);
+    }
+    const rows = await res.json() as unknown[];
+    return rows.length;
+  } catch {
+    return 0;
+  }
+}

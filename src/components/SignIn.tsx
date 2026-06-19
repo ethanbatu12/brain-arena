@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getTotalPlayers } from "../player/cloudSync";
 
 type Mode = "signin" | "create";
 
@@ -13,6 +14,11 @@ export function SignIn({ onCreateAccount, onSignIn }: SignInProps) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [totalPlayers, setTotalPlayers] = useState<number | null>(null);
+
+  useEffect(() => {
+    getTotalPlayers().then((n) => { if (n > 0) setTotalPlayers(n); });
+  }, []);
 
   const switchMode = (next: Mode) => {
     setMode(next);
@@ -52,6 +58,11 @@ export function SignIn({ onCreateAccount, onSignIn }: SignInProps) {
           Brain<span>Arena</span>
         </h1>
         <p className="home__sub">Sign in or create an account to start playing.</p>
+        {totalPlayers !== null && (
+          <p className="home__sub" style={{ fontSize: "0.8rem", opacity: 0.7 }}>
+            🌍 {totalPlayers.toLocaleString()} {totalPlayers === 1 ? "player has" : "players have"} joined
+          </p>
+        )}
       </div>
 
       <div className="signin__tabs">
