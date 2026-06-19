@@ -85,16 +85,25 @@ export async function pushToGlobalLeaderboard(profile: PlayerProfile): Promise<v
   }
 }
 
-/** Fetch global leaderboard entries sorted by combined_best_score descending. */
+/** Fetch global leaderboard entries sorted by combined_best_score descending, deduplicated by username. */
 export async function fetchGlobalLeaderboard(): Promise<GlobalEntry[]> {
   if (!isGlobalLeaderboardEnabled()) return [];
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=combined_best_score.desc&limit=100`,
+      `${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=combined_best_score.desc&limit=500`,
       { headers: supabaseHeaders() },
     );
     if (!res.ok) return [];
-    return (await res.json()) as GlobalEntry[];
+    const rows = (await res.json()) as GlobalEntry[];
+    // Deduplicate by username — keep the row with the highest combined_best_score
+    const seen = new Map<string, GlobalEntry>();
+    for (const row of rows) {
+      const existing = seen.get(row.username);
+      if (!existing || row.combined_best_score > existing.combined_best_score) {
+        seen.set(row.username, row);
+      }
+    }
+    return Array.from(seen.values()).sort((a, b) => b.combined_best_score - a.combined_best_score).slice(0, 100);
   } catch {
     return [];
   }
