@@ -46,11 +46,11 @@ export function pointsForBand(band: number): number {
 
 /**
  * Map a Rated Patterns rating to a logic band (1–10).
- * Rating 1000 (start) → band 3; each 200 points adds one band.
- * rating < 800 → band 1, 800–999 → band 2, 1000–1199 → band 3, …, 2400+ → band 10.
+ * Minimum band is 7 so rated mode always uses hard patterns regardless of rating.
+ * Rating 1000 (start) → band 7; grows above 2000.
  */
 export function bandForRating(rating: number): number {
-  return Math.min(MAX_LEVEL, Math.max(MIN_LEVEL, Math.floor((rating - 600) / 200) + 1));
+  return Math.min(MAX_LEVEL, Math.max(7, Math.floor((rating - 600) / 200) + 1));
 }
 
 // ── prime helpers ─────────────────────────────────────────────────────────────

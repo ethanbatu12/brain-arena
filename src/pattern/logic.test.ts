@@ -47,25 +47,24 @@ describe("pointsForBand", () => {
 });
 
 describe("bandForRating", () => {
-  it("maps 1000 (starting rating) to band 3", () => {
-    expect(bandForRating(1000)).toBe(3);
+  it("maps 1000 (starting rating) to band 7 (hard floor)", () => {
+    expect(bandForRating(1000)).toBe(7);
   });
 
-  it("maps each 200-point bracket above 600 to the correct band", () => {
-    expect(bandForRating(600)).toBe(1);
-    expect(bandForRating(800)).toBe(2);
-    expect(bandForRating(1200)).toBe(4);
-    expect(bandForRating(1400)).toBe(5);
-    expect(bandForRating(1600)).toBe(6);
+  it("clamps all ratings below 1800 to the minimum band 7", () => {
+    expect(bandForRating(0)).toBe(7);
+    expect(bandForRating(600)).toBe(7);
+    expect(bandForRating(800)).toBe(7);
+    expect(bandForRating(1200)).toBe(7);
+    expect(bandForRating(1400)).toBe(7);
+    expect(bandForRating(1600)).toBe(7);
     expect(bandForRating(1800)).toBe(7);
+  });
+
+  it("increases band above 1800", () => {
     expect(bandForRating(2000)).toBe(8);
     expect(bandForRating(2200)).toBe(9);
     expect(bandForRating(2400)).toBe(10);
-  });
-
-  it("clamps low ratings to band 1 and high ratings to band 10", () => {
-    expect(bandForRating(0)).toBe(1);
-    expect(bandForRating(599)).toBe(1);
     expect(bandForRating(5000)).toBe(10);
   });
 });

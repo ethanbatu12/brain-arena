@@ -47,6 +47,7 @@ export interface GlobalEntry {
 
 function profileToEntry(profile: PlayerProfile): Record<string, unknown> {
   return {
+    device_id: profile.username,
     username: profile.username,
     avatar: profile.avatar ?? "🧠",
     combined_best_score: profile.combinedBestScore,

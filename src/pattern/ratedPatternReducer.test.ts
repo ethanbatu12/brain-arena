@@ -23,9 +23,9 @@ describe("ratedPatternInitialState", () => {
     expect(s.attempted).toBe(0);
   });
 
-  it("defaults to RATED_PATTERN_INITIAL_RATING (1800)", () => {
+  it("defaults to RATED_PATTERN_INITIAL_RATING (1000)", () => {
     expect(ratedPatternInitialState().rating).toBe(RATED_PATTERN_INITIAL_RATING);
-    expect(RATED_PATTERN_INITIAL_RATING).toBe(1800);
+    expect(RATED_PATTERN_INITIAL_RATING).toBe(1000);
   });
 });
 
@@ -184,15 +184,15 @@ describe("ratingTier", () => {
 });
 
 describe("bandForRating", () => {
-  it("maps initial rating 1800 to band 7", () => {
-    expect(bandForRating(1800)).toBe(7);
+  it("maps initial rating 1000 to band 7 (hard floor)", () => {
+    expect(bandForRating(1000)).toBe(7);
   });
 
-  it("scales up by one band per 200 rating points above 600", () => {
-    expect(bandForRating(600)).toBe(1);
-    expect(bandForRating(800)).toBe(2);
-    expect(bandForRating(1000)).toBe(3); // still valid for rating 1000
-    expect(bandForRating(1200)).toBe(4);
+  it("scales up by one band per 200 rating points above 1800", () => {
+    expect(bandForRating(600)).toBe(7);
+    expect(bandForRating(800)).toBe(7);
+    expect(bandForRating(1000)).toBe(7); // minimum band is 7
+    expect(bandForRating(1200)).toBe(7);
     expect(bandForRating(1400)).toBe(5);
     expect(bandForRating(1600)).toBe(6);
     expect(bandForRating(1800)).toBe(7);
@@ -202,8 +202,8 @@ describe("bandForRating", () => {
     expect(bandForRating(3000)).toBe(10);
   });
 
-  it("clamps low ratings to band 1", () => {
-    expect(bandForRating(0)).toBe(1);
-    expect(bandForRating(599)).toBe(1);
+  it("clamps low ratings to minimum band 7", () => {
+    expect(bandForRating(0)).toBe(7);
+    expect(bandForRating(599)).toBe(7);
   });
 });
