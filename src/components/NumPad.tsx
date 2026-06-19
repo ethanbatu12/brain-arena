@@ -28,7 +28,7 @@ export function NumPad({ onDigit, onBackspace, onSubmit, showMinus = false }: Nu
       <button
         type="button"
         className="numpad__enter btn btn--primary"
-        onPointerDown={(e) => { e.preventDefault(); onSubmit(); }}
+        onClick={onSubmit}
       >
         Enter ↵
       </button>
