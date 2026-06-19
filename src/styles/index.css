@@ -770,6 +770,50 @@ button {
   color: var(--text-mute);
   font-size: 13px;
 }
+
+/* ── NumPad ──────────────────────────────────────────────────────────────── */
+.numpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.numpad__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: 280px;
+}
+.numpad__key {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1.3rem;
+  font-weight: 600;
+  padding: 14px 0;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: background 0.1s;
+}
+.numpad__key:active,
+.numpad__key:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.numpad__key--back { color: var(--text-mute); }
+.numpad__key--minus { font-size: 1.6rem; }
+.numpad__enter {
+  width: 100%;
+  max-width: 280px;
+  padding: 14px 0;
+  font-size: 1rem;
+  touch-action: manipulation;
+}
 @keyframes flash-good {
   0% { border-color: var(--good); box-shadow: 0 0 0 6px rgba(74, 222, 128, 0.35); }
   100% { border-color: var(--border-bright); box-shadow: none; }

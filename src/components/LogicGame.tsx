@@ -3,6 +3,7 @@ import { BONUS_EVERY, BONUS_POINTS, CUBE_GAME_MS, POINTS_PER_CORRECT } from "../
 import type { CubeState } from "../cube/types";
 import { useCubeGame } from "../hooks/useCubeGame";
 import { CubeStructureView } from "./CubeStructureView";
+import { NumPad } from "./NumPad";
 
 interface LogicGameProps {
   onExit: () => void;
@@ -65,6 +66,14 @@ export function LogicGame({ onExit, mode = "solo", onRoundComplete }: LogicGameP
             />
             <p className="answer__hint">How many cubes in total? · press Enter</p>
           </form>
+        )}
+
+        {phase === "playing" && (
+          <NumPad
+            onDigit={(d) => setInput(state.input + d)}
+            onBackspace={() => setInput(state.input.slice(0, -1))}
+            onSubmit={submit}
+          />
         )}
 
         {phase === "idle" && (

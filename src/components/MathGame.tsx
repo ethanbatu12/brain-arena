@@ -3,6 +3,7 @@ import { MATH_GAME_MS } from "../math/constants";
 import { levelBand } from "../math/logic";
 import type { MathState, Problem } from "../math/types";
 import { useMathGame } from "../hooks/useMathGame";
+import { NumPad } from "./NumPad";
 
 interface MathGameProps {
   onExit: () => void;
@@ -69,6 +70,19 @@ export function MathGame({ onExit, mode = "solo", onRoundComplete }: MathGamePro
             />
             <p className="answer__hint">Answer either side · press Enter</p>
           </form>
+        )}
+
+        {phase === "playing" && (
+          <NumPad
+            showMinus
+            onDigit={(d) => {
+              if (d === "-" && state.input.includes("-")) return;
+              if (d === "-" && state.input.length > 0) return;
+              setInput(state.input + d);
+            }}
+            onBackspace={() => setInput(state.input.slice(0, -1))}
+            onSubmit={submit}
+          />
         )}
 
         {phase === "idle" && (
