@@ -27,7 +27,7 @@ export const INITIAL_PUZZLE_RATING = 1000;
 export function emptyRatedPatternStats(): RatedPatternStats {
   return {
     rating: RATED_PATTERN_INITIAL_RATING,
-    highestRating: RATED_PATTERN_INITIAL_RATING,
+    highestRating: 0,
     gamesPlayed: 0,
     totalSolved: 0,
     totalAttempted: 0,

@@ -275,7 +275,7 @@ describe("recordRatedPatternRun", () => {
     const profile = createProfile("Alice", HASH, SALT);
     const updated = recordRatedPatternRun(profile, 0, 1, -25);
     expect(updated.ratedPatterns.rating).toBe(RATED_PATTERN_INITIAL_RATING - 25);
-    expect(updated.ratedPatterns.highestRating).toBe(RATED_PATTERN_INITIAL_RATING); // unchanged
+    expect(updated.ratedPatterns.highestRating).toBe(RATED_PATTERN_INITIAL_RATING - 25);
   });
 
   it("does not let rating drop below 0", () => {

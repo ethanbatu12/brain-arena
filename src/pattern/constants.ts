@@ -18,7 +18,7 @@ export const BONUS_POINTS = 50;
 // ── Rated Patterns constants ──────────────────────────────────────────────────
 
 /** Starting rating for all new accounts in Rated Patterns. */
-export const RATED_PATTERN_INITIAL_RATING = 1000;
+export const RATED_PATTERN_INITIAL_RATING = 1400;
 
 /** Rating gained per correct answer. */
 export const RATED_PATTERN_GAIN = 10;

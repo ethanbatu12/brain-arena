@@ -23,9 +23,9 @@ describe("ratedPatternInitialState", () => {
     expect(s.attempted).toBe(0);
   });
 
-  it("defaults to RATED_PATTERN_INITIAL_RATING (1000)", () => {
+  it("defaults to RATED_PATTERN_INITIAL_RATING (1400)", () => {
     expect(ratedPatternInitialState().rating).toBe(RATED_PATTERN_INITIAL_RATING);
-    expect(RATED_PATTERN_INITIAL_RATING).toBe(1000);
+    expect(RATED_PATTERN_INITIAL_RATING).toBe(1400);
   });
 });
 
@@ -184,14 +184,14 @@ describe("ratingTier", () => {
 });
 
 describe("bandForRating", () => {
-  it("maps initial rating 1000 to band 3 (Beginner difficulty)", () => {
-    expect(bandForRating(1000)).toBe(3);
+  it("maps initial rating 1400 to band 5", () => {
+    expect(bandForRating(1400)).toBe(5);
   });
 
   it("scales up by one band per 200 rating points above 600", () => {
     expect(bandForRating(600)).toBe(1);
     expect(bandForRating(800)).toBe(2);
-    expect(bandForRating(1000)).toBe(3);
+    expect(bandForRating(1000)).toBe(3); // still valid for rating 1000
     expect(bandForRating(1200)).toBe(4);
     expect(bandForRating(1400)).toBe(5);
     expect(bandForRating(1600)).toBe(6);

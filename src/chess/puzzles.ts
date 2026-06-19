@@ -516,12 +516,12 @@ export function getPuzzleById(id: number): ChessPuzzle | undefined {
   return PUZZLES.find((p) => p.id === id);
 }
 
-// ── PuzzleRush sequence — weighted toward beginner/intermediate for fast solving ──
+// ── PuzzleRush sequence — starts intermediate, ramps quickly to master/grandmaster ──
 export function getPuzzleSequence(): ChessPuzzle[] {
   const order: ChessPuzzle["difficulty"][] = [
-    "beginner", "beginner", "intermediate", "beginner", "intermediate",
-    "beginner", "intermediate", "advanced", "intermediate", "advanced",
-    "expert", "advanced", "expert", "master", "grandmaster",
+    "intermediate", "intermediate", "advanced", "intermediate", "advanced",
+    "expert", "advanced", "expert", "master", "expert",
+    "master", "grandmaster", "master", "grandmaster", "grandmaster",
   ];
   const byDiff: Record<string, ChessPuzzle[]> = {};
   for (const p of PUZZLES) {

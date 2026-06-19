@@ -19,16 +19,8 @@ function supabaseHeaders(): HeadersInit {
   };
 }
 
-/** Stable anonymous device identifier stored in localStorage. */
-function getDeviceId(): string {
-  const KEY = "brain-arena-device-id";
-  let id = localStorage.getItem(KEY);
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem(KEY, id);
-  }
-  return id;
-}
+// No longer using a device-specific ID — username is the unique key so every
+// push from any device overwrites the same row, preventing duplicate entries.
 
 export interface GlobalEntry {
   username: string;
@@ -55,7 +47,7 @@ export interface GlobalEntry {
 
 function profileToEntry(profile: PlayerProfile): Record<string, unknown> {
   return {
-    device_id: getDeviceId(),
+    device_id: profile.username,
     username: profile.username,
     avatar: profile.avatar ?? "🧠",
     combined_best_score: profile.combinedBestScore,
