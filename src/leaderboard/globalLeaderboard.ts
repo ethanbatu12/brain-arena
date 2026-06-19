@@ -95,9 +95,19 @@ export async function fetchGlobalLeaderboard(): Promise<GlobalEntry[]> {
     );
     if (!res.ok) return [];
     const rows = (await res.json()) as GlobalEntry[];
+    // Fetch banned usernames
+    let banned = new Set<string>();
+    try {
+      const banRes = await fetch(`${SUPABASE_URL}/rest/v1/banned_users?select=username`, { headers: supabaseHeaders() });
+      if (banRes.ok) {
+        const banRows = await banRes.json() as { username: string }[];
+        banned = new Set(banRows.map((r) => r.username));
+      }
+    } catch { /* ignore */ }
     // Deduplicate by username — keep the row with the highest combined_best_score
     const seen = new Map<string, GlobalEntry>();
     for (const row of rows) {
+      if (banned.has(row.username)) continue;
       const existing = seen.get(row.username);
       if (!existing || row.combined_best_score > existing.combined_best_score) {
         seen.set(row.username, row);

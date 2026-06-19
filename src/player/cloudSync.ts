@@ -81,6 +81,21 @@ export async function isUsernameTaken(username: string): Promise<boolean> {
   return profile !== null;
 }
 
+/** Check if a username is banned. */
+export async function isUserBanned(username: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/banned_users?username=eq.${encodeURIComponent(username)}&select=username&limit=1`,
+      { headers: headers() },
+    );
+    if (!res.ok) return false;
+    const rows = await res.json() as unknown[];
+    return rows.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** Get total number of registered players. */
 export async function getTotalPlayers(): Promise<number> {
   try {

@@ -19,7 +19,7 @@ import { applyAchievements, checkAchievements } from "./achievements";
 import { getDailyGameId, recordDailyChallengeResult } from "./dailyChallenge";
 import { getToday, updateStreak } from "./streak";
 import { pushToGlobalLeaderboard } from "../leaderboard/globalLeaderboard";
-import { fetchCloudProfile, isUsernameTaken, pushCloudProfile } from "./cloudSync";
+import { fetchCloudProfile, isUserBanned, isUsernameTaken, pushCloudProfile } from "./cloudSync";
 
 /** Apply streak update + achievement check to an already-updated profile. */
 function applyPostGameEffects(profile: PlayerProfile): {
@@ -110,6 +110,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       if (!usernameResult.ok) return { ok: false, error: "Invalid username or password." };
 
       const { username } = usernameResult;
+
+      if (await isUserBanned(username)) {
+        return { ok: false, error: "This account has been banned." };
+      }
+
       let profile = profiles[username];
 
       // Not found locally — try fetching from the cloud
