@@ -20,7 +20,6 @@ import { getDailyGameId, recordDailyChallengeResult } from "./dailyChallenge";
 import { getToday, updateStreak } from "./streak";
 import { pushToGlobalLeaderboard } from "../leaderboard/globalLeaderboard";
 import { fetchCloudProfile, isUsernameTaken, pushCloudProfile } from "./cloudSync";
-import { verifyPassword as verifyPw } from "./crypto";
 
 /** Apply streak update + achievement check to an already-updated profile. */
 function applyPostGameEffects(profile: PlayerProfile): {
@@ -97,9 +96,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
       await saveProfile(profile);
       await saveCurrentUsername(username);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { passwordHash: _h, passwordSalt: _s, ...profileData } = profile;
-      void pushCloudProfile(username, hash, salt, profileData as Record<string, unknown>);
+      void pushCloudProfile(username, hash, salt, profile as unknown as Record<string, unknown>);
       setProfiles((prev) => ({ ...prev, [username]: profile }));
       setCurrentUsername(username);
       return { ok: true };
@@ -119,7 +116,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       if (!profile) {
         const cloud = await fetchCloudProfile(username);
         if (!cloud) return { ok: false, error: "Invalid username or password." };
-        if (!(await verifyPw(rawPassword, cloud.password_salt, cloud.password_hash))) {
+        if (!(await verifyPassword(rawPassword, cloud.password_salt, cloud.password_hash))) {
           return { ok: false, error: "Invalid username or password." };
         }
         // Restore the profile from cloud data
@@ -135,6 +132,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         return { ok: false, error: "Invalid username or password." };
       }
 
+      // Push to cloud so this account is accessible from other devices
+      void pushCloudProfile(profile.username, profile.passwordHash, profile.passwordSalt, profile as unknown as Record<string, unknown>);
       await saveCurrentUsername(username);
       setCurrentUsername(username);
       return { ok: true };

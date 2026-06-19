@@ -47,21 +47,29 @@ export async function pushCloudProfile(
   passwordSalt: string,
   profileData: Record<string, unknown>,
 ): Promise<void> {
+  if (!passwordHash || !passwordSalt) return;
+  const body = JSON.stringify({
+    username,
+    password_hash: passwordHash,
+    password_salt: passwordSalt,
+    profile_data: profileData,
+    updated_at: new Date().toISOString(),
+  });
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+    // Try insert first
+    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
       method: "POST",
-      headers: {
-        ...headers(),
-        Prefer: "resolution=merge-duplicates",
-      },
-      body: JSON.stringify({
-        username,
-        password_hash: passwordHash,
-        password_salt: passwordSalt,
-        profile_data: profileData,
-        updated_at: new Date().toISOString(),
-      }),
+      headers: { ...headers(), Prefer: "resolution=merge-duplicates" },
+      body,
     });
+    // If insert failed (e.g. conflict not resolved), force update by username
+    if (!insertRes.ok) {
+      await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?username=eq.${encodeURIComponent(username)}`, {
+        method: "PATCH",
+        headers: headers(),
+        body,
+      });
+    }
   } catch {
     // best-effort
   }
