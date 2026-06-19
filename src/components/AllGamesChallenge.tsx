@@ -7,12 +7,11 @@ import { LogicGame } from "./LogicGame";
 import { MathGame } from "./MathGame";
 import { MemoryGame } from "./MemoryGame";
 import { PatternGame } from "./PatternGame";
-import { PuzzleRush } from "./PuzzleRush";
 
-type StageId = (typeof GAME_IDS)[number] | "chess-rush";
+type StageId = (typeof GAME_IDS)[number];
 
-const ALL_STAGES: StageId[] = [...GAME_IDS, "chess-rush"];
-const TOTAL_STAGES = ALL_STAGES.length; // 6
+const ALL_STAGES: StageId[] = [...GAME_IDS];
+const TOTAL_STAGES = ALL_STAGES.length; // 5
 
 const GAME_STAGES = {
   memory: MemoryGame,
@@ -23,9 +22,7 @@ const GAME_STAGES = {
 } as const;
 
 function stageName(id: StageId): string {
-  if (id === "chess-rush") return "Chess Puzzle Rush";
-  const meta = GAMES.find((g) => g.id === id);
-  return meta?.name ?? id;
+  return GAMES.find((g) => g.id === id)?.name ?? id;
 }
 
 interface AllGamesChallengeProps {
@@ -58,8 +55,8 @@ export function AllGamesChallenge({ profile, onExit, recordCombinedResult }: All
           <div className="overlay__card">
             <h2>All Games Challenge</h2>
             <p className="overlay__lead">
-              Play all six games back-to-back, one after another. Your scores from
-              every game add up into one combined total — this is the ultimate test.
+              Play all five 60-second games back-to-back. Your scores add up into
+              one combined total — this is the ultimate test.
             </p>
             <button className="btn btn--primary" onClick={() => setStageIndex(0)}>
               Start Challenge
@@ -106,18 +103,6 @@ export function AllGamesChallenge({ profile, onExit, recordCombinedResult }: All
   }
 
   const stageId = ALL_STAGES[stageIndex];
-
-  if (stageId === "chess-rush") {
-    return (
-      <div className="challenge">
-        <p className="challenge__progress hud__sub">
-          Game {stageIndex + 1} of {TOTAL_STAGES} · Chess Puzzle Rush
-        </p>
-        <PuzzleRush key={stageIndex} mode="challenge" onExit={onExit} onRoundComplete={handleRoundComplete} />
-      </div>
-    );
-  }
-
   const Stage = GAME_STAGES[stageId];
   return (
     <div className="challenge">
