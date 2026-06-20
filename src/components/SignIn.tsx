@@ -6,19 +6,29 @@ type Mode = "signin" | "create";
 interface SignInProps {
   onCreateAccount: (username: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   onSignIn: (username: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+  /** Shown immediately on mount (e.g. a banned session was just force-signed-out). */
+  initialError?: string | null;
+  onDismissInitialError?: () => void;
 }
 
-export function SignIn({ onCreateAccount, onSignIn }: SignInProps) {
+export function SignIn({ onCreateAccount, onSignIn, initialError, onDismissInitialError }: SignInProps) {
   const [mode, setMode] = useState<Mode>("signin");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError ?? null);
   const [totalPlayers, setTotalPlayers] = useState<number | null>(null);
 
   useEffect(() => {
     getTotalPlayers().then((n) => { if (n > 0) setTotalPlayers(n); });
   }, []);
+
+  useEffect(() => {
+    if (initialError) {
+      setError(initialError);
+      onDismissInitialError?.();
+    }
+  }, [initialError, onDismissInitialError]);
 
   const switchMode = (next: Mode) => {
     setMode(next);

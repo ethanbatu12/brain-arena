@@ -44,6 +44,9 @@ interface PlayerContextValue {
   createAccount: (username: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   signIn: (username: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   signOut: () => void;
+  /** Set when a session was force-signed-out because the account is banned. */
+  bannedNotice: string | null;
+  dismissBannedNotice: () => void;
   recordResult: (gameId: GameId, score: number) => void;
   recordCombinedResult: (score: number) => void;
   recordRatedPuzzle: (correct: boolean, elapsedMs: number, puzzleId?: number) => void;
@@ -59,6 +62,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [pendingAchievements, setPendingAchievements] = useState<AchievementRecord[]>([]);
+  const [bannedNotice, setBannedNotice] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,6 +76,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         await clearCurrentUsername();
         setCurrentUsername(null);
+        setBannedNotice("This account has been banned.");
         setLoading(false);
         return;
       }
@@ -85,6 +90,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const dismissPendingAchievements = useCallback(() => setPendingAchievements([]), []);
+  const dismissBannedNotice = useCallback(() => setBannedNotice(null), []);
 
   const createAccount = useCallback(
     async (rawUsername: string, rawPassword: string): Promise<{ ok: true } | { ok: false; error: string }> => {
@@ -260,6 +266,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     allProfiles,
     pendingAchievements,
     dismissPendingAchievements,
+    bannedNotice,
+    dismissBannedNotice,
     createAccount,
     signIn,
     signOut,

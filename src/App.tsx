@@ -43,6 +43,8 @@ function AppShell() {
     allProfiles,
     pendingAchievements,
     dismissPendingAchievements,
+    bannedNotice,
+    dismissBannedNotice,
     createAccount,
     signIn,
     signOut,
@@ -61,7 +63,14 @@ function AppShell() {
   }
 
   if (!profile) {
-    return <SignIn onCreateAccount={createAccount} onSignIn={signIn} />;
+    return (
+      <SignIn
+        onCreateAccount={createAccount}
+        onSignIn={signIn}
+        initialError={bannedNotice}
+        onDismissInitialError={dismissBannedNotice}
+      />
+    );
   }
 
   // Show the first pending achievement as a toast; dismiss removes it from queue.
