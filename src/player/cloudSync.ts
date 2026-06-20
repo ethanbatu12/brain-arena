@@ -81,18 +81,22 @@ export async function isUsernameTaken(username: string): Promise<boolean> {
   return profile !== null;
 }
 
-/** Check if a username is banned. */
+/**
+ * Check if a username is banned. Fails closed: if the ban check itself
+ * can't be confirmed (network error, RLS misconfiguration, etc.) this
+ * returns true so a broken check can never silently let a banned user in.
+ */
 export async function isUserBanned(username: string): Promise<boolean> {
   try {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/banned_users?username=eq.${encodeURIComponent(username)}&select=username&limit=1`,
       { headers: headers() },
     );
-    if (!res.ok) return false;
+    if (!res.ok) return true;
     const rows = await res.json() as unknown[];
     return rows.length > 0;
   } catch {
-    return false;
+    return true;
   }
 }
 
