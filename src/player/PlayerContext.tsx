@@ -66,6 +66,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       const [loadedProfiles, loadedUsername] = await Promise.all([loadProfiles(), loadCurrentUsername()]);
       if (cancelled) return;
       setProfiles(loadedProfiles);
+      // A previously signed-in user could have been banned since their last
+      // visit — re-check on every app load, not just at sign-in time.
+      if (loadedUsername && (await isUserBanned(loadedUsername))) {
+        if (cancelled) return;
+        await clearCurrentUsername();
+        setCurrentUsername(null);
+        setLoading(false);
+        return;
+      }
+      if (cancelled) return;
       setCurrentUsername(loadedUsername);
       setLoading(false);
     })();
