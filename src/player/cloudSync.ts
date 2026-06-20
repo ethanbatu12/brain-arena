@@ -88,8 +88,10 @@ export async function isUsernameTaken(username: string): Promise<boolean> {
  */
 export async function isUserBanned(username: string): Promise<boolean> {
   try {
+    // Case-insensitive match — a player's typed casing may differ slightly
+    // from how the username was entered when banned.
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/banned_users?username=eq.${encodeURIComponent(username)}&select=username&limit=1`,
+      `${SUPABASE_URL}/rest/v1/banned_users?username=ilike.${encodeURIComponent(username)}&select=username&limit=1`,
       { headers: headers() },
     );
     if (!res.ok) return true;
