@@ -54,11 +54,11 @@ describe("scoring", () => {
     expect(scoreForCorrect(5)).toBe(POINTS_PER_CORRECT + BONUS_POINTS);
   });
 
-  it("matches the spec's worked example: 5 correct answers totals 425 (375 + 50 bonus)", () => {
+  it("totals 4 plain correct answers plus one bonus answer correctly", () => {
     let total = 0;
     for (let i = 1; i <= 5; i++) total += scoreForCorrect(i);
     expect(total).toBe(5 * POINTS_PER_CORRECT + BONUS_POINTS);
-    expect(total).toBe(425);
+    expect(total).toBe(400);
   });
 });
 

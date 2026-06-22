@@ -1,4 +1,4 @@
-import { GAME_MS, GRID_START } from "./constants";
+import { BONUS_EVERY_ROUNDS, BONUS_POINTS, GAME_MS, GRID_START } from "./constants";
 import {
   generatePattern,
   nextGridSize,
@@ -80,13 +80,15 @@ export function reduce(state: GameState, action: Action, rng: Rng): GameState {
 
         // Whole pattern recovered -> round won.
         if (found.size === state.pattern.size) {
+          const roundsWon = state.roundsWon + 1;
+          const bonus = roundsWon % BONUS_EVERY_ROUNDS === 0 ? BONUS_POINTS : 0;
           return {
             ...state,
             found,
             phase: "feedback",
             lastRoundCorrect: true,
-            score: state.score + roundScore(state.gridSize),
-            roundsWon: state.roundsWon + 1,
+            score: state.score + roundScore(state.gridSize) + bonus,
+            roundsWon,
           };
         }
         // Correct but more to find — commit to recall so the reveal hides.

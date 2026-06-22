@@ -1,4 +1,6 @@
 import {
+  BONUS_EVERY_CORRECT,
+  BONUS_POINTS,
   LEVEL_DOWN,
   LEVEL_UP,
   MATH_GAME_MS,
@@ -93,13 +95,15 @@ export function mathReduce(
       const levelF = nextLevel(state.levelF, true, LEVEL_UP, LEVEL_DOWN);
       const fresh = makeProblem(levelF, rng, state.nextId);
       const streak = state.streak + 1;
+      const correct = state.correct + 1;
+      const bonus = correct % BONUS_EVERY_CORRECT === 0 ? BONUS_POINTS : 0;
 
       return {
         ...state,
         [side]: fresh,
         input: "",
-        score: state.score + solved.points,
-        correct: state.correct + 1,
+        score: state.score + solved.points + bonus,
+        correct,
         streak,
         bestStreak: Math.max(state.bestStreak, streak),
         levelF,

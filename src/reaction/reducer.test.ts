@@ -66,7 +66,7 @@ describe("TAP", () => {
     s = reactionReduce(s, { type: "TAP", id: s.dot!.id }, rng());
     expect(s.hits).toBe(10);
     expect(s.score).toBe(9 * POINTS_PER_DOT + POINTS_PER_DOT + BONUS_POINTS);
-    expect(s.score).toBe(300);
+    expect(s.score).toBe(275);
   });
 });
 

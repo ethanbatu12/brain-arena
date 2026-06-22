@@ -80,7 +80,7 @@ describe("ANSWER", () => {
     s = answer(s, true);
     expect(s.correctCount).toBe(5);
     expect(s.score).toBe(4 * POINTS_PER_CORRECT + POINTS_PER_CORRECT + BONUS_POINTS);
-    expect(s.score).toBe(425);
+    expect(s.score).toBe(400);
   });
 });
 

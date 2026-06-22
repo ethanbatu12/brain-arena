@@ -15,10 +15,14 @@ export const FEEDBACK_MS = 650; // pause showing the answer after a round ends
 export const GAME_MS = 60_000; // total play time per game (60 seconds)
 
 /** Points earned per lit box in a perfectly completed sequence. */
-export const POINTS_PER_BOX = 20;
+export const POINTS_PER_BOX = 15;
 
 /** Fraction of the board that lights up. Higher = harder. */
 export const FILL_RATIO = 0.3;
 
 /** Consecutive wins at the current size required before the board grows. */
 export const GROWTH_STREAK = 2;
+
+/** Every Nth round won (all-or-nothing) earns a bonus. */
+export const BONUS_EVERY_ROUNDS = 5;
+export const BONUS_POINTS = 25;

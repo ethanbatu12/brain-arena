@@ -3,7 +3,7 @@ export const REACTION_GAME_MS = 60_000; // 60-second sprint, same as the other g
 
 export const POINTS_PER_DOT = 25;
 export const BONUS_EVERY_HITS = 10; // every Nth successful tap earns a bonus
-export const BONUS_POINTS = 50;
+export const BONUS_POINTS = 25;
 
 /** Grid is GRID_SIZE x GRID_SIZE cells. */
 export const GRID_SIZE = 5;

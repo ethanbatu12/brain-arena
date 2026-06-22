@@ -16,3 +16,7 @@ export const LEVEL_DOWN = 0.5; // per wrong answer
 
 /** Longest answer the input will accept (keeps numeric parsing sane). */
 export const MAX_INPUT_LEN = 4;
+
+/** Every Nth correct answer earns a bonus. */
+export const BONUS_EVERY_CORRECT = 5;
+export const BONUS_POINTS = 25;

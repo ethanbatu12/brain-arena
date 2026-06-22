@@ -81,12 +81,13 @@ describe("scoreForHit", () => {
 
   it("awards base + bonus points on the 10th, 20th, ... hit", () => {
     expect(scoreForHit(10)).toBe(POINTS_PER_DOT + BONUS_POINTS);
-    expect(scoreForHit(10)).toBe(75);
+    expect(scoreForHit(10)).toBe(50);
   });
 
-  it("matches the spec's worked example: 10 hits totals 300 points", () => {
+  it("totals 9 plain hits plus one bonus hit correctly", () => {
     let total = 0;
     for (let hit = 1; hit <= 10; hit++) total += scoreForHit(hit);
-    expect(total).toBe(300);
+    expect(total).toBe(9 * POINTS_PER_DOT + POINTS_PER_DOT + BONUS_POINTS);
+    expect(total).toBe(275);
   });
 });

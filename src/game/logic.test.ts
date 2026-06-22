@@ -161,12 +161,12 @@ describe("roundScore", () => {
       expect(roundScore(size)).toBe(targetCountForSize(size) * POINTS_PER_BOX);
     }
   });
-  it("a perfectly completed 5-box sequence is worth 100 points", () => {
+  it("a perfectly completed 5-box sequence is worth 75 points", () => {
     const size = [...Array(GRID_MAX + 1).keys()].find(
       (s) => s >= GRID_MIN && targetCountForSize(s) === 5,
     );
     expect(size).toBeDefined();
-    expect(roundScore(size!)).toBe(100);
+    expect(roundScore(size!)).toBe(75);
   });
 });
 

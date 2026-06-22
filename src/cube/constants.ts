@@ -3,7 +3,7 @@ export const CUBE_GAME_MS = 60_000; // 60-second sprint, same as the other games
 
 export const POINTS_PER_CORRECT = 100;
 export const BONUS_EVERY = 5; // every Nth correct answer in a row earns a bonus
-export const BONUS_POINTS = 50;
+export const BONUS_POINTS = 25;
 
 export const MIN_LEVEL = 1;
 export const MAX_LEVEL = 10;

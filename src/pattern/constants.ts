@@ -13,7 +13,7 @@ export const BASE_POINTS = 75;
 
 /** Bonus awarded every N correct answers in Timed mode. */
 export const BONUS_EVERY  = 5;
-export const BONUS_POINTS = 50;
+export const BONUS_POINTS = 25;
 
 // ── Rated Patterns constants ──────────────────────────────────────────────────
 
