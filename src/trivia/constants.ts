@@ -9,7 +9,10 @@ export const MIN_BAND = 1;
 export const MAX_BAND = 6;
 
 /** Difficulty band increases by 1 every N questions answered (correct or not). */
-export const QUESTIONS_PER_BAND_STEP = 4;
+export const QUESTIONS_PER_BAND_STEP = 3;
+
+/** Round starts one band above the absolute floor — skips the easiest tier. */
+export const STARTING_BAND_OFFSET = 1;
 
 export const DIFFICULTY_LABELS = ["beginner", "easy", "medium", "hard", "expert", "master"] as const;
 

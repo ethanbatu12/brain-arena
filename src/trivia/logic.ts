@@ -8,6 +8,7 @@ import {
   MIN_BAND,
   POINTS_PER_CORRECT,
   QUESTIONS_PER_BAND_STEP,
+  STARTING_BAND_OFFSET,
 } from "./constants";
 import { generateChessQuestion } from "./generators/chess";
 import { generateGeneralQuestion } from "./generators/general";
@@ -25,9 +26,13 @@ export function bandToDifficulty(band: number): TriviaDifficulty {
   return DIFFICULTY_LABELS[clamped - 1];
 }
 
-/** Difficulty ramps up as more questions are answered, capping at MAX_BAND. */
+/**
+ * Difficulty ramps up as more questions are answered, capping at MAX_BAND.
+ * The round starts STARTING_BAND_OFFSET bands above the floor, so even the
+ * first question skips the very easiest tier.
+ */
 export function bandForQuestionIndex(questionsAnswered: number): number {
-  const band = MIN_BAND + Math.floor(questionsAnswered / QUESTIONS_PER_BAND_STEP);
+  const band = MIN_BAND + STARTING_BAND_OFFSET + Math.floor(questionsAnswered / QUESTIONS_PER_BAND_STEP);
   return Math.max(MIN_BAND, Math.min(MAX_BAND, band));
 }
 

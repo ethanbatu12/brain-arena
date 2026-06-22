@@ -28,13 +28,13 @@ describe("bandToDifficulty", () => {
 });
 
 describe("bandForQuestionIndex", () => {
-  it("starts at the minimum band", () => {
-    expect(bandForQuestionIndex(0)).toBe(MIN_BAND);
+  it("starts one band above the floor, skipping the easiest tier", () => {
+    expect(bandForQuestionIndex(0)).toBe(MIN_BAND + 1);
   });
 
   it("increases by one band every QUESTIONS_PER_BAND_STEP questions", () => {
-    expect(bandForQuestionIndex(QUESTIONS_PER_BAND_STEP)).toBe(MIN_BAND + 1);
-    expect(bandForQuestionIndex(QUESTIONS_PER_BAND_STEP * 2)).toBe(MIN_BAND + 2);
+    expect(bandForQuestionIndex(QUESTIONS_PER_BAND_STEP)).toBe(MIN_BAND + 2);
+    expect(bandForQuestionIndex(QUESTIONS_PER_BAND_STEP * 2)).toBe(MIN_BAND + 3);
   });
 
   it("caps at the maximum band", () => {
