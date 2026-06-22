@@ -23,6 +23,7 @@
   --chess-puzzle: #60a5fa; /* puzzle rush accent */
   --chess-rated: #a78bfa;  /* rated puzzles accent */
   --pattern: #34d399;      /* fill-in-the-pattern accent */
+  --reaction: #38bdf8;     /* reaction grid accent */
 
   --radius: 16px;
   --radius-sm: 10px;
@@ -914,6 +915,51 @@ button {
   100% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
 }
 
+.reaction__grid {
+  display: grid;
+  gap: clamp(4px, 1.4vw, 10px);
+  width: min(96vw, 480px);
+  aspect-ratio: 1 / 1;
+  padding: clamp(4px, 1.4vw, 10px);
+  background: linear-gradient(180deg, var(--surface), var(--bg-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  touch-action: manipulation;
+}
+
+.reaction__cell {
+  position: relative;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.reaction__dot {
+  position: absolute;
+  inset: 8%;
+  border: none;
+  border-radius: 50%;
+  background: var(--reaction);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--reaction) 60%, transparent),
+    0 10px 24px -10px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  animation: reaction-dot-pop 0.15s ease, reaction-dot-pulse 1s ease-in-out infinite;
+}
+.reaction__dot:active {
+  transform: scale(0.88);
+}
+@keyframes reaction-dot-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes reaction-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--reaction) 45%, transparent), 0 10px 24px -10px rgba(0, 0, 0, 0.6); }
+  50% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--reaction) 0%, transparent), 0 10px 24px -10px rgba(0, 0, 0, 0.6); }
+}
+
 @media (max-width: 380px) {
   .bubbles {
     flex-direction: column;
@@ -931,7 +977,8 @@ button {
   .gamecard,
   .balloon,
   .balloon--popped,
-  .balloon--wrong {
+  .balloon--wrong,
+  .reaction__dot {
     animation: none !important;
     transition: none !important;
   }

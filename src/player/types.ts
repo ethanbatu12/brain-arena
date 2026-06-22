@@ -1,4 +1,4 @@
-export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern";
+export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern" | "reaction";
 
 export interface StreakData {
   currentStreak: number;
@@ -40,7 +40,13 @@ export type AchievementId =
   | "balloon-best-500"
   | "all-games-played"
   | "daily-first"
-  | "daily-7";
+  | "daily-7"
+  | "reaction-first"
+  | "reaction-best-500"
+  | "reaction-best-1000"
+  | "reaction-dots-100"
+  | "reaction-dots-500"
+  | "reaction-dots-1000";
 
 export interface AchievementRecord {
   id: AchievementId;
@@ -69,7 +75,7 @@ export interface RatedPatternStats {
   ratingHistory: number[];
 }
 
-export const GAME_IDS: GameId[] = ["memory", "math", "logic", "balloon", "pattern"];
+export const GAME_IDS: GameId[] = ["memory", "math", "logic", "balloon", "pattern", "reaction"];
 
 /** Per-puzzle attempt tally for one user, keyed by puzzle id. */
 export interface PuzzleResultStat {
@@ -120,4 +126,6 @@ export interface PlayerProfile {
   dailyChallenges: DailyChallengeRecord[];
   /** Emoji avatar selected by the user. */
   avatar: string;
+  /** Cumulative blue dots successfully tapped across every Reaction Grid game. */
+  reactionDotsHit: number;
 }

@@ -44,6 +44,13 @@ export const GAMES: GameMeta[] = [
     blurb: "Spot the rule, find the missing term. Sequences grow harder as you go.",
     accent: "var(--pattern)",
   },
+  {
+    id: "reaction",
+    name: "Reaction Grid",
+    tag: "Reaction speed",
+    blurb: "Tap the blue dot before it disappears. Pure speed, pure focus.",
+    accent: "var(--reaction)",
+  },
 ];
 
 export interface ChallengeMeta {
@@ -58,6 +65,6 @@ export const CHALLENGE_META: ChallengeMeta = {
   id: "challenge",
   name: "All Games Challenge",
   tag: "Ultimate test",
-  blurb: "Play all five games back-to-back. Your scores combine into one ultimate total.",
+  blurb: "Play all six games back-to-back. Your scores combine into one ultimate total.",
   accent: "var(--challenge)",
 };

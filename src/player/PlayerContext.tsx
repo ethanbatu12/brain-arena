@@ -8,6 +8,7 @@ import {
   loadProfiles,
   recordCombinedResult as recordCombinedResultInStorage,
   recordGameResult,
+  recordReactionResult as recordReactionResultInStorage,
   recordRatedPatternRun as recordRatedPatternRunInStorage,
   recordRatedPuzzleResult,
   normalizeProfile,
@@ -48,6 +49,7 @@ interface PlayerContextValue {
   bannedNotice: string | null;
   dismissBannedNotice: () => void;
   recordResult: (gameId: GameId, score: number) => void;
+  recordReactionResult: (score: number, dotsHit: number) => void;
   recordCombinedResult: (score: number) => void;
   recordRatedPuzzle: (correct: boolean, elapsedMs: number, puzzleId?: number) => void;
   recordRatedPatternRun: (solved: number, attempted: number, ratingDelta: number) => void;
@@ -191,6 +193,24 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [currentUsername],
   );
 
+  const recordReactionResult = useCallback(
+    (score: number, dotsHit: number) => {
+      setProfiles((prev) => {
+        if (!currentUsername) return prev;
+        const current = prev[currentUsername];
+        if (!current) return prev;
+        const updated = recordReactionResultInStorage(current, score, dotsHit);
+        const { updated: final, newAchievements } = applyPostGameEffects(updated);
+        if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
+        void saveProfile(final);
+        void pushToGlobalLeaderboard(final);
+        void pushCloudProfile(final.username, final.passwordHash, final.passwordSalt, final as unknown as Record<string, unknown>);
+        return { ...prev, [currentUsername]: final };
+      });
+    },
+    [currentUsername],
+  );
+
   const recordCombinedResult = useCallback(
     (score: number) => {
       setProfiles((prev) => {
@@ -272,6 +292,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     signIn,
     signOut,
     recordResult,
+    recordReactionResult,
     recordCombinedResult,
     recordRatedPuzzle,
     recordRatedPatternRun,

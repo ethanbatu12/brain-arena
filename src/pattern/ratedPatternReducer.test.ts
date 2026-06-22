@@ -193,8 +193,8 @@ describe("bandForRating", () => {
     expect(bandForRating(800)).toBe(7);
     expect(bandForRating(1000)).toBe(7); // minimum band is 7
     expect(bandForRating(1200)).toBe(7);
-    expect(bandForRating(1400)).toBe(5);
-    expect(bandForRating(1600)).toBe(6);
+    expect(bandForRating(1400)).toBe(7);
+    expect(bandForRating(1600)).toBe(7);
     expect(bandForRating(1800)).toBe(7);
     expect(bandForRating(2000)).toBe(8);
     expect(bandForRating(2200)).toBe(9);

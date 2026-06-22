@@ -144,6 +144,7 @@ export function createProfile(username: string, passwordHash: string, passwordSa
     achievements: [],
     dailyChallenges: [],
     avatar: "🧠",
+    reactionDotsHit: 0,
   };
 }
 
@@ -189,6 +190,12 @@ export function recordGameResult(profile: PlayerProfile, gameId: GameId, score: 
     overallBestScore: Math.max(profile.overallBestScore, score),
     overallTotalScore: profile.overallTotalScore + score,
   };
+}
+
+/** Records a Reaction Grid result: updates games.reaction stats plus the cumulative dots-hit tally. */
+export function recordReactionResult(profile: PlayerProfile, score: number, dotsHit: number): PlayerProfile {
+  const afterGame = recordGameResult(profile, "reaction", score);
+  return { ...afterGame, reactionDotsHit: profile.reactionDotsHit + dotsHit };
 }
 
 export function recordCombinedResult(profile: PlayerProfile, score: number): PlayerProfile {
@@ -263,6 +270,7 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
     achievements: profile.achievements ?? [],
     dailyChallenges: profile.dailyChallenges ?? [],
     avatar: profile.avatar ?? "🧠",
+    reactionDotsHit: profile.reactionDotsHit ?? 0,
   } as PlayerProfile;
 }
 

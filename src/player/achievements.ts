@@ -256,6 +256,49 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
     icon: "🗓️",
     check: (p) => (p.dailyChallenges ?? []).filter((d) => d.completed).length >= 7,
   },
+  // ── Reaction Grid ────────────────────────────────────────────────────────
+  {
+    id: "reaction-first",
+    label: "Quick Reflexes",
+    description: "Play your first Reaction Grid game.",
+    icon: "⚡",
+    check: (p) => p.games.reaction.gamesPlayed >= 1,
+  },
+  {
+    id: "reaction-best-500",
+    label: "Sharp Shooter",
+    description: "Score 500 in Reaction Grid.",
+    icon: "🔵",
+    check: (p) => p.games.reaction.bestScore >= 500,
+  },
+  {
+    id: "reaction-best-1000",
+    label: "Lightning Reflexes",
+    description: "Score 1000 in Reaction Grid.",
+    icon: "🟦",
+    check: (p) => p.games.reaction.bestScore >= 1000,
+  },
+  {
+    id: "reaction-dots-100",
+    label: "Dot Dabbler",
+    description: "Hit 100 total dots in Reaction Grid.",
+    icon: "🎯",
+    check: (p) => (p.reactionDotsHit ?? 0) >= 100,
+  },
+  {
+    id: "reaction-dots-500",
+    label: "Dot Crusher",
+    description: "Hit 500 total dots in Reaction Grid.",
+    icon: "💠",
+    check: (p) => (p.reactionDotsHit ?? 0) >= 500,
+  },
+  {
+    id: "reaction-dots-1000",
+    label: "Dot Annihilator",
+    description: "Hit 1000 total dots in Reaction Grid.",
+    icon: "✨",
+    check: (p) => (p.reactionDotsHit ?? 0) >= 1000,
+  },
 ];
 
 /** Returns ids of achievements newly unlocked by this profile state. */

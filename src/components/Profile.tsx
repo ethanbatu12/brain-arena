@@ -216,6 +216,31 @@ export function Profile({ profile, onBack, onSignOut }: ProfileProps) {
         </div>
       </section>
 
+      {/* ── Reaction Grid ───────────────────────────────────────────── */}
+      <section className="profile__section">
+        <h2 className="profile__section-title">Reaction Grid</h2>
+        <div className="hud">
+          <div className="hud__stats">
+            <div className="stat">
+              <span className="stat__value">{profile.games.reaction.bestScore}</span>
+              <span className="stat__label">High score</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{round(averageScore(profile.games.reaction))}</span>
+              <span className="stat__label">Average score</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.games.reaction.gamesPlayed}</span>
+              <span className="stat__label">Games played</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.reactionDotsHit}</span>
+              <span className="stat__label">Total dots hit</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Rated Puzzles ───────────────────────────────────────────── */}
       <section className="profile__section">
         <h2 className="profile__section-title">Rated Puzzles</h2>

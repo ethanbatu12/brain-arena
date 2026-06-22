@@ -42,6 +42,8 @@ export interface GlobalEntry {
   logic_avg: number;
   balloon_avg: number;
   pattern_avg: number;
+  reaction_best: number;
+  reaction_avg: number;
   updated_at: string;
 }
 
@@ -67,6 +69,8 @@ function profileToEntry(profile: PlayerProfile): Record<string, unknown> {
     logic_avg: Math.round(averageScore(profile.games.logic)),
     balloon_avg: Math.round(averageScore(profile.games.balloon)),
     pattern_avg: Math.round(averageScore(profile.games.pattern)),
+    reaction_best: profile.games.reaction.bestScore,
+    reaction_avg: Math.round(averageScore(profile.games.reaction)),
     updated_at: new Date().toISOString(),
   };
 }

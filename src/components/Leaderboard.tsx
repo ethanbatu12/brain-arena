@@ -9,7 +9,7 @@ import { ratingTier } from "../pattern/ratedPatternReducer";
 import { averageScore } from "../player/storage";
 import type { GameId, PlayerProfile } from "../player/types";
 
-type AvgKey = "memory-avg" | "math-avg" | "logic-avg" | "balloon-avg" | "pattern-avg";
+type AvgKey = "memory-avg" | "math-avg" | "logic-avg" | "balloon-avg" | "pattern-avg" | "reaction-avg";
 
 type SortKey =
   | GameId
@@ -44,12 +44,16 @@ const AVG_GAME_MAP: Partial<Record<AvgKey, GameId>> = {
   "logic-avg": "logic",
   "balloon-avg": "balloon",
   "pattern-avg": "pattern",
+  "reaction-avg": "reaction",
 };
 
 function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): Row {
   let value: number;
   let label: string;
-  if (key === "memory" || key === "math" || key === "logic" || key === "balloon" || key === "pattern") {
+  if (
+    key === "memory" || key === "math" || key === "logic" ||
+    key === "balloon" || key === "pattern" || key === "reaction"
+  ) {
     value = p.games[key].bestScore;
     label = String(value);
   } else if (key in AVG_GAME_MAP) {
@@ -87,11 +91,13 @@ function globalEntryToRow(e: GlobalEntry, key: SortKey, currentUsername: string)
     case "logic":               value = e.logic_best; label = String(value); break;
     case "balloon":             value = e.balloon_best; label = String(value); break;
     case "pattern":             value = e.pattern_best; label = String(value); break;
+    case "reaction":            value = e.reaction_best ?? 0; label = String(value); break;
     case "memory-avg":          value = e.memory_avg ?? 0; label = value === 0 ? "—" : String(value); break;
     case "math-avg":            value = e.math_avg ?? 0; label = value === 0 ? "—" : String(value); break;
     case "logic-avg":           value = e.logic_avg ?? 0; label = value === 0 ? "—" : String(value); break;
     case "balloon-avg":         value = e.balloon_avg ?? 0; label = value === 0 ? "—" : String(value); break;
     case "pattern-avg":         value = e.pattern_avg ?? 0; label = value === 0 ? "—" : String(value); break;
+    case "reaction-avg":        value = e.reaction_avg ?? 0; label = value === 0 ? "—" : String(value); break;
     default:                    value = 0; label = "0";
   }
   return { username: e.username, avatar: e.avatar ?? "🧠", value, label, isCurrentUser: e.username === currentUsername };
@@ -280,12 +286,14 @@ const SETUP_SQL = `CREATE TABLE leaderboard_entries (
   logic_best            INTEGER DEFAULT 0,
   balloon_best          INTEGER DEFAULT 0,
   pattern_best          INTEGER DEFAULT 0,
+  reaction_best         INTEGER DEFAULT 0,
   challenge_runs        INTEGER DEFAULT 0,
   memory_avg            INTEGER DEFAULT 0,
   math_avg              INTEGER DEFAULT 0,
   logic_avg             INTEGER DEFAULT 0,
   balloon_avg           INTEGER DEFAULT 0,
   pattern_avg           INTEGER DEFAULT 0,
+  reaction_avg          INTEGER DEFAULT 0,
   updated_at            TIMESTAMPTZ DEFAULT NOW(),
   PRIMARY KEY (device_id, username)
 );

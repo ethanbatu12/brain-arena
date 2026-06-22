@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { GAMES } from "../games";
-import type { PlayerProfile } from "../player/types";
+import type { GameId, PlayerProfile } from "../player/types";
 import { GAME_IDS } from "../player/types";
 import { BalloonGame } from "./BalloonGame";
 import { LogicGame } from "./LogicGame";
 import { MathGame } from "./MathGame";
 import { MemoryGame } from "./MemoryGame";
 import { PatternGame } from "./PatternGame";
+import { ReactionGame } from "./ReactionGame";
 
-type StageId = (typeof GAME_IDS)[number];
+type StageId = GameId;
 
 const ALL_STAGES: StageId[] = [...GAME_IDS];
-const TOTAL_STAGES = ALL_STAGES.length; // 5
+const TOTAL_STAGES = ALL_STAGES.length; // 6
 
 const GAME_STAGES = {
   memory: MemoryGame,
@@ -19,6 +20,7 @@ const GAME_STAGES = {
   logic: LogicGame,
   balloon: BalloonGame,
   pattern: PatternGame,
+  reaction: ReactionGame,
 } as const;
 
 function stageName(id: StageId): string {
@@ -55,7 +57,7 @@ export function AllGamesChallenge({ profile, onExit, recordCombinedResult }: All
           <div className="overlay__card">
             <h2>All Games Challenge</h2>
             <p className="overlay__lead">
-              Play all five 60-second games back-to-back. Your scores add up into
+              Play all six 60-second games back-to-back. Your scores add up into
               one combined total — this is the ultimate test.
             </p>
             <button className="btn btn--primary" onClick={() => setStageIndex(0)}>

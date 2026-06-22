@@ -13,6 +13,7 @@ import { MemoryGame } from "./components/MemoryGame";
 import { PatternGame } from "./components/PatternGame";
 import { PatternLobby } from "./components/PatternLobby";
 import { Profile } from "./components/Profile";
+import { ReactionGame } from "./components/ReactionGame";
 import { RatedPatterns } from "./components/RatedPatterns";
 import { PuzzleRush } from "./components/PuzzleRush";
 import { RatedPuzzles } from "./components/RatedPuzzles";
@@ -121,6 +122,7 @@ function AppShell() {
       {screen === "math" && <MathGame onExit={goHub} />}
       {screen === "logic" && <LogicGame onExit={goHub} />}
       {screen === "balloon" && <BalloonGame onExit={goHub} />}
+      {screen === "reaction" && <ReactionGame onExit={goHub} />}
       {screen === "pattern" && (
         <PatternLobby
           ratedPatterns={profile.ratedPatterns}
