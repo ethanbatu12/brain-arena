@@ -51,6 +51,13 @@ export const GAMES: GameMeta[] = [
     blurb: "Tap the blue dot before it disappears. Pure speed, pure focus.",
     accent: "var(--reaction)",
   },
+  {
+    id: "trivia",
+    name: "Brain Blitz Trivia",
+    tag: "Quickfire trivia",
+    blurb: "Math, logic, patterns, probability, chess, and more — answer fast, difficulty climbs as you go.",
+    accent: "var(--trivia)",
+  },
 ];
 
 export interface ChallengeMeta {
@@ -65,6 +72,6 @@ export const CHALLENGE_META: ChallengeMeta = {
   id: "challenge",
   name: "All Games Challenge",
   tag: "Ultimate test",
-  blurb: "Play all six games back-to-back. Your scores combine into one ultimate total.",
+  blurb: "Play all seven games back-to-back. Your scores combine into one ultimate total.",
   accent: "var(--challenge)",
 };

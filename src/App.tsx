@@ -14,6 +14,7 @@ import { PatternGame } from "./components/PatternGame";
 import { PatternLobby } from "./components/PatternLobby";
 import { Profile } from "./components/Profile";
 import { ReactionGame } from "./components/ReactionGame";
+import { TriviaGame } from "./components/TriviaGame";
 import { RatedPatterns } from "./components/RatedPatterns";
 import { PuzzleRush } from "./components/PuzzleRush";
 import { RatedPuzzles } from "./components/RatedPuzzles";
@@ -123,6 +124,7 @@ function AppShell() {
       {screen === "logic" && <LogicGame onExit={goHub} />}
       {screen === "balloon" && <BalloonGame onExit={goHub} />}
       {screen === "reaction" && <ReactionGame onExit={goHub} />}
+      {screen === "trivia" && <TriviaGame onExit={goHub} />}
       {screen === "pattern" && (
         <PatternLobby
           ratedPatterns={profile.ratedPatterns}

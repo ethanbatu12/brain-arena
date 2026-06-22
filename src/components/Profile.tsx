@@ -1,7 +1,14 @@
 import { GAMES } from "../games";
 import { ACHIEVEMENT_DEFS } from "../player/achievements";
 import { usePlayerProfile } from "../player/PlayerContext";
-import { averageScore, avgSolveTimeMs, combinedAverageScore, overallAverageScore, puzzleWinPct } from "../player/storage";
+import {
+  averageScore,
+  avgSolveTimeMs,
+  combinedAverageScore,
+  overallAverageScore,
+  puzzleWinPct,
+  triviaAccuracy,
+} from "../player/storage";
 import type { PlayerProfile } from "../player/types";
 
 const AVATARS = ["🧠", "🎯", "🏆", "⚡", "🔥", "💎", "🦁", "🌟", "🚀", "🎮"];
@@ -236,6 +243,39 @@ export function Profile({ profile, onBack, onSignOut }: ProfileProps) {
             <div className="stat">
               <span className="stat__value">{profile.reactionDotsHit}</span>
               <span className="stat__label">Total dots hit</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Brain Blitz Trivia ───────────────────────────────────────── */}
+      <section className="profile__section">
+        <h2 className="profile__section-title">Brain Blitz Trivia</h2>
+        <div className="hud">
+          <div className="hud__stats">
+            <div className="stat">
+              <span className="stat__value">{profile.games.trivia.bestScore}</span>
+              <span className="stat__label">High score</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{round(averageScore(profile.games.trivia))}</span>
+              <span className="stat__label">Average score</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.games.trivia.gamesPlayed}</span>
+              <span className="stat__label">Games played</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{round(triviaAccuracy(profile))}%</span>
+              <span className="stat__label">Accuracy</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.triviaQuestionsAnswered}</span>
+              <span className="stat__label">Questions answered</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.triviaCorrectAnswers}</span>
+              <span className="stat__label">Correct answers</span>
             </div>
           </div>
         </div>

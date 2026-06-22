@@ -299,6 +299,65 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
     icon: "✨",
     check: (p) => (p.reactionDotsHit ?? 0) >= 1000,
   },
+  // ── Brain Blitz Trivia ───────────────────────────────────────────────────
+  {
+    id: "trivia-first",
+    label: "Quiz Rookie",
+    description: "Play your first Brain Blitz Trivia game.",
+    icon: "❓",
+    check: (p) => p.games.trivia.gamesPlayed >= 1,
+  },
+  {
+    id: "trivia-best-500",
+    label: "Quick Thinker",
+    description: "Score 500 in Brain Blitz Trivia.",
+    icon: "💡",
+    check: (p) => p.games.trivia.bestScore >= 500,
+  },
+  {
+    id: "trivia-best-1000",
+    label: "Trivia Master",
+    description: "Score 1000 in Brain Blitz Trivia.",
+    icon: "🏅",
+    check: (p) => p.games.trivia.bestScore >= 1000,
+  },
+  {
+    id: "trivia-expert",
+    label: "Trivia Expert",
+    description: "Score 1500 in Brain Blitz Trivia.",
+    icon: "🎓",
+    check: (p) => p.games.trivia.bestScore >= 1500,
+  },
+  {
+    id: "trivia-questions-100",
+    label: "Curious Mind",
+    description: "Answer 100 trivia questions total.",
+    icon: "📚",
+    check: (p) => (p.triviaQuestionsAnswered ?? 0) >= 100,
+  },
+  {
+    id: "trivia-questions-500",
+    label: "Knowledge Seeker",
+    description: "Answer 500 trivia questions total.",
+    icon: "📖",
+    check: (p) => (p.triviaQuestionsAnswered ?? 0) >= 500,
+  },
+  {
+    id: "trivia-questions-1000",
+    label: "Trivia Scholar",
+    description: "Answer 1000 trivia questions total.",
+    icon: "🎖️",
+    check: (p) => (p.triviaQuestionsAnswered ?? 0) >= 1000,
+  },
+  {
+    id: "trivia-accuracy-90",
+    label: "Sharp Mind",
+    description: "Reach 90% trivia accuracy with at least 50 questions answered.",
+    icon: "🎯",
+    check: (p) =>
+      (p.triviaQuestionsAnswered ?? 0) >= 50 &&
+      (p.triviaCorrectAnswers ?? 0) / Math.max(1, p.triviaQuestionsAnswered ?? 1) >= 0.9,
+  },
 ];
 
 /** Returns ids of achievements newly unlocked by this profile state. */

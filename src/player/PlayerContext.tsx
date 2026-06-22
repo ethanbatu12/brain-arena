@@ -11,6 +11,7 @@ import {
   recordReactionResult as recordReactionResultInStorage,
   recordRatedPatternRun as recordRatedPatternRunInStorage,
   recordRatedPuzzleResult,
+  recordTriviaResult as recordTriviaResultInStorage,
   normalizeProfile,
   saveCurrentUsername,
   saveProfile,
@@ -50,6 +51,7 @@ interface PlayerContextValue {
   dismissBannedNotice: () => void;
   recordResult: (gameId: GameId, score: number) => void;
   recordReactionResult: (score: number, dotsHit: number) => void;
+  recordTriviaResult: (score: number, correctCount: number, totalAnswered: number) => void;
   recordCombinedResult: (score: number) => void;
   recordRatedPuzzle: (correct: boolean, elapsedMs: number, puzzleId?: number) => void;
   recordRatedPatternRun: (solved: number, attempted: number, ratingDelta: number) => void;
@@ -211,6 +213,24 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [currentUsername],
   );
 
+  const recordTriviaResult = useCallback(
+    (score: number, correctCount: number, totalAnswered: number) => {
+      setProfiles((prev) => {
+        if (!currentUsername) return prev;
+        const current = prev[currentUsername];
+        if (!current) return prev;
+        const updated = recordTriviaResultInStorage(current, score, correctCount, totalAnswered);
+        const { updated: final, newAchievements } = applyPostGameEffects(updated);
+        if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
+        void saveProfile(final);
+        void pushToGlobalLeaderboard(final);
+        void pushCloudProfile(final.username, final.passwordHash, final.passwordSalt, final as unknown as Record<string, unknown>);
+        return { ...prev, [currentUsername]: final };
+      });
+    },
+    [currentUsername],
+  );
+
   const recordCombinedResult = useCallback(
     (score: number) => {
       setProfiles((prev) => {
@@ -293,6 +313,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     signOut,
     recordResult,
     recordReactionResult,
+    recordTriviaResult,
     recordCombinedResult,
     recordRatedPuzzle,
     recordRatedPatternRun,

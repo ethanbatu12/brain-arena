@@ -145,6 +145,8 @@ export function createProfile(username: string, passwordHash: string, passwordSa
     dailyChallenges: [],
     avatar: "🧠",
     reactionDotsHit: 0,
+    triviaQuestionsAnswered: 0,
+    triviaCorrectAnswers: 0,
   };
 }
 
@@ -196,6 +198,27 @@ export function recordGameResult(profile: PlayerProfile, gameId: GameId, score: 
 export function recordReactionResult(profile: PlayerProfile, score: number, dotsHit: number): PlayerProfile {
   const afterGame = recordGameResult(profile, "reaction", score);
   return { ...afterGame, reactionDotsHit: profile.reactionDotsHit + dotsHit };
+}
+
+/** Records a Brain Blitz Trivia result: updates games.trivia stats plus cumulative question/correct tallies. */
+export function recordTriviaResult(
+  profile: PlayerProfile,
+  score: number,
+  correctCount: number,
+  totalAnswered: number,
+): PlayerProfile {
+  const afterGame = recordGameResult(profile, "trivia", score);
+  return {
+    ...afterGame,
+    triviaQuestionsAnswered: profile.triviaQuestionsAnswered + totalAnswered,
+    triviaCorrectAnswers: profile.triviaCorrectAnswers + correctCount,
+  };
+}
+
+/** Overall trivia accuracy percentage across every game ever played. Zero with no questions answered. */
+export function triviaAccuracy(profile: PlayerProfile): number {
+  if (profile.triviaQuestionsAnswered === 0) return 0;
+  return (profile.triviaCorrectAnswers / profile.triviaQuestionsAnswered) * 100;
 }
 
 export function recordCombinedResult(profile: PlayerProfile, score: number): PlayerProfile {
@@ -271,6 +294,8 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
     dailyChallenges: profile.dailyChallenges ?? [],
     avatar: profile.avatar ?? "🧠",
     reactionDotsHit: profile.reactionDotsHit ?? 0,
+    triviaQuestionsAnswered: profile.triviaQuestionsAnswered ?? 0,
+    triviaCorrectAnswers: profile.triviaCorrectAnswers ?? 0,
   } as PlayerProfile;
 }
 

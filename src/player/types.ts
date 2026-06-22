@@ -1,4 +1,4 @@
-export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern" | "reaction";
+export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern" | "reaction" | "trivia";
 
 export interface StreakData {
   currentStreak: number;
@@ -46,7 +46,15 @@ export type AchievementId =
   | "reaction-best-1000"
   | "reaction-dots-100"
   | "reaction-dots-500"
-  | "reaction-dots-1000";
+  | "reaction-dots-1000"
+  | "trivia-first"
+  | "trivia-best-500"
+  | "trivia-best-1000"
+  | "trivia-expert"
+  | "trivia-questions-100"
+  | "trivia-questions-500"
+  | "trivia-questions-1000"
+  | "trivia-accuracy-90";
 
 export interface AchievementRecord {
   id: AchievementId;
@@ -75,7 +83,7 @@ export interface RatedPatternStats {
   ratingHistory: number[];
 }
 
-export const GAME_IDS: GameId[] = ["memory", "math", "logic", "balloon", "pattern", "reaction"];
+export const GAME_IDS: GameId[] = ["memory", "math", "logic", "balloon", "pattern", "reaction", "trivia"];
 
 /** Per-puzzle attempt tally for one user, keyed by puzzle id. */
 export interface PuzzleResultStat {
@@ -128,4 +136,8 @@ export interface PlayerProfile {
   avatar: string;
   /** Cumulative blue dots successfully tapped across every Reaction Grid game. */
   reactionDotsHit: number;
+  /** Cumulative trivia questions answered (correct + incorrect) across every Brain Blitz game. */
+  triviaQuestionsAnswered: number;
+  /** Cumulative correct trivia answers across every Brain Blitz game. */
+  triviaCorrectAnswers: number;
 }
