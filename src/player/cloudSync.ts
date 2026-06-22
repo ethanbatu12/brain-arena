@@ -82,21 +82,27 @@ export async function isUsernameTaken(username: string): Promise<boolean> {
 }
 
 /**
- * Check if a username is banned. Fails closed: if the ban check itself
- * can't be confirmed (network error, RLS misconfiguration, etc.) this
+ * Check if a username is currently banned. Fails closed: if the ban check
+ * itself can't be confirmed (network error, RLS misconfiguration, etc.) this
  * returns true so a broken check can never silently let a banned user in.
+ *
+ * Bans may have an `expires_at` timestamp — null/absent means permanent,
+ * otherwise the ban is treated as lifted once that time has passed.
  */
 export async function isUserBanned(username: string): Promise<boolean> {
   try {
     // Case-insensitive match — a player's typed casing may differ slightly
     // from how the username was entered when banned.
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/banned_users?username=ilike.${encodeURIComponent(username)}&select=username&limit=1`,
+      `${SUPABASE_URL}/rest/v1/banned_users?username=ilike.${encodeURIComponent(username)}&select=username,expires_at&limit=1`,
       { headers: headers() },
     );
     if (!res.ok) return true;
-    const rows = await res.json() as unknown[];
-    return rows.length > 0;
+    const rows = await res.json() as { username: string; expires_at: string | null }[];
+    if (rows.length === 0) return false;
+    const expiresAt = rows[0].expires_at;
+    if (!expiresAt) return true; // permanent ban
+    return new Date(expiresAt).getTime() > Date.now();
   } catch {
     return true;
   }

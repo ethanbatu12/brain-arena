@@ -106,13 +106,16 @@ export async function fetchGlobalLeaderboard(): Promise<GlobalEntry[]> {
     );
     if (!res.ok) return [];
     const rows = (await res.json()) as GlobalEntry[];
-    // Filter banned users
+    // Filter currently-banned users (expired temporary bans no longer apply)
     let banned = new Set<string>();
     try {
-      const banRes = await fetch(`${SUPABASE_URL}/rest/v1/banned_users?select=username`, { headers: supabaseHeaders() });
+      const banRes = await fetch(`${SUPABASE_URL}/rest/v1/banned_users?select=username,expires_at`, { headers: supabaseHeaders() });
       if (banRes.ok) {
-        const banRows = await banRes.json() as { username: string }[];
-        banned = new Set(banRows.map((r) => r.username));
+        const banRows = await banRes.json() as { username: string; expires_at: string | null }[];
+        const now = Date.now();
+        banned = new Set(
+          banRows.filter((r) => !r.expires_at || new Date(r.expires_at).getTime() > now).map((r) => r.username),
+        );
       }
     } catch { /* ignore */ }
     return rows.filter((r) => !banned.has(r.username)).slice(0, 100);
