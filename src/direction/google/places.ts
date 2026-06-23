@@ -1,8 +1,11 @@
 /**
- * Nearby roads/landmarks/parks/schools/businesses via the Google Places
- * JavaScript SDK (legacy PlacesService) — not raw REST fetch, so this never
- * hits browser CORS. The SDK boundary (searchOneType) is impure; parsing
- * raw results into MapFeature[] is pure and unit-tested separately.
+ * Nearby roads/landmarks/parks/schools/businesses via the new Places API
+ * JS client (google.maps.places.Place.searchNearby) — not raw REST fetch,
+ * so this never hits browser CORS. The legacy PlacesService.nearbySearch
+ * is not available to Google Cloud projects created after March 2025, so
+ * this uses the modern Place class instead. The SDK boundary
+ * (searchOneType) is impure; parsing raw results into MapFeature[] is
+ * pure and unit-tested separately.
  */
 import { loadGoogleMaps } from "./loader";
 import type { Coords, FeatureKind, MapFeature } from "../types";
@@ -31,36 +34,20 @@ export function parseRawPlaceResults(results: RawPlaceResult[], kind: FeatureKin
   return features;
 }
 
-let serviceDiv: HTMLDivElement | null = null;
-
-async function getPlacesService(): Promise<google.maps.places.PlacesService> {
+async function searchOneType(origin: Coords, radiusM: number, type: string): Promise<RawPlaceResult[]> {
   const g = await loadGoogleMaps();
-  if (!serviceDiv) serviceDiv = document.createElement("div");
-  return new g.maps.places.PlacesService(serviceDiv);
-}
-
-function searchOneType(
-  service: google.maps.places.PlacesService,
-  origin: Coords,
-  radiusM: number,
-  type: string,
-): Promise<RawPlaceResult[]> {
-  return new Promise((resolve) => {
-    service.nearbySearch({ location: { lat: origin.lat, lng: origin.lon }, radius: radiusM, type }, (results, status) => {
-      if (status !== google.maps.places.PlacesServiceStatus.OK || !results) {
-        resolve([]);
-        return;
-      }
-      resolve(
-        results.map((r) => ({
-          placeId: r.place_id,
-          name: r.name,
-          lat: r.geometry?.location?.lat(),
-          lng: r.geometry?.location?.lng(),
-        })),
-      );
-    });
+  const { places } = await g.maps.places.Place.searchNearby({
+    fields: ["displayName", "location", "id"],
+    locationRestriction: { center: { lat: origin.lat, lng: origin.lon }, radius: radiusM },
+    includedPrimaryTypes: [type],
+    maxResultCount: 20,
   });
+  return places.map((p) => ({
+    placeId: p.id,
+    name: p.displayName ?? undefined,
+    lat: p.location?.lat(),
+    lng: p.location?.lng(),
+  }));
 }
 
 /**
@@ -70,9 +57,8 @@ function searchOneType(
  * results" rather than an error.
  */
 export async function fetchNearbyFeaturesGoogle(origin: Coords, radiusM: number): Promise<MapFeature[]> {
-  const service = await getPlacesService();
   const batches = await Promise.all(
-    SEARCH_TYPES.map(async ({ type, kind }) => parseRawPlaceResults(await searchOneType(service, origin, radiusM, type), kind)),
+    SEARCH_TYPES.map(async ({ type, kind }) => parseRawPlaceResults(await searchOneType(origin, radiusM, type), kind)),
   );
   const seen = new Map<string, MapFeature>();
   for (const batch of batches) {
