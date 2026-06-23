@@ -4,7 +4,7 @@
  * no API key. Query building + response parsing are pure and unit-tested;
  * only fetchNearbyFeatures itself touches the network.
  */
-import { OVERPASS_URL, SEARCH_RADIUS_M } from "./constants";
+import { OVERPASS_URLS, SEARCH_RADIUS_M } from "./constants";
 import type { Coords, FeatureKind, MapFeature } from "./types";
 
 export interface OverpassElement {
@@ -70,21 +70,32 @@ export function parseOverpassElements(elements: OverpassElement[]): MapFeature[]
 }
 
 /**
- * Fetches and parses nearby map features for `origin`. Throws on network or
- * server failure — callers should catch this to distinguish "the request
- * failed" from "the request succeeded but found nothing nearby", which need
- * very different error messages and retry strategies.
+ * Fetches and parses nearby map features for `origin`, trying each mirror in
+ * OVERPASS_URLS in turn. Throws only if every mirror fails — callers should
+ * catch this to distinguish "the request failed" from "it succeeded but
+ * found nothing nearby", which need very different error messages.
  */
 export async function fetchNearbyFeatures(origin: Coords, radiusM: number = SEARCH_RADIUS_M): Promise<MapFeature[]> {
   const query = buildOverpassQuery(origin, radiusM);
-  const res = await fetch(OVERPASS_URL, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain" },
-    body: query,
-  });
-  if (!res.ok) {
-    throw new Error(`Overpass request failed with status ${res.status}`);
+  let lastError: unknown = null;
+
+  for (const url of OVERPASS_URLS) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: query,
+      });
+      if (!res.ok) {
+        lastError = new Error(`Overpass request to ${url} failed with status ${res.status}`);
+        continue;
+      }
+      const data = (await res.json()) as OverpassResponse;
+      return parseOverpassElements(data.elements ?? []);
+    } catch (err) {
+      lastError = err;
+    }
   }
-  const data = (await res.json()) as OverpassResponse;
-  return parseOverpassElements(data.elements ?? []);
+
+  throw lastError ?? new Error("All Overpass mirrors failed");
 }

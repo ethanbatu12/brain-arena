@@ -24,8 +24,17 @@ export const QUESTION_KINDS = [
   "advanced-navigation",
 ] as const;
 
-/** Overpass API endpoint — free, no API key required. */
-export const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
+/**
+ * Free, keyless Overpass API mirrors, tried in order. overpass-api.de is the
+ * main instance but is sometimes unreachable or rate-limited from browsers;
+ * the others are independently-run public mirrors of the same OpenStreetMap
+ * data with no signup required.
+ */
+export const OVERPASS_URLS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.openstreetmap.ru/api/interpreter",
+];
 
 /** Nominatim geocoding endpoint — free, no API key required (OpenStreetMap). */
 export const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
