@@ -46,6 +46,8 @@ export interface GlobalEntry {
   reaction_avg: number;
   trivia_best: number;
   trivia_avg: number;
+  direction_best: number;
+  direction_avg: number;
   updated_at: string;
 }
 
@@ -75,6 +77,8 @@ function profileToEntry(profile: PlayerProfile): Record<string, unknown> {
     reaction_avg: Math.round(averageScore(profile.games.reaction)),
     trivia_best: profile.games.trivia.bestScore,
     trivia_avg: Math.round(averageScore(profile.games.trivia)),
+    direction_best: profile.games.direction.bestScore,
+    direction_avg: Math.round(averageScore(profile.games.direction)),
     updated_at: new Date().toISOString(),
   };
 }

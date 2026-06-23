@@ -58,6 +58,13 @@ export const GAMES: GameMeta[] = [
     blurb: "Math, logic, patterns, probability, chess, and more — answer fast, difficulty climbs as you go.",
     accent: "var(--trivia)",
   },
+  {
+    id: "direction",
+    name: "Direction Challenge",
+    tag: "Real-world navigation",
+    blurb: "Questions generated from your actual GPS location and nearby map data — never the same twice.",
+    accent: "var(--direction)",
+  },
 ];
 
 export interface ChallengeMeta {

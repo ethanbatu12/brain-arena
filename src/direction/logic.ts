@@ -1,0 +1,226 @@
+/**
+ * Procedural question generation from a player's real surroundings.
+ * Every generator is a pure function of (origin, features, rng, id), so the
+ * exact same machinery that drives the real game is fully unit-testable
+ * with a fixed mock feature list and seeded rng — no network, no GPS.
+ */
+import type { Rng } from "../game/rng";
+import { BONUS_EVERY_CORRECT, BONUS_POINTS, MIN_FEATURES_REQUIRED, POINTS_PER_CORRECT, QUESTION_KINDS } from "./constants";
+import { bearingDegrees, directionFrom, offsetCoords, sortByDistance } from "./geo";
+import { buildChoices, pick, shuffle } from "./utils";
+import type { CompassDirection, Coords, DirectionQuestion, DirectionQuestionKind, MapFeature } from "./types";
+
+const DIRECTION_WORDS: Record<CompassDirection, string> = {
+  N: "north",
+  NE: "northeast",
+  E: "east",
+  SE: "southeast",
+  S: "south",
+  SW: "southwest",
+  W: "west",
+  NW: "northwest",
+};
+
+const KIND_LABELS: Record<MapFeature["kind"], string> = {
+  road: "road",
+  landmark: "landmark",
+  park: "park",
+  school: "school",
+  business: "business",
+  intersection: "intersection",
+};
+
+function kindLabel(feature: MapFeature): string {
+  return KIND_LABELS[feature.kind];
+}
+
+const DECOY_NAMES = [
+  "Sunset Avenue",
+  "Lincoln Park",
+  "Cedar Street School",
+  "Maple Street",
+  "Riverside Drive",
+  "Harbor Plaza",
+  "Birchwood Lane",
+  "Founders Square",
+];
+
+function decoyNamesNotIn(features: MapFeature[], rng: Rng, count: number): string[] {
+  const used = new Set(features.map((f) => f.name));
+  const pool = DECOY_NAMES.filter((n) => !used.has(n));
+  return shuffle(pool, rng).slice(0, count);
+}
+
+function namesExcluding(features: MapFeature[], exclude: MapFeature[]): string[] {
+  const excluded = new Set(exclude.map((f) => f.id));
+  return features.filter((f) => !excluded.has(f.id)).map((f) => f.name);
+}
+
+// ── individual question builders ───────────────────────────────────────────
+
+function buildBasicDirection(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
+  const target = pick(features, rng);
+  const dir = directionFrom(origin, target);
+  const prompt = `Which ${kindLabel(target)} is ${DIRECTION_WORDS[dir]} of your location?`;
+  const { choices, correctIndex } = buildChoices(rng, target.name, namesExcluding(features, [target]));
+  return { id, kind: "basic-direction", prompt, choices, correctIndex };
+}
+
+function buildClosest(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
+  const useReference = features.length >= 5 && rng() < 0.5;
+  const reference = useReference ? pick(features, rng) : null;
+  const refPoint: Coords = reference ?? origin;
+  const pool = reference ? features.filter((f) => f.id !== reference.id) : features;
+  const sorted = sortByDistance(refPoint, pool);
+  const correct = sorted[0];
+  const refLabel = reference ? reference.name : "your location";
+  const prompt = `Which location is closest to ${refLabel}?`;
+  const { choices, correctIndex } = buildChoices(rng, correct.name, namesExcluding(pool, [correct]));
+  return { id, kind: "closest", prompt, choices, correctIndex };
+}
+
+function buildFurthest(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
+  const useReference = features.length >= 5 && rng() < 0.5;
+  const reference = useReference ? pick(features, rng) : null;
+  const refPoint: Coords = reference ?? origin;
+  const pool = reference ? features.filter((f) => f.id !== reference.id) : features;
+  const sorted = sortByDistance(refPoint, pool);
+  const correct = sorted[sorted.length - 1];
+  const refLabel = reference ? reference.name : "your location";
+  const prompt = `Which location is furthest from ${refLabel}?`;
+  const { choices, correctIndex } = buildChoices(rng, correct.name, namesExcluding(pool, [correct]));
+  return { id, kind: "furthest", prompt, choices, correctIndex };
+}
+
+function buildRelativePosition(_origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
+  const reference = pick(features, rng);
+  const others = features.filter((f) => f.id !== reference.id);
+  const target = pick(others, rng);
+  const dir = directionFrom(reference, target);
+  const prompt = `Which location is ${DIRECTION_WORDS[dir]} of ${reference.name}?`;
+  const { choices, correctIndex } = buildChoices(rng, target.name, namesExcluding(others, [target]));
+  return { id, kind: "relative-position", prompt, choices, correctIndex };
+}
+
+function permutationsOf3<T>(items: [T, T, T]): T[][] {
+  const [a, b, c] = items;
+  return [
+    [a, b, c],
+    [a, c, b],
+    [b, a, c],
+    [b, c, a],
+    [c, a, b],
+    [c, b, a],
+  ];
+}
+
+function buildDistanceRanking(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
+  const sample = shuffle(features, rng).slice(0, 3) as [MapFeature, MapFeature, MapFeature];
+  const correctOrder = sortByDistance(origin, sample).map((f) => f.name);
+  const correctStr = correctOrder.join(" → ");
+  const allPerms = permutationsOf3(correctOrder as [string, string, string])
+    .map((p) => p.join(" → "))
+    .filter((p) => p !== correctStr);
+  const distractors = shuffle(allPerms, rng).slice(0, 3);
+  const listed = shuffle(sample, rng).map((f) => f.name).join(", ");
+  const prompt = `Order these locations from closest to furthest: ${listed}`;
+  const { choices, correctIndex } = buildChoices(rng, correctStr, distractors);
+  return { id, kind: "distance-ranking", prompt, choices, correctIndex };
+}
+
+function buildMapMemory(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
+  const variant = pick(["which-shown", "closest", "direction"] as const, rng);
+
+  if (variant === "which-shown") {
+    const shown = pick(features, rng);
+    const distractors = decoyNamesNotIn(features, rng, 3);
+    const prompt = "Which of these locations appeared on the map you saw?";
+    const { choices, correctIndex } = buildChoices(rng, shown.name, distractors);
+    return { id, kind: "map-memory", prompt, choices, correctIndex, showMapFirst: true };
+  }
+
+  if (variant === "closest") {
+    const sorted = sortByDistance(origin, features);
+    const correct = sorted[0];
+    const prompt = "Which location was closest to your location on the map you saw?";
+    const { choices, correctIndex } = buildChoices(rng, correct.name, namesExcluding(features, [correct]));
+    return { id, kind: "map-memory", prompt, choices, correctIndex, showMapFirst: true };
+  }
+
+  const target = pick(features, rng);
+  const dir = directionFrom(origin, target);
+  const prompt = `Which location was ${DIRECTION_WORDS[dir]} of your location on the map you saw?`;
+  const { choices, correctIndex } = buildChoices(rng, target.name, namesExcluding(features, [target]));
+  return { id, kind: "map-memory", prompt, choices, correctIndex, showMapFirst: true };
+}
+
+function buildAdvancedNavigation(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
+  const variant = pick(["waypoint", "diagonal"] as const, rng);
+
+  if (variant === "waypoint") {
+    const waypoint = offsetCoords(origin, 400, 400);
+    const correct = sortByDistance(waypoint, features)[0];
+    const prompt = "If you travel north then east from your location, which of these would you reach first?";
+    const { choices, correctIndex } = buildChoices(rng, correct.name, namesExcluding(features, [correct]));
+    return { id, kind: "advanced-navigation", prompt, choices, correctIndex };
+  }
+
+  const dir = pick(["NE", "SE", "SW", "NW"] as const, rng);
+  const targetDegrees: Record<CompassDirection, number> = { N: 0, NE: 45, E: 90, SE: 135, S: 180, SW: 225, W: 270, NW: 315 };
+  const angularDiff = (feature: MapFeature) => {
+    const bearing = bearingDegrees(origin, feature);
+    const diff = ((bearing - targetDegrees[dir] + 180) % 360 + 360) % 360 - 180;
+    return Math.abs(diff);
+  };
+  const sorted = [...features].sort((a, b) => angularDiff(a) - angularDiff(b));
+  const correct = sorted[0];
+  const prompt = `Which location is most directly ${DIRECTION_WORDS[dir]} of your location?`;
+  const { choices, correctIndex } = buildChoices(rng, correct.name, namesExcluding(features, [correct]));
+  return { id, kind: "advanced-navigation", prompt, choices, correctIndex };
+}
+
+const GENERATORS: Record<
+  DirectionQuestionKind,
+  (origin: Coords, features: MapFeature[], rng: Rng, id: number) => DirectionQuestion
+> = {
+  "basic-direction": buildBasicDirection,
+  closest: buildClosest,
+  furthest: buildFurthest,
+  "relative-position": buildRelativePosition,
+  "distance-ranking": buildDistanceRanking,
+  "map-memory": buildMapMemory,
+  "advanced-navigation": buildAdvancedNavigation,
+};
+
+/**
+ * Generates one question from real map features around `origin`. Returns
+ * null if there aren't enough features to build a well-formed question.
+ */
+export function makeQuestion(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion | null {
+  if (features.length < MIN_FEATURES_REQUIRED) return null;
+  const kind = pick(QUESTION_KINDS, rng);
+  return GENERATORS[kind](origin, features, rng, id);
+}
+
+export { DIRECTION_WORDS };
+
+/** Points earned for a single correct answer, before any bonus. */
+export function pointsForCorrect(): number {
+  return POINTS_PER_CORRECT;
+}
+
+/** Whether this correct-answer count (after incrementing) completes a bonus streak. */
+export function isBonusCorrect(correctSoFar: number): boolean {
+  return correctSoFar > 0 && correctSoFar % BONUS_EVERY_CORRECT === 0;
+}
+
+/** Total points awarded for a correct answer, including bonus if it completes a streak. */
+export function scoreForCorrect(correctSoFar: number): number {
+  return pointsForCorrect() + (isBonusCorrect(correctSoFar) ? BONUS_POINTS : 0);
+}
+
+/** Accuracy percentage, 0 when no questions have been answered. */
+export function directionAccuracy(correctCount: number, totalAnswered: number): number {
+  if (totalAnswered === 0) return 0;
+  return (correctCount / totalAnswered) * 100;
+}

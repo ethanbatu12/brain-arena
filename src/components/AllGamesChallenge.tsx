@@ -10,9 +10,11 @@ import { PatternGame } from "./PatternGame";
 import { ReactionGame } from "./ReactionGame";
 import { TriviaGame } from "./TriviaGame";
 
-type StageId = GameId;
+type StageId = Exclude<GameId, "direction">;
 
-const ALL_STAGES: StageId[] = [...GAME_IDS];
+// Direction Challenge is intentionally excluded — it requires live GPS/map
+// data and doesn't fit the fixed-length back-to-back challenge format.
+const ALL_STAGES: StageId[] = GAME_IDS.filter((id): id is StageId => id !== "direction");
 const TOTAL_STAGES = ALL_STAGES.length; // 7
 
 const GAME_STAGES = {

@@ -147,6 +147,8 @@ export function createProfile(username: string, passwordHash: string, passwordSa
     reactionDotsHit: 0,
     triviaQuestionsAnswered: 0,
     triviaCorrectAnswers: 0,
+    directionQuestionsAnswered: 0,
+    directionCorrectAnswers: 0,
   };
 }
 
@@ -219,6 +221,27 @@ export function recordTriviaResult(
 export function triviaAccuracy(profile: PlayerProfile): number {
   if (profile.triviaQuestionsAnswered === 0) return 0;
   return (profile.triviaCorrectAnswers / profile.triviaQuestionsAnswered) * 100;
+}
+
+/** Records a Direction Challenge result: updates games.direction stats plus cumulative question/correct tallies. */
+export function recordDirectionResult(
+  profile: PlayerProfile,
+  score: number,
+  correctCount: number,
+  totalAnswered: number,
+): PlayerProfile {
+  const afterGame = recordGameResult(profile, "direction", score);
+  return {
+    ...afterGame,
+    directionQuestionsAnswered: profile.directionQuestionsAnswered + totalAnswered,
+    directionCorrectAnswers: profile.directionCorrectAnswers + correctCount,
+  };
+}
+
+/** Overall Direction Challenge accuracy percentage across every game ever played. Zero with no questions answered. */
+export function directionAccuracy(profile: PlayerProfile): number {
+  if (profile.directionQuestionsAnswered === 0) return 0;
+  return (profile.directionCorrectAnswers / profile.directionQuestionsAnswered) * 100;
 }
 
 export function recordCombinedResult(profile: PlayerProfile, score: number): PlayerProfile {
@@ -296,6 +319,8 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
     reactionDotsHit: profile.reactionDotsHit ?? 0,
     triviaQuestionsAnswered: profile.triviaQuestionsAnswered ?? 0,
     triviaCorrectAnswers: profile.triviaCorrectAnswers ?? 0,
+    directionQuestionsAnswered: profile.directionQuestionsAnswered ?? 0,
+    directionCorrectAnswers: profile.directionCorrectAnswers ?? 0,
   } as PlayerProfile;
 }
 

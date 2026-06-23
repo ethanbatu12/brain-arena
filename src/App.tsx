@@ -4,6 +4,7 @@ import { AllGamesChallenge } from "./components/AllGamesChallenge";
 import { BalloonGame } from "./components/BalloonGame";
 import { ChessLobby } from "./components/ChessLobby";
 import { DbViewer } from "./components/DbViewer";
+import { DirectionChallenge } from "./components/DirectionChallenge";
 import { FullChessGame } from "./components/FullChessGame";
 import { Hub } from "./components/Hub";
 import { Leaderboard } from "./components/Leaderboard";
@@ -125,6 +126,7 @@ function AppShell() {
       {screen === "balloon" && <BalloonGame onExit={goHub} />}
       {screen === "reaction" && <ReactionGame onExit={goHub} />}
       {screen === "trivia" && <TriviaGame onExit={goHub} />}
+      {screen === "direction" && <DirectionChallenge onExit={goHub} />}
       {screen === "pattern" && (
         <PatternLobby
           ratedPatterns={profile.ratedPatterns}

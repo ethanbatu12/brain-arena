@@ -5,6 +5,7 @@ import {
   averageScore,
   avgSolveTimeMs,
   combinedAverageScore,
+  directionAccuracy,
   overallAverageScore,
   puzzleWinPct,
   triviaAccuracy,
@@ -275,6 +276,39 @@ export function Profile({ profile, onBack, onSignOut }: ProfileProps) {
             </div>
             <div className="stat">
               <span className="stat__value">{profile.triviaCorrectAnswers}</span>
+              <span className="stat__label">Correct answers</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Direction Challenge ─────────────────────────────────────── */}
+      <section className="profile__section">
+        <h2 className="profile__section-title">Direction Challenge</h2>
+        <div className="hud">
+          <div className="hud__stats">
+            <div className="stat">
+              <span className="stat__value">{profile.games.direction.bestScore}</span>
+              <span className="stat__label">High score</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{round(averageScore(profile.games.direction))}</span>
+              <span className="stat__label">Average score</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.games.direction.gamesPlayed}</span>
+              <span className="stat__label">Games played</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{round(directionAccuracy(profile))}%</span>
+              <span className="stat__label">Accuracy</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.directionQuestionsAnswered}</span>
+              <span className="stat__label">Questions answered</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.directionCorrectAnswers}</span>
               <span className="stat__label">Correct answers</span>
             </div>
           </div>

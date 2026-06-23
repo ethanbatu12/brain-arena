@@ -9,7 +9,9 @@ import { ratingTier } from "../pattern/ratedPatternReducer";
 import { averageScore } from "../player/storage";
 import type { GameId, PlayerProfile } from "../player/types";
 
-type AvgKey = "memory-avg" | "math-avg" | "logic-avg" | "balloon-avg" | "pattern-avg" | "reaction-avg" | "trivia-avg";
+type AvgKey =
+  | "memory-avg" | "math-avg" | "logic-avg" | "balloon-avg" | "pattern-avg"
+  | "reaction-avg" | "trivia-avg" | "direction-avg";
 
 type SortKey =
   | GameId
@@ -46,6 +48,7 @@ const AVG_GAME_MAP: Partial<Record<AvgKey, GameId>> = {
   "pattern-avg": "pattern",
   "reaction-avg": "reaction",
   "trivia-avg": "trivia",
+  "direction-avg": "direction",
 };
 
 function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): Row {
@@ -53,7 +56,8 @@ function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): 
   let label: string;
   if (
     key === "memory" || key === "math" || key === "logic" ||
-    key === "balloon" || key === "pattern" || key === "reaction" || key === "trivia"
+    key === "balloon" || key === "pattern" || key === "reaction" ||
+    key === "trivia" || key === "direction"
   ) {
     value = p.games[key].bestScore;
     label = String(value);
@@ -94,6 +98,7 @@ function globalEntryToRow(e: GlobalEntry, key: SortKey, currentUsername: string)
     case "pattern":             value = e.pattern_best; label = String(value); break;
     case "reaction":            value = e.reaction_best ?? 0; label = String(value); break;
     case "trivia":              value = e.trivia_best ?? 0; label = String(value); break;
+    case "direction":           value = e.direction_best ?? 0; label = String(value); break;
     case "memory-avg":          value = e.memory_avg ?? 0; label = value === 0 ? "—" : String(value); break;
     case "math-avg":            value = e.math_avg ?? 0; label = value === 0 ? "—" : String(value); break;
     case "logic-avg":           value = e.logic_avg ?? 0; label = value === 0 ? "—" : String(value); break;
@@ -101,6 +106,7 @@ function globalEntryToRow(e: GlobalEntry, key: SortKey, currentUsername: string)
     case "pattern-avg":         value = e.pattern_avg ?? 0; label = value === 0 ? "—" : String(value); break;
     case "reaction-avg":        value = e.reaction_avg ?? 0; label = value === 0 ? "—" : String(value); break;
     case "trivia-avg":          value = e.trivia_avg ?? 0; label = value === 0 ? "—" : String(value); break;
+    case "direction-avg":       value = e.direction_avg ?? 0; label = value === 0 ? "—" : String(value); break;
     default:                    value = 0; label = "0";
   }
   return { username: e.username, avatar: e.avatar ?? "🧠", value, label, isCurrentUser: e.username === currentUsername };
@@ -291,6 +297,7 @@ const SETUP_SQL = `CREATE TABLE leaderboard_entries (
   pattern_best          INTEGER DEFAULT 0,
   reaction_best         INTEGER DEFAULT 0,
   trivia_best           INTEGER DEFAULT 0,
+  direction_best        INTEGER DEFAULT 0,
   challenge_runs        INTEGER DEFAULT 0,
   memory_avg            INTEGER DEFAULT 0,
   math_avg              INTEGER DEFAULT 0,
@@ -299,6 +306,7 @@ const SETUP_SQL = `CREATE TABLE leaderboard_entries (
   pattern_avg           INTEGER DEFAULT 0,
   reaction_avg          INTEGER DEFAULT 0,
   trivia_avg            INTEGER DEFAULT 0,
+  direction_avg         INTEGER DEFAULT 0,
   updated_at            TIMESTAMPTZ DEFAULT NOW(),
   PRIMARY KEY (device_id, username)
 );

@@ -25,6 +25,7 @@
   --pattern: #34d399;      /* fill-in-the-pattern accent */
   --reaction: #38bdf8;     /* reaction grid accent */
   --trivia: #fb7185;       /* brain blitz trivia accent */
+  --direction: #facc15;    /* direction challenge accent */
 
   --radius: 16px;
   --radius-sm: 10px;
@@ -1034,6 +1035,79 @@ button {
   border-color: var(--trivia);
 }
 .trivia__choice:active {
+  transform: scale(0.97);
+}
+
+.direction__playing {
+  width: min(96vw, 560px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.direction__map {
+  width: 100%;
+  height: clamp(220px, 50vw, 320px);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background: var(--bg-2);
+}
+.direction__map--hidden {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.direction__question {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: clamp(16px, 4vw, 28px);
+  background: linear-gradient(180deg, var(--surface), var(--bg-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.direction__prompt {
+  font-size: clamp(16px, 3.6vw, 20px);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.direction__choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 480px) {
+  .direction__choices {
+    grid-template-columns: 1fr;
+  }
+}
+
+.direction__choice {
+  padding: 14px 12px;
+  font-size: clamp(14px, 3.2vw, 16px);
+  font-weight: 600;
+  text-align: center;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.12s ease, transform 0.08s ease;
+}
+.direction__choice:hover {
+  border-color: var(--direction);
+}
+.direction__choice:active {
   transform: scale(0.97);
 }
 

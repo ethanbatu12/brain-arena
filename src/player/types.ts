@@ -1,4 +1,4 @@
-export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern" | "reaction" | "trivia";
+export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern" | "reaction" | "trivia" | "direction";
 
 export interface StreakData {
   currentStreak: number;
@@ -83,7 +83,7 @@ export interface RatedPatternStats {
   ratingHistory: number[];
 }
 
-export const GAME_IDS: GameId[] = ["memory", "math", "logic", "balloon", "pattern", "reaction", "trivia"];
+export const GAME_IDS: GameId[] = ["memory", "math", "logic", "balloon", "pattern", "reaction", "trivia", "direction"];
 
 /** Per-puzzle attempt tally for one user, keyed by puzzle id. */
 export interface PuzzleResultStat {
@@ -140,4 +140,8 @@ export interface PlayerProfile {
   triviaQuestionsAnswered: number;
   /** Cumulative correct trivia answers across every Brain Blitz game. */
   triviaCorrectAnswers: number;
+  /** Cumulative Direction Challenge questions answered (correct + incorrect). */
+  directionQuestionsAnswered: number;
+  /** Cumulative correct Direction Challenge answers. */
+  directionCorrectAnswers: number;
 }
