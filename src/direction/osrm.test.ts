@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildRouteUrl, isHighwayStep, parseRouteResponse, parseRouteSteps, type OsrmStep } from "./osrm";
+import { buildRouteUrl, isHighwayStep, parseGeometry, parseRouteResponse, parseRouteSteps, type OsrmStep } from "./osrm";
 import type { Coords } from "./types";
 
 const ORIGIN: Coords = { lat: 40.0, lon: -75.0 };
@@ -11,6 +11,20 @@ describe("buildRouteUrl", () => {
     expect(url).toContain("-75,40");
     expect(url).toContain("-75.1,40.1");
     expect(url).toContain("steps=true");
+    expect(url).toContain("geometries=geojson");
+  });
+});
+
+describe("parseGeometry", () => {
+  it("converts [lon, lat] pairs to {lat, lon}", () => {
+    expect(parseGeometry([[-75, 40], [-75.1, 40.1]])).toEqual([
+      { lat: 40, lon: -75 },
+      { lat: 40.1, lon: -75.1 },
+    ]);
+  });
+
+  it("returns an empty array when coordinates are missing", () => {
+    expect(parseGeometry(undefined)).toEqual([]);
   });
 });
 
@@ -65,6 +79,7 @@ describe("parseRouteResponse", () => {
           {
             distance: 1500,
             legs: [{ steps: [{ distance: 1500, name: "Elm Street", maneuver: { type: "depart" } }] }],
+            geometry: { coordinates: [[-75, 40], [-75.01, 40.01]] },
           },
         ],
       },
@@ -75,5 +90,15 @@ describe("parseRouteResponse", () => {
     expect(result!.totalDistanceM).toBe(1500);
     expect(result!.destinationName).toBe("Town Hall");
     expect(result!.steps).toHaveLength(1);
+    expect(result!.polyline).toEqual([{ lat: 40, lon: -75 }, { lat: 40.01, lon: -75.01 }]);
+  });
+
+  it("defaults polyline to an empty array when geometry is absent", () => {
+    const result = parseRouteResponse(
+      { code: "Ok", routes: [{ distance: 100, legs: [{ steps: [] }] }] },
+      "f1",
+      "Town Hall",
+    );
+    expect(result!.polyline).toEqual([]);
   });
 });

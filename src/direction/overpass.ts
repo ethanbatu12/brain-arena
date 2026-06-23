@@ -5,7 +5,11 @@
  * only fetchNearbyFeatures itself touches the network.
  */
 import { OVERPASS_URLS, SEARCH_RADIUS_M } from "./constants";
-import type { Coords, FeatureKind, MapFeature } from "./types";
+import { minDistanceToPolyline } from "./geo";
+import type { Coords, FeatureKind, MapFeature, RouteInfo } from "./types";
+
+/** A traffic signal counts as "on" a route if it's within this many meters of the route's geometry. */
+const TRAFFIC_SIGNAL_BUFFER_M = 25;
 
 export interface OverpassElement {
   type: "node" | "way" | "relation";
@@ -70,13 +74,13 @@ export function parseOverpassElements(elements: OverpassElement[]): MapFeature[]
 }
 
 /**
- * Fetches and parses nearby map features for `origin`, trying each mirror in
- * OVERPASS_URLS in turn. Throws only if every mirror fails — callers should
- * catch this to distinguish "the request failed" from "it succeeded but
- * found nothing nearby", which need very different error messages.
+ * Runs an Overpass QL query against each mirror in OVERPASS_URLS in turn,
+ * returning the first successful response. Throws only if every mirror
+ * fails — callers should catch this to distinguish "the request failed"
+ * from "it succeeded but found nothing", which need very different
+ * handling.
  */
-export async function fetchNearbyFeatures(origin: Coords, radiusM: number = SEARCH_RADIUS_M): Promise<MapFeature[]> {
-  const query = buildOverpassQuery(origin, radiusM);
+export async function runOverpassQuery(query: string): Promise<OverpassResponse> {
   let lastError: unknown = null;
 
   for (const url of OVERPASS_URLS) {
@@ -90,12 +94,71 @@ export async function fetchNearbyFeatures(origin: Coords, radiusM: number = SEAR
         lastError = new Error(`Overpass request to ${url} failed with status ${res.status}`);
         continue;
       }
-      const data = (await res.json()) as OverpassResponse;
-      return parseOverpassElements(data.elements ?? []);
+      return (await res.json()) as OverpassResponse;
     } catch (err) {
       lastError = err;
     }
   }
 
   throw lastError ?? new Error("All Overpass mirrors failed");
+}
+
+/** Fetches and parses nearby map features for `origin`. See runOverpassQuery for failure semantics. */
+export async function fetchNearbyFeatures(origin: Coords, radiusM: number = SEARCH_RADIUS_M): Promise<MapFeature[]> {
+  const data = await runOverpassQuery(buildOverpassQuery(origin, radiusM));
+  return parseOverpassElements(data.elements ?? []);
+}
+
+/** Builds an Overpass QL query for traffic-signal nodes within a bounding box. */
+export function buildTrafficSignalsQuery(bbox: { south: number; west: number; north: number; east: number }): string {
+  return `[out:json][timeout:25];node["highway"="traffic_signals"](${bbox.south},${bbox.west},${bbox.north},${bbox.east});out;`;
+}
+
+/** Computes a padded bounding box around a list of coordinates. */
+export function boundingBox(points: Coords[], paddingDegrees = 0.0005): { south: number; west: number; north: number; east: number } | null {
+  if (points.length === 0) return null;
+  let south = points[0].lat;
+  let north = points[0].lat;
+  let west = points[0].lon;
+  let east = points[0].lon;
+  for (const p of points) {
+    if (p.lat < south) south = p.lat;
+    if (p.lat > north) north = p.lat;
+    if (p.lon < west) west = p.lon;
+    if (p.lon > east) east = p.lon;
+  }
+  return { south: south - paddingDegrees, west: west - paddingDegrees, north: north + paddingDegrees, east: east + paddingDegrees };
+}
+
+/** Parses traffic-signal node coordinates from an Overpass response. */
+export function parseTrafficSignalNodes(elements: OverpassElement[]): Coords[] {
+  const nodes: Coords[] = [];
+  for (const el of elements) {
+    if (el.lat !== undefined && el.lon !== undefined) nodes.push({ lat: el.lat, lon: el.lon });
+  }
+  return nodes;
+}
+
+/** Counts how many traffic signals lie within a small buffer of a real route's geometry. */
+export function countSignalsOnRoute(signals: Coords[], polyline: Coords[]): number {
+  if (polyline.length < 2) return 0;
+  return signals.filter((s) => minDistanceToPolyline(s, polyline) <= TRAFFIC_SIGNAL_BUFFER_M).length;
+}
+
+/**
+ * Fetches the number of traffic signals along a route's real geometry.
+ * Best-effort: returns 0 (not an error) if the route has no polyline or the
+ * Overpass query fails, since this only adds a question variant rather than
+ * being required for the game to function.
+ */
+export async function fetchTrafficSignalCount(route: RouteInfo): Promise<number> {
+  const bbox = boundingBox(route.polyline);
+  if (!bbox) return 0;
+  try {
+    const data = await runOverpassQuery(buildTrafficSignalsQuery(bbox));
+    const signals = parseTrafficSignalNodes(data.elements ?? []);
+    return countSignalsOnRoute(signals, route.polyline);
+  } catch {
+    return 0;
+  }
 }

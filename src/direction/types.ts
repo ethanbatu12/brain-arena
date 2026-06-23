@@ -38,6 +38,10 @@ export interface RouteInfo {
   destinationName: string;
   totalDistanceM: number;
   steps: RouteStep[];
+  /** Full route geometry (one coordinate per shape point), for distance-to-route calculations. */
+  polyline: Coords[];
+  /** Traffic signals found within a small buffer of the route. Undefined if not yet fetched. */
+  trafficSignalCount?: number;
 }
 
 export interface DirectionQuestion {

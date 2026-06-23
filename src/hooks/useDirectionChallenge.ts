@@ -4,8 +4,8 @@ import { MIN_FEATURES_REQUIRED, SEARCH_RADIUS_M } from "../direction/constants";
 import { geocodeAddress } from "../direction/geocode";
 import { fetchSampleRoutes } from "../direction/osrm";
 import { directionInitialState, directionReduce } from "../direction/reducer";
-import { fetchNearbyFeatures } from "../direction/overpass";
-import type { Coords, DirectionAction, DirectionState, MapFeature } from "../direction/types";
+import { fetchNearbyFeatures, fetchTrafficSignalCount } from "../direction/overpass";
+import type { Coords, DirectionAction, DirectionState, MapFeature, RouteInfo } from "../direction/types";
 import { usePlayerProfile } from "../player/PlayerContext";
 import { useGeolocation } from "./useGeolocation";
 
@@ -70,9 +70,16 @@ export function useDirectionChallenge() {
         return;
       }
 
-      // Sample routes are best-effort — if OSRM is unreachable, the game
-      // still plays fine with the non-routing question types.
-      const routes = await fetchSampleRoutes(origin, features, rngRef.current).catch(() => []);
+      // Sample routes and their traffic-signal counts are best-effort — if
+      // OSRM/Overpass are unreachable, the game still plays fine with the
+      // non-routing question types.
+      const baseRoutes = await fetchSampleRoutes(origin, features, rngRef.current).catch(() => []);
+      const routes: RouteInfo[] = await Promise.all(
+        baseRoutes.map(async (route) => ({
+          ...route,
+          trafficSignalCount: await fetchTrafficSignalCount(route),
+        })),
+      );
       dispatch({ type: "FEATURES_LOADED", features, routes });
     })();
   }, []);

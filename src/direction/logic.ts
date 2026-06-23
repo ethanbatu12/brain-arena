@@ -193,8 +193,19 @@ function bucketModifier(modifier: string | undefined): "left" | "right" | "strai
   return "straight";
 }
 
-type HighwayVariant = "turns-to-highway" | "first-road" | "distance" | "direction";
-const HIGHWAY_VARIANTS: HighwayVariant[] = ["turns-to-highway", "first-road", "distance", "direction"];
+function countTurns(route: RouteInfo): number {
+  return route.steps.filter((s) => s.maneuverType !== "depart" && s.maneuverType !== "arrive").length;
+}
+
+type HighwayVariant = "turns-to-highway" | "first-road" | "distance" | "direction" | "total-turns" | "traffic-lights";
+const HIGHWAY_VARIANTS: HighwayVariant[] = [
+  "turns-to-highway",
+  "first-road",
+  "distance",
+  "direction",
+  "total-turns",
+  "traffic-lights",
+];
 
 function buildHighwayNavigation(routes: RouteInfo[], rng: Rng, id: number): DirectionQuestion | null {
   const shuffledVariants = shuffle(HIGHWAY_VARIANTS, rng);
@@ -207,6 +218,24 @@ function buildHighwayNavigation(routes: RouteInfo[], rng: Rng, id: number): Dire
       const prompt = `On the route to ${route.destinationName}, how many turns until you reach the highway?`;
       const distractors = [highwayIndex + 1, Math.max(0, highwayIndex - 1), highwayIndex + 2].map(String);
       const { choices, correctIndex } = buildChoices(rng, String(highwayIndex), distractors);
+      return { id, kind: "highway-navigation", prompt, choices, correctIndex };
+    }
+
+    if (variant === "total-turns") {
+      const turns = countTurns(route);
+      if (turns <= 0) continue;
+      const prompt = `How many turns does it take to reach ${route.destinationName} from your location?`;
+      const distractors = [turns + 1, Math.max(0, turns - 1), turns + 2].map(String);
+      const { choices, correctIndex } = buildChoices(rng, String(turns), distractors);
+      return { id, kind: "highway-navigation", prompt, choices, correctIndex };
+    }
+
+    if (variant === "traffic-lights") {
+      if (route.trafficSignalCount === undefined) continue;
+      const count = route.trafficSignalCount;
+      const prompt = `About how many traffic lights are on the way to ${route.destinationName}?`;
+      const distractors = [count + 1, Math.max(0, count - 1), count + 2].map(String);
+      const { choices, correctIndex } = buildChoices(rng, String(count), distractors);
       return { id, kind: "highway-navigation", prompt, choices, correctIndex };
     }
 

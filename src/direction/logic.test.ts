@@ -20,6 +20,8 @@ const ROUTES: RouteInfo[] = [
     destinationFeatureId: "3",
     destinationName: "Central Park",
     totalDistanceM: 2400,
+    polyline: [],
+    trafficSignalCount: 3,
     steps: [
       { roadName: "Main Street", distanceM: 100, maneuverType: "depart", isHighway: false },
       { roadName: "Oak Avenue", distanceM: 400, maneuverType: "turn", modifier: "left", isHighway: false },
@@ -31,6 +33,8 @@ const ROUTES: RouteInfo[] = [
     destinationFeatureId: "5",
     destinationName: "Town Hall",
     totalDistanceM: 900,
+    polyline: [],
+    trafficSignalCount: 1,
     steps: [
       { roadName: "Main Street", distanceM: 100, maneuverType: "depart", isHighway: false },
       { roadName: "Corner Market Road", distanceM: 700, maneuverType: "turn", modifier: "right", isHighway: false },
@@ -130,6 +134,37 @@ describe("makeQuestion", () => {
       if (q?.kind === "highway-navigation") {
         const mentionsRoute = ROUTES.some((r) => q.prompt.includes(r.destinationName));
         expect(mentionsRoute).toBe(true);
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  it("generates total-turns questions whose correct answer matches the real route's turn count", () => {
+    const rng = mulberry32(21);
+    let checked = 0;
+    for (let i = 0; i < 500 && checked < 5; i++) {
+      const q = makeQuestion(ORIGIN, FEATURES, ROUTES, rng, i);
+      if (q?.kind === "highway-navigation" && q.prompt.includes("How many turns does it take")) {
+        const answer = Number(q.choices[q.correctIndex]);
+        const matchesARoute = ROUTES.some(
+          (r) => r.steps.filter((s) => s.maneuverType !== "depart" && s.maneuverType !== "arrive").length === answer,
+        );
+        expect(matchesARoute).toBe(true);
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  it("generates traffic-lights questions whose correct answer matches a route's signal count", () => {
+    const rng = mulberry32(33);
+    let checked = 0;
+    for (let i = 0; i < 500 && checked < 5; i++) {
+      const q = makeQuestion(ORIGIN, FEATURES, ROUTES, rng, i);
+      if (q?.kind === "highway-navigation" && q.prompt.includes("traffic lights")) {
+        const answer = Number(q.choices[q.correctIndex]);
+        expect(ROUTES.some((r) => r.trafficSignalCount === answer)).toBe(true);
         checked++;
       }
     }

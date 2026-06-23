@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { buildOverpassQuery, parseOverpassElements, type OverpassElement } from "./overpass";
+import {
+  boundingBox,
+  buildOverpassQuery,
+  buildTrafficSignalsQuery,
+  countSignalsOnRoute,
+  parseOverpassElements,
+  parseTrafficSignalNodes,
+  type OverpassElement,
+} from "./overpass";
 import type { Coords } from "./types";
 
 const ORIGIN: Coords = { lat: 40.0, lon: -75.0 };
@@ -73,5 +81,60 @@ describe("parseOverpassElements", () => {
       { type: "node", id: 2, lat: 40, lon: -75, tags: { shop: "bakery", name: "Same Place" } },
     ];
     expect(parseOverpassElements(elements)).toHaveLength(1);
+  });
+});
+
+describe("boundingBox", () => {
+  it("returns null for an empty point list", () => {
+    expect(boundingBox([])).toBeNull();
+  });
+
+  it("computes a padded box covering all points", () => {
+    const points: Coords[] = [{ lat: 40, lon: -75 }, { lat: 40.01, lon: -74.99 }];
+    const box = boundingBox(points, 0.001);
+    expect(box!.south).toBeLessThan(40);
+    expect(box!.north).toBeGreaterThan(40.01);
+    expect(box!.west).toBeLessThan(-75);
+    expect(box!.east).toBeGreaterThan(-74.99);
+  });
+});
+
+describe("buildTrafficSignalsQuery", () => {
+  it("includes the bounding box and the traffic_signals filter", () => {
+    const q = buildTrafficSignalsQuery({ south: 40, west: -75, north: 40.1, east: -74.9 });
+    expect(q).toContain('"traffic_signals"');
+    expect(q).toContain("(40,-75,40.1,-74.9)");
+  });
+});
+
+describe("parseTrafficSignalNodes", () => {
+  it("extracts coordinates from node elements", () => {
+    const elements: OverpassElement[] = [
+      { type: "node", id: 1, lat: 40, lon: -75, tags: { highway: "traffic_signals" } },
+      { type: "node", id: 2, lat: 40.01, lon: -75.01 },
+    ];
+    expect(parseTrafficSignalNodes(elements)).toEqual([
+      { lat: 40, lon: -75 },
+      { lat: 40.01, lon: -75.01 },
+    ]);
+  });
+
+  it("skips elements without coordinates", () => {
+    expect(parseTrafficSignalNodes([{ type: "node", id: 1 }])).toEqual([]);
+  });
+});
+
+describe("countSignalsOnRoute", () => {
+  const polyline: Coords[] = [{ lat: 40, lon: -75 }, { lat: 40, lon: -74.99 }];
+
+  it("returns 0 for a polyline with fewer than 2 points", () => {
+    expect(countSignalsOnRoute([{ lat: 40, lon: -75 }], [])).toBe(0);
+    expect(countSignalsOnRoute([{ lat: 40, lon: -75 }], [{ lat: 40, lon: -75 }])).toBe(0);
+  });
+
+  it("counts signals close to the route and excludes far ones", () => {
+    const onRoute: Coords = { lat: 40, lon: -74.995 };
+    const farAway: Coords = { lat: 41, lon: -70 };
+    expect(countSignalsOnRoute([onRoute, farAway], polyline)).toBe(1);
   });
 });

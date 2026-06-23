@@ -25,6 +25,7 @@ export interface OsrmStep {
 export interface OsrmRoute {
   distance: number;
   legs: { steps: OsrmStep[] }[];
+  geometry?: { coordinates: [number, number][] };
 }
 
 export interface OsrmRouteResponse {
@@ -33,7 +34,13 @@ export interface OsrmRouteResponse {
 }
 
 export function buildRouteUrl(origin: Coords, destination: Coords): string {
-  return `${OSRM_URL}/route/v1/driving/${origin.lon},${origin.lat};${destination.lon},${destination.lat}?steps=true&overview=false`;
+  return `${OSRM_URL}/route/v1/driving/${origin.lon},${origin.lat};${destination.lon},${destination.lat}?steps=true&overview=full&geometries=geojson`;
+}
+
+/** GeoJSON coordinates are [lon, lat] — convert to our {lat, lon} convention. */
+export function parseGeometry(coordinates: [number, number][] | undefined): Coords[] {
+  if (!coordinates) return [];
+  return coordinates.map(([lon, lat]) => ({ lat, lon }));
 }
 
 const HIGHWAY_REF_PATTERN = /^[A-Z]{1,3}-?\d/i;
@@ -71,6 +78,7 @@ export function parseRouteResponse(
     destinationName,
     totalDistanceM: route.distance,
     steps: parseRouteSteps(route.legs[0]?.steps ?? []),
+    polyline: parseGeometry(route.geometry?.coordinates),
   };
 }
 

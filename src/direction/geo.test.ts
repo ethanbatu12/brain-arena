@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { bearingDegrees, compassDirection, directionFrom, distanceMeters, offsetCoords, sortByDistance } from "./geo";
+import {
+  bearingDegrees,
+  compassDirection,
+  directionFrom,
+  distanceMeters,
+  distancePointToSegment,
+  minDistanceToPolyline,
+  offsetCoords,
+  sortByDistance,
+  toLocalXY,
+} from "./geo";
 import type { Coords } from "./types";
 
 const ORIGIN: Coords = { lat: 40.0, lon: -75.0 };
@@ -100,6 +110,64 @@ describe("offsetCoords", () => {
   it("produces a point roughly the requested distance away", () => {
     const moved = offsetCoords(ORIGIN, 1000, 0);
     expect(distanceMeters(ORIGIN, moved)).toBeCloseTo(1000, -1);
+  });
+});
+
+describe("toLocalXY", () => {
+  it("returns (0,0) for the reference point itself", () => {
+    expect(toLocalXY(ORIGIN, ORIGIN)).toEqual({ x: 0, y: 0 });
+  });
+
+  it("matches distanceMeters for a north-only offset", () => {
+    const point = offsetCoords(ORIGIN, 500, 0);
+    const { x, y } = toLocalXY(ORIGIN, point);
+    expect(y).toBeCloseTo(500, -1);
+    expect(x).toBeCloseTo(0, 0);
+  });
+});
+
+describe("distancePointToSegment", () => {
+  it("is zero when the point is on the segment", () => {
+    expect(distancePointToSegment({ x: 5, y: 0 }, { x: 0, y: 0 }, { x: 10, y: 0 })).toBeCloseTo(0, 6);
+  });
+
+  it("returns perpendicular distance when the closest point is mid-segment", () => {
+    expect(distancePointToSegment({ x: 5, y: 3 }, { x: 0, y: 0 }, { x: 10, y: 0 })).toBeCloseTo(3, 6);
+  });
+
+  it("clamps to the nearest endpoint beyond the segment", () => {
+    expect(distancePointToSegment({ x: -5, y: 0 }, { x: 0, y: 0 }, { x: 10, y: 0 })).toBeCloseTo(5, 6);
+    expect(distancePointToSegment({ x: 15, y: 0 }, { x: 0, y: 0 }, { x: 10, y: 0 })).toBeCloseTo(5, 6);
+  });
+
+  it("handles a degenerate (zero-length) segment as a point distance", () => {
+    expect(distancePointToSegment({ x: 3, y: 4 }, { x: 0, y: 0 }, { x: 0, y: 0 })).toBeCloseTo(5, 6);
+  });
+});
+
+describe("minDistanceToPolyline", () => {
+  it("is Infinity for an empty polyline", () => {
+    expect(minDistanceToPolyline(ORIGIN, [])).toBe(Infinity);
+  });
+
+  it("falls back to point distance for a single-point polyline", () => {
+    const other = offsetCoords(ORIGIN, 200, 0);
+    expect(minDistanceToPolyline(other, [ORIGIN])).toBeCloseTo(distanceMeters(other, ORIGIN), -1);
+  });
+
+  it("is near zero for a point on the polyline", () => {
+    const mid = offsetCoords(ORIGIN, 0, 500);
+    const end = offsetCoords(ORIGIN, 0, 1000);
+    expect(minDistanceToPolyline(mid, [ORIGIN, end])).toBeLessThan(1);
+  });
+
+  it("finds the nearest segment among several", () => {
+    const a = ORIGIN;
+    const b = offsetCoords(ORIGIN, 0, 1000);
+    const c = offsetCoords(b, 1000, 0);
+    const farFromFirstSegmentNearSecond = offsetCoords(b, 500, 50);
+    const d = minDistanceToPolyline(farFromFirstSegmentNearSecond, [a, b, c]);
+    expect(d).toBeCloseTo(50, -1);
   });
 });
 

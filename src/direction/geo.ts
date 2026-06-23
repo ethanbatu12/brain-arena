@@ -69,3 +69,50 @@ export function offsetCoords(origin: Coords, northMeters: number, eastMeters: nu
   const dLon = eastMeters / (METERS_PER_DEGREE_LAT * Math.cos(toRad(origin.lat)));
   return { lat: origin.lat + dLat, lon: origin.lon + dLon };
 }
+
+export interface LocalPoint {
+  x: number;
+  y: number;
+}
+
+/**
+ * Projects a coordinate to flat (x, y) meters relative to a reference point.
+ * Accurate to well under 1% error at the few-kilometer scale used for route
+ * geometry, which is all this is used for.
+ */
+export function toLocalXY(reference: Coords, point: Coords): LocalPoint {
+  const y = (point.lat - reference.lat) * METERS_PER_DEGREE_LAT;
+  const x = (point.lon - reference.lon) * METERS_PER_DEGREE_LAT * Math.cos(toRad(reference.lat));
+  return { x, y };
+}
+
+/** Shortest distance, in meters, from point `p` to the line segment a-b. */
+export function distancePointToSegment(p: LocalPoint, a: LocalPoint, b: LocalPoint): number {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const lengthSq = dx * dx + dy * dy;
+  if (lengthSq === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+  const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / lengthSq));
+  const projX = a.x + t * dx;
+  const projY = a.y + t * dy;
+  return Math.hypot(p.x - projX, p.y - projY);
+}
+
+/**
+ * Shortest distance, in meters, from `point` to the nearest segment of a
+ * polyline (a sequence of real-world coordinates, e.g. a route's geometry).
+ */
+export function minDistanceToPolyline(point: Coords, polyline: Coords[]): number {
+  if (polyline.length === 0) return Infinity;
+  if (polyline.length === 1) return distanceMeters(point, polyline[0]);
+
+  const reference = polyline[0];
+  const p = toLocalXY(reference, point);
+  let min = Infinity;
+  for (let i = 0; i < polyline.length - 1; i++) {
+    const a = toLocalXY(reference, polyline[i]);
+    const b = toLocalXY(reference, polyline[i + 1]);
+    min = Math.min(min, distancePointToSegment(p, a, b));
+  }
+  return min;
+}
