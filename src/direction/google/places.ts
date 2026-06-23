@@ -10,10 +10,14 @@
 import { loadGoogleMaps } from "./loader";
 import type { Coords, FeatureKind, MapFeature } from "../types";
 
+// "point_of_interest" was a valid type in the legacy Places API but is not
+// a supported type for the new searchNearby endpoint — using specific
+// landmark-ish types instead.
 const SEARCH_TYPES: { type: string; kind: FeatureKind }[] = [
   { type: "school", kind: "school" },
   { type: "park", kind: "park" },
-  { type: "point_of_interest", kind: "landmark" },
+  { type: "tourist_attraction", kind: "landmark" },
+  { type: "museum", kind: "landmark" },
   { type: "store", kind: "business" },
 ];
 
