@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { mulberry32 } from "../game/rng";
+import { geocodeAddress } from "../direction/geocode";
 import { directionInitialState, directionReduce } from "../direction/reducer";
 import { fetchNearbyFeatures } from "../direction/overpass";
-import type { DirectionAction, DirectionState } from "../direction/types";
+import type { Coords, DirectionAction, DirectionState } from "../direction/types";
 import { usePlayerProfile } from "../player/PlayerContext";
 import { useGeolocation } from "./useGeolocation";
 
@@ -35,21 +36,48 @@ export function useDirectionChallenge() {
     if (state.phase !== "over") recordedRef.current = false;
   }, [state.phase, state.score, state.correctCount, state.totalAnswered, recordDirectionResult]);
 
+  const proceedFromOrigin = useCallback((origin: Coords) => {
+    dispatch({ type: "LOCATED", origin });
+    fetchNearbyFeatures(origin)
+      .then((features) => {
+        dispatch({ type: "FEATURES_LOADED", features });
+      })
+      .catch(() => {
+        dispatch({ type: "LOAD_FAILED", message: "Could not load nearby map data. Try again." });
+      });
+  }, []);
+
   const start = useCallback(() => {
     rngRef.current = mulberry32((Math.random() * 2 ** 31) >>> 0);
     dispatch({ type: "START" });
     getCurrentPosition()
-      .then((origin) => {
-        dispatch({ type: "LOCATED", origin });
-        return fetchNearbyFeatures(origin);
-      })
-      .then((features) => {
-        dispatch({ type: "FEATURES_LOADED", features });
-      })
+      .then(proceedFromOrigin)
       .catch((err: Error) => {
-        dispatch({ type: "LOAD_FAILED", message: err.message || "Could not get your location." });
+        dispatch({
+          type: "LOAD_FAILED",
+          message: err.message || "Could not get your location. Try entering your address instead.",
+        });
       });
-  }, [getCurrentPosition]);
+  }, [getCurrentPosition, proceedFromOrigin]);
+
+  const startWithAddress = useCallback(
+    (address: string) => {
+      rngRef.current = mulberry32((Math.random() * 2 ** 31) >>> 0);
+      dispatch({ type: "START" });
+      geocodeAddress(address)
+        .then((origin) => {
+          if (!origin) {
+            dispatch({ type: "LOAD_FAILED", message: "Could not find that address. Try being more specific." });
+            return;
+          }
+          proceedFromOrigin(origin);
+        })
+        .catch(() => {
+          dispatch({ type: "LOAD_FAILED", message: "Could not find that address. Try being more specific." });
+        });
+    },
+    [proceedFromOrigin],
+  );
 
   const reset = useCallback(() => dispatch({ type: "RESET" }), []);
   const answer = useCallback(
@@ -70,5 +98,5 @@ export function useDirectionChallenge() {
     return () => clearInterval(id);
   }, [isActive]);
 
-  return { state, best, start, reset, answer };
+  return { state, best, start, startWithAddress, reset, answer };
 }

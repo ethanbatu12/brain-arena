@@ -26,3 +26,6 @@ export const QUESTION_KINDS = [
 
 /** Overpass API endpoint — free, no API key required. */
 export const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
+
+/** Nominatim geocoding endpoint — free, no API key required (OpenStreetMap). */
+export const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";

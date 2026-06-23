@@ -1111,6 +1111,27 @@ button {
   transform: scale(0.97);
 }
 
+.direction__address {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  width: 100%;
+}
+.direction__address-hint {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.direction__address-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.direction__address-row .signin__input {
+  flex: 1;
+  min-width: 180px;
+}
+
 .trivia__observation-grid {
   display: flex;
   flex-direction: column;

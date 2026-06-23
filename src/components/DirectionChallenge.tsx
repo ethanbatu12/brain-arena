@@ -12,12 +12,18 @@ interface DirectionChallengeProps {
 }
 
 export function DirectionChallenge({ onExit, mode = "solo", onRoundComplete }: DirectionChallengeProps) {
-  const { state, best, start, reset, answer } = useDirectionChallenge();
+  const { state, best, start, startWithAddress, reset, answer } = useDirectionChallenge();
   const { phase } = state;
+  const [address, setAddress] = useState("");
 
   useEffect(() => {
     if (mode === "challenge" && phase === "idle") start();
   }, [mode, phase, start]);
+
+  const submitAddress = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (address.trim()) startWithAddress(address);
+  };
 
   return (
     <div className="app__shell">
@@ -55,6 +61,7 @@ export function DirectionChallenge({ onExit, mode = "solo", onRoundComplete }: D
               Start · 3 minutes
             </button>
             {best > 0 && <p className="overlay__best">Best score {best.toLocaleString()}</p>}
+            <AddressFallback address={address} setAddress={setAddress} onSubmit={submitAddress} />
           </Overlay>
         )}
 
@@ -78,12 +85,13 @@ export function DirectionChallenge({ onExit, mode = "solo", onRoundComplete }: D
             <p className="overlay__lead">{state.errorMessage}</p>
             <div className="overlay__actions">
               <button className="btn btn--primary" onClick={start}>
-                Try again
+                Try GPS again
               </button>
               <button className="btn btn--ghost" onClick={onExit}>
                 Menu
               </button>
             </div>
+            <AddressFallback address={address} setAddress={setAddress} onSubmit={submitAddress} />
           </Overlay>
         )}
 
@@ -160,7 +168,16 @@ function DirectionPlayingView({
       15,
     );
     leafletMapRef.current = map;
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+    // Esri World Imagery — free satellite photography, no API key required.
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, attribution: "" },
+    ).addTo(map);
+    // Esri's free labels-only overlay — satellite photos alone have no road/place names.
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, attribution: "" },
+    ).addTo(map);
 
     L.circleMarker([origin.lat, origin.lon], { radius: 9, color: "#ffffff", weight: 2, fillColor: "var(--accent)", fillOpacity: 1 })
       .addTo(map)
@@ -203,6 +220,35 @@ function DirectionPlayingView({
         </div>
       </div>
     </div>
+  );
+}
+
+function AddressFallback({
+  address,
+  setAddress,
+  onSubmit,
+}: {
+  address: string;
+  setAddress: (v: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+}) {
+  return (
+    <form className="direction__address" onSubmit={onSubmit}>
+      <p className="direction__address-hint">Can't get your location? Enter an address instead:</p>
+      <div className="direction__address-row">
+        <input
+          className="signin__input"
+          type="text"
+          aria-label="Address"
+          placeholder="123 Main St, City, State"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        />
+        <button type="submit" className="btn btn--ghost">
+          Use this address
+        </button>
+      </div>
+    </form>
   );
 }
 
