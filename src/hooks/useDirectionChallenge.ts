@@ -52,11 +52,14 @@ export function useDirectionChallenge() {
       for (const radius of RETRY_RADII_M) {
         try {
           features = await fetchNearbyFeaturesGoogle(origin, radius);
-          requestFailed = false;
           if (features.length >= MIN_FEATURES_REQUIRED) break;
         } catch (err) {
           requestFailed = true;
           failureMessage = err instanceof Error ? err.message : String(err);
+          // A hard failure (bad key, auth rejected, SDK wouldn't load) won't
+          // be fixed by retrying at a bigger radius — surface it immediately
+          // instead of repeating the same failure up to 3 times.
+          break;
         }
       }
 
