@@ -3,6 +3,12 @@
 // don't reliably send CORS headers for direct client-side requests, but a
 // server calling another server has no CORS restriction at all. Still free,
 // still no API key, just routed through our own domain first.
+//
+// Vercel's free Hobby plan hard-caps function execution at 10 seconds, and
+// the public Overpass mirrors occasionally take close to that long under
+// load. Racing all mirrors in parallel (instead of trying them one at a
+// time) means one slow mirror can't eat the whole budget before the others
+// get a chance.
 
 const MIRRORS = [
   "https://overpass-api.de/api/interpreter",
@@ -10,13 +16,20 @@ const MIRRORS = [
   "https://overpass.openstreetmap.ru/api/interpreter",
 ];
 
-const TIMEOUT_MS = 8_000;
+const TIMEOUT_MS = 9_000;
 
-async function fetchWithTimeout(url, options) {
+async function fetchOne(url, query) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    return await fetch(url, { ...options, signal: controller.signal });
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: query,
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`${url} responded ${res.status}`);
+    return await res.json();
   } finally {
     clearTimeout(timer);
   }
@@ -34,25 +47,11 @@ export default async function handler(req, res) {
     return;
   }
 
-  let lastError = "unknown error";
-  for (const url of MIRRORS) {
-    try {
-      const upstream = await fetchWithTimeout(url, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" },
-        body: query,
-      });
-      if (!upstream.ok) {
-        lastError = `${url} responded ${upstream.status}`;
-        continue;
-      }
-      const data = await upstream.json();
-      res.status(200).json(data);
-      return;
-    } catch (err) {
-      lastError = `${url}: ${err instanceof Error ? err.message : String(err)}`;
-    }
+  try {
+    const data = await Promise.any(MIRRORS.map((url) => fetchOne(url, query)));
+    res.status(200).json(data);
+  } catch (err) {
+    const detail = err && err.errors ? err.errors.map((e) => String(e)).join("; ") : String(err);
+    res.status(502).json({ error: "All Overpass mirrors failed", detail });
   }
-
-  res.status(502).json({ error: "All Overpass mirrors failed", detail: lastError });
 }
