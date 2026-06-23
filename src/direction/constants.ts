@@ -29,3 +29,9 @@ export const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
 
 /** Nominatim geocoding endpoint — free, no API key required (OpenStreetMap). */
 export const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+
+/** OSRM public demo routing server — free, no API key required. */
+export const OSRM_URL = "https://router.project-osrm.org";
+
+/** How many sample routes to fetch per game (for highway-navigation questions). */
+export const MAX_SAMPLE_ROUTES = 3;

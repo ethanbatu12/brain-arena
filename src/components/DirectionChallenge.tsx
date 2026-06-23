@@ -75,7 +75,7 @@ export function DirectionChallenge({ onExit, mode = "solo", onRoundComplete }: D
         {phase === "loading" && (
           <Overlay>
             <h2>Mapping your surroundings…</h2>
-            <p className="overlay__lead">Fetching nearby roads and landmarks from OpenStreetMap.</p>
+            <p className="overlay__lead">Fetching nearby roads and landmarks, plus a few real driving routes.</p>
           </Overlay>
         )}
 

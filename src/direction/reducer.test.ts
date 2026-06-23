@@ -25,7 +25,7 @@ function located(): DirectionState {
 }
 
 function loaded(): DirectionState {
-  return directionReduce(located(), { type: "FEATURES_LOADED", features: FEATURES }, rng());
+  return directionReduce(located(), { type: "FEATURES_LOADED", features: FEATURES, routes: [] }, rng());
 }
 
 describe("directionInitialState", () => {
@@ -50,7 +50,7 @@ describe("START / LOCATED / FEATURES_LOADED flow", () => {
   });
 
   it("goes to error phase if too few features are found", () => {
-    const s = directionReduce(located(), { type: "FEATURES_LOADED", features: FEATURES.slice(0, 2) }, rng());
+    const s = directionReduce(located(), { type: "FEATURES_LOADED", features: FEATURES.slice(0, 2), routes: [] }, rng());
     expect(s.phase).toBe("error");
     expect(s.errorMessage).not.toBeNull();
   });

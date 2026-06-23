@@ -20,7 +20,25 @@ export type DirectionQuestionKind =
   | "relative-position"
   | "distance-ranking"
   | "map-memory"
-  | "advanced-navigation";
+  | "advanced-navigation"
+  | "highway-navigation";
+
+/** A single turn-by-turn step of a route, from OSRM. */
+export interface RouteStep {
+  roadName: string;
+  distanceM: number;
+  maneuverType: string;
+  modifier?: string;
+  isHighway: boolean;
+}
+
+/** A real driving route from the player's location to one nearby feature. */
+export interface RouteInfo {
+  destinationFeatureId: string;
+  destinationName: string;
+  totalDistanceM: number;
+  steps: RouteStep[];
+}
 
 export interface DirectionQuestion {
   id: number;
@@ -44,6 +62,7 @@ export interface DirectionState {
   phase: DirectionPhase;
   origin: Coords | null;
   features: MapFeature[];
+  routes: RouteInfo[];
   question: DirectionQuestion | null;
   score: number;
   timeLeftMs: number;
@@ -59,7 +78,7 @@ export interface DirectionState {
 export type DirectionAction =
   | { type: "START" }
   | { type: "LOCATED"; origin: Coords }
-  | { type: "FEATURES_LOADED"; features: MapFeature[] }
+  | { type: "FEATURES_LOADED"; features: MapFeature[]; routes: RouteInfo[] }
   | { type: "LOAD_FAILED"; message: string }
   | { type: "ANSWER"; questionId: number; choiceIndex: number }
   | { type: "TICK"; deltaMs: number }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { mulberry32 } from "../game/rng";
 import { geocodeAddress } from "../direction/geocode";
+import { fetchSampleRoutes } from "../direction/osrm";
 import { directionInitialState, directionReduce } from "../direction/reducer";
 import { fetchNearbyFeatures } from "../direction/overpass";
 import type { Coords, DirectionAction, DirectionState } from "../direction/types";
@@ -39,8 +40,11 @@ export function useDirectionChallenge() {
   const proceedFromOrigin = useCallback((origin: Coords) => {
     dispatch({ type: "LOCATED", origin });
     fetchNearbyFeatures(origin)
-      .then((features) => {
-        dispatch({ type: "FEATURES_LOADED", features });
+      .then(async (features) => {
+        // Sample routes are best-effort — if OSRM is unreachable, the game
+        // still plays fine with the non-routing question types.
+        const routes = features.length > 0 ? await fetchSampleRoutes(origin, features, rngRef.current) : [];
+        dispatch({ type: "FEATURES_LOADED", features, routes });
       })
       .catch(() => {
         dispatch({ type: "LOAD_FAILED", message: "Could not load nearby map data. Try again." });

@@ -8,7 +8,7 @@ import type { Rng } from "../game/rng";
 import { BONUS_EVERY_CORRECT, BONUS_POINTS, MIN_FEATURES_REQUIRED, POINTS_PER_CORRECT, QUESTION_KINDS } from "./constants";
 import { bearingDegrees, directionFrom, offsetCoords, sortByDistance } from "./geo";
 import { buildChoices, pick, shuffle } from "./utils";
-import type { CompassDirection, Coords, DirectionQuestion, DirectionQuestionKind, MapFeature } from "./types";
+import type { CompassDirection, Coords, DirectionQuestion, DirectionQuestionKind, MapFeature, RouteInfo, RouteStep } from "./types";
 
 const DIRECTION_WORDS: Record<CompassDirection, string> = {
   N: "north",
@@ -179,8 +179,71 @@ function buildAdvancedNavigation(origin: Coords, features: MapFeature[], rng: Rn
   return { id, kind: "advanced-navigation", prompt, choices, correctIndex };
 }
 
+// ── highway-navigation (real turn-by-turn routes via OSRM) ─────────────────
+
+function firstTurnStep(route: RouteInfo): RouteStep | undefined {
+  return route.steps.find((s) => s.maneuverType !== "depart" && s.maneuverType !== "arrive");
+}
+
+function bucketModifier(modifier: string | undefined): "left" | "right" | "straight" | "u-turn" {
+  if (!modifier) return "straight";
+  if (modifier.includes("uturn")) return "u-turn";
+  if (modifier.includes("left")) return "left";
+  if (modifier.includes("right")) return "right";
+  return "straight";
+}
+
+type HighwayVariant = "turns-to-highway" | "first-road" | "distance" | "direction";
+const HIGHWAY_VARIANTS: HighwayVariant[] = ["turns-to-highway", "first-road", "distance", "direction"];
+
+function buildHighwayNavigation(routes: RouteInfo[], rng: Rng, id: number): DirectionQuestion | null {
+  const shuffledVariants = shuffle(HIGHWAY_VARIANTS, rng);
+  for (const variant of shuffledVariants) {
+    const route = pick(routes, rng);
+
+    if (variant === "turns-to-highway") {
+      const highwayIndex = route.steps.findIndex((s) => s.isHighway);
+      if (highwayIndex <= 0) continue;
+      const prompt = `On the route to ${route.destinationName}, how many turns until you reach the highway?`;
+      const distractors = [highwayIndex + 1, Math.max(0, highwayIndex - 1), highwayIndex + 2].map(String);
+      const { choices, correctIndex } = buildChoices(rng, String(highwayIndex), distractors);
+      return { id, kind: "highway-navigation", prompt, choices, correctIndex };
+    }
+
+    if (variant === "first-road") {
+      const step = firstTurnStep(route);
+      if (!step) continue;
+      const otherRoads = routes
+        .filter((r) => r !== route)
+        .map((r) => firstTurnStep(r)?.roadName)
+        .filter((name): name is string => Boolean(name) && name !== step.roadName);
+      const prompt = `Which road do you turn onto first when driving to ${route.destinationName}?`;
+      const { choices, correctIndex } = buildChoices(rng, step.roadName, otherRoads);
+      return { id, kind: "highway-navigation", prompt, choices, correctIndex };
+    }
+
+    if (variant === "distance") {
+      const km = Math.round(route.totalDistanceM / 100) / 10;
+      const distractors = [km + 0.5, Math.max(0.1, km - 0.5), km + 1].map((v) => `${Math.round(v * 10) / 10} km`);
+      const prompt = `About how far is the drive to ${route.destinationName}?`;
+      const { choices, correctIndex } = buildChoices(rng, `${km} km`, distractors);
+      return { id, kind: "highway-navigation", prompt, choices, correctIndex };
+    }
+
+    // direction
+    const step = firstTurnStep(route);
+    if (!step) continue;
+    const correct = bucketModifier(step.modifier);
+    const allDirections: Array<"left" | "right" | "straight" | "u-turn"> = ["left", "right", "straight", "u-turn"];
+    const prompt = `Which way do you turn first when driving to ${route.destinationName}?`;
+    const { choices, correctIndex } = buildChoices(rng, correct, allDirections.filter((d) => d !== correct));
+    return { id, kind: "highway-navigation", prompt, choices, correctIndex };
+  }
+  return null;
+}
+
 const GENERATORS: Record<
-  DirectionQuestionKind,
+  Exclude<DirectionQuestionKind, "highway-navigation">,
   (origin: Coords, features: MapFeature[], rng: Rng, id: number) => DirectionQuestion
 > = {
   "basic-direction": buildBasicDirection,
@@ -193,13 +256,30 @@ const GENERATORS: Record<
 };
 
 /**
- * Generates one question from real map features around `origin`. Returns
- * null if there aren't enough features to build a well-formed question.
+ * Generates one question from real map features (and, when available, real
+ * driving routes) around `origin`. Returns null if there aren't enough
+ * features to build a well-formed question at all.
  */
-export function makeQuestion(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion | null {
+export function makeQuestion(
+  origin: Coords,
+  features: MapFeature[],
+  routes: RouteInfo[],
+  rng: Rng,
+  id: number,
+): DirectionQuestion | null {
   if (features.length < MIN_FEATURES_REQUIRED) return null;
-  const kind = pick(QUESTION_KINDS, rng);
-  return GENERATORS[kind](origin, features, rng, id);
+  const pool: DirectionQuestionKind[] = routes.length > 0 ? [...QUESTION_KINDS, "highway-navigation"] : [...QUESTION_KINDS];
+
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const kind = pick(pool, rng);
+    if (kind === "highway-navigation") {
+      const q = buildHighwayNavigation(routes, rng, id);
+      if (q) return q;
+      continue;
+    }
+    return GENERATORS[kind](origin, features, rng, id);
+  }
+  return buildBasicDirection(origin, features, rng, id);
 }
 
 export { DIRECTION_WORDS };

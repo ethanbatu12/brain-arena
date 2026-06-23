@@ -8,6 +8,7 @@ export function directionInitialState(): DirectionState {
     phase: "idle",
     origin: null,
     features: [],
+    routes: [],
     question: null,
     score: 0,
     timeLeftMs: DIRECTION_GAME_MS,
@@ -50,11 +51,12 @@ export function directionReduce(state: DirectionState, action: DirectionAction, 
           errorMessage: "Not enough nearby map data was found to generate questions. Try again outdoors or in a denser area.",
         };
       }
-      const question = makeQuestion(state.origin, action.features, rng, state.nextId);
+      const question = makeQuestion(state.origin, action.features, action.routes, rng, state.nextId);
       return {
         ...state,
         phase: "playing",
         features: action.features,
+        routes: action.routes,
         question,
         nextId: state.nextId + 1,
       };
@@ -69,7 +71,7 @@ export function directionReduce(state: DirectionState, action: DirectionAction, 
       const wrongCount = correct ? state.wrongCount : state.wrongCount + 1;
       const totalAnswered = state.totalAnswered + 1;
       const score = correct ? state.score + scoreForCorrect(correctCount) : state.score;
-      const question = makeQuestion(state.origin, state.features, rng, state.nextId);
+      const question = makeQuestion(state.origin, state.features, state.routes, rng, state.nextId);
 
       return {
         ...state,
