@@ -75,14 +75,29 @@ export function parseOverpassElements(elements: OverpassElement[]): MapFeature[]
 }
 
 /**
- * Runs an Overpass QL query against each mirror in OVERPASS_URLS in turn,
- * returning the first successful response. Throws only if every mirror
- * fails — callers should catch this to distinguish "the request failed"
- * from "it succeeded but found nothing", which need very different
- * handling.
+ * Runs an Overpass QL query. Tries our own /api/overpass serverless proxy
+ * first — server-to-server calls have no CORS restriction, which is the
+ * most likely reason direct browser requests to Overpass mirrors fail. If
+ * the proxy itself is unavailable (e.g. local `npm run dev` without
+ * `vercel dev`), falls back to calling each public mirror directly from
+ * the browser. Throws only if every option fails — callers should catch
+ * this to distinguish "the request failed" from "it succeeded but found
+ * nothing", which need very different handling.
  */
 export async function runOverpassQuery(query: string): Promise<OverpassResponse> {
   let lastError: unknown = null;
+
+  try {
+    const res = await fetchWithTimeout("/api/overpass", {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: query,
+    });
+    if (res.ok) return (await res.json()) as OverpassResponse;
+    lastError = new Error(`Overpass proxy responded with status ${res.status}`);
+  } catch (err) {
+    lastError = err;
+  }
 
   for (const url of OVERPASS_URLS) {
     try {
