@@ -46,16 +46,26 @@ export function useDirectionChallenge() {
     dispatch({ type: "LOCATED", origin });
     (async () => {
       let features: MapFeature[] = [];
+      let requestFailed = false;
+      let failureMessage = "";
 
       for (const radius of RETRY_RADII_M) {
-        features = await fetchNearbyFeaturesGoogle(origin, radius);
-        if (features.length >= MIN_FEATURES_REQUIRED) break;
+        try {
+          features = await fetchNearbyFeaturesGoogle(origin, radius);
+          requestFailed = false;
+          if (features.length >= MIN_FEATURES_REQUIRED) break;
+        } catch (err) {
+          requestFailed = true;
+          failureMessage = err instanceof Error ? err.message : String(err);
+        }
       }
 
       if (features.length < MIN_FEATURES_REQUIRED) {
         dispatch({
           type: "LOAD_FAILED",
-          message: `No named roads or landmarks were found within ${RETRY_RADII_M[RETRY_RADII_M.length - 1] / 1000}km of this location, even after expanding the search. Try a different address.`,
+          message: requestFailed
+            ? failureMessage || "Could not load Google Maps data."
+            : `No named roads or landmarks were found within ${RETRY_RADII_M[RETRY_RADII_M.length - 1] / 1000}km of this location, even after expanding the search. Try a different address.`,
         });
         return;
       }

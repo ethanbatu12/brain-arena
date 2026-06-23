@@ -63,19 +63,20 @@ function searchOneType(
   });
 }
 
-/** Fetches and merges nearby features across several Places categories. Never throws — returns [] on failure. */
+/**
+ * Fetches and merges nearby features across several Places categories.
+ * Lets SDK-loading/auth failures (a real problem worth surfacing) propagate;
+ * only an individual category search coming back empty is treated as "no
+ * results" rather than an error.
+ */
 export async function fetchNearbyFeaturesGoogle(origin: Coords, radiusM: number): Promise<MapFeature[]> {
-  try {
-    const service = await getPlacesService();
-    const batches = await Promise.all(
-      SEARCH_TYPES.map(async ({ type, kind }) => parseRawPlaceResults(await searchOneType(service, origin, radiusM, type), kind)),
-    );
-    const seen = new Map<string, MapFeature>();
-    for (const batch of batches) {
-      for (const f of batch) if (!seen.has(f.id)) seen.set(f.id, f);
-    }
-    return Array.from(seen.values());
-  } catch {
-    return [];
+  const service = await getPlacesService();
+  const batches = await Promise.all(
+    SEARCH_TYPES.map(async ({ type, kind }) => parseRawPlaceResults(await searchOneType(service, origin, radiusM, type), kind)),
+  );
+  const seen = new Map<string, MapFeature>();
+  for (const batch of batches) {
+    for (const f of batch) if (!seen.has(f.id)) seen.set(f.id, f);
   }
+  return Array.from(seen.values());
 }
