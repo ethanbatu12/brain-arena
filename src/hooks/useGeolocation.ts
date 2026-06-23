@@ -16,7 +16,15 @@ export function useGeolocation() {
       navigator.geolocation.getCurrentPosition(
         (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
         (err) => reject(new Error(err.message || "Location access was denied.")),
-        { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 },
+        {
+          // City-block accuracy is plenty for a 1.5-6km search radius, and
+          // skipping the GPS hardware fix (which can take 10+ seconds,
+          // especially indoors) in favor of network-based location is much
+          // faster. A 5-minute-old cached position is also fine to reuse.
+          enableHighAccuracy: false,
+          timeout: 8_000,
+          maximumAge: 5 * 60_000,
+        },
       );
     });
   }, []);
