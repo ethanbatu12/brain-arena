@@ -5,7 +5,7 @@ import { geocodeAddress } from "../direction/geocode";
 import { fetchSampleRoutes } from "../direction/osrm";
 import { directionInitialState, directionReduce } from "../direction/reducer";
 import { fetchNearbyFeatures, fetchTrafficSignalCount } from "../direction/overpass";
-import type { Coords, DirectionAction, DirectionState, MapFeature, RouteInfo } from "../direction/types";
+import type { Coords, DirectionAction, DirectionState, MapFeature } from "../direction/types";
 import { usePlayerProfile } from "../player/PlayerContext";
 import { useGeolocation } from "./useGeolocation";
 
@@ -70,17 +70,26 @@ export function useDirectionChallenge() {
         return;
       }
 
-      // Sample routes and their traffic-signal counts are best-effort — if
-      // OSRM/Overpass are unreachable, the game still plays fine with the
-      // non-routing question types.
-      const baseRoutes = await fetchSampleRoutes(origin, features, rngRef.current).catch(() => []);
-      const routes: RouteInfo[] = await Promise.all(
-        baseRoutes.map(async (route) => ({
-          ...route,
-          trafficSignalCount: await fetchTrafficSignalCount(route),
-        })),
-      );
+      // Sample routes are best-effort — if OSRM is unreachable, the game
+      // still plays fine with the non-routing question types. Start the
+      // game as soon as these are ready; don't make the player wait on
+      // traffic-signal data too.
+      const routes = await fetchSampleRoutes(origin, features, rngRef.current).catch(() => []);
       dispatch({ type: "FEATURES_LOADED", features, routes });
+
+      // Traffic-signal counts enrich the routes in the background — each
+      // is its own Overpass query, so this can take a while and must never
+      // block play from starting.
+      if (routes.length > 0) {
+        Promise.all(
+          routes.map(async (route) => ({ ...route, trafficSignalCount: await fetchTrafficSignalCount(route) })),
+        )
+          .then((enriched) => dispatch({ type: "ROUTES_ENRICHED", routes: enriched }))
+          .catch(() => {
+            // Best-effort — if this fails, traffic-light questions simply
+            // won't appear this round.
+          });
+      }
     })();
   }, []);
 

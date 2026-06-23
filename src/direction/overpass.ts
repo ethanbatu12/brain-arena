@@ -5,6 +5,7 @@
  * only fetchNearbyFeatures itself touches the network.
  */
 import { OVERPASS_URLS, SEARCH_RADIUS_M } from "./constants";
+import { fetchWithTimeout } from "./fetchWithTimeout";
 import { minDistanceToPolyline } from "./geo";
 import type { Coords, FeatureKind, MapFeature, RouteInfo } from "./types";
 
@@ -85,7 +86,7 @@ export async function runOverpassQuery(query: string): Promise<OverpassResponse>
 
   for (const url of OVERPASS_URLS) {
     try {
-      const res = await fetch(url, {
+      const res = await fetchWithTimeout(url, {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
         body: query,

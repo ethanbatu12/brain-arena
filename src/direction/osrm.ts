@@ -7,6 +7,7 @@
  */
 import type { Rng } from "../game/rng";
 import { MAX_SAMPLE_ROUTES, OSRM_URL } from "./constants";
+import { fetchWithTimeout } from "./fetchWithTimeout";
 import { shuffle } from "./utils";
 import type { Coords, MapFeature, RouteInfo, RouteStep } from "./types";
 
@@ -85,7 +86,7 @@ export function parseRouteResponse(
 /** Fetches a real driving route to one feature. Returns null on any failure. */
 export async function fetchRoute(origin: Coords, destination: MapFeature): Promise<RouteInfo | null> {
   try {
-    const res = await fetch(buildRouteUrl(origin, destination));
+    const res = await fetchWithTimeout(buildRouteUrl(origin, destination));
     if (!res.ok) return null;
     const data = (await res.json()) as OsrmRouteResponse;
     return parseRouteResponse(data, destination.id, destination.name);

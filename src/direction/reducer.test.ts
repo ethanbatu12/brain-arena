@@ -131,3 +131,21 @@ describe("RESET", () => {
     expect(directionReduce(loaded(), { type: "RESET" }, rng())).toEqual(directionInitialState());
   });
 });
+
+describe("ROUTES_ENRICHED", () => {
+  it("updates routes in place while playing, without touching the active question", () => {
+    const s = loaded();
+    const enrichedRoutes = [
+      { destinationFeatureId: "3", destinationName: "Central Park", totalDistanceM: 500, polyline: [], steps: [], trafficSignalCount: 2 },
+    ];
+    const next = directionReduce(s, { type: "ROUTES_ENRICHED", routes: enrichedRoutes }, rng());
+    expect(next.routes).toEqual(enrichedRoutes);
+    expect(next.question).toEqual(s.question);
+    expect(next.phase).toBe("playing");
+  });
+
+  it("is ignored before the game has started", () => {
+    const idle = directionInitialState();
+    expect(directionReduce(idle, { type: "ROUTES_ENRICHED", routes: [] }, rng())).toEqual(idle);
+  });
+});

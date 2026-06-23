@@ -83,6 +83,7 @@ export type DirectionAction =
   | { type: "START" }
   | { type: "LOCATED"; origin: Coords }
   | { type: "FEATURES_LOADED"; features: MapFeature[]; routes: RouteInfo[] }
+  | { type: "ROUTES_ENRICHED"; routes: RouteInfo[] }
   | { type: "LOAD_FAILED"; message: string }
   | { type: "ANSWER"; questionId: number; choiceIndex: number }
   | { type: "TICK"; deltaMs: number }

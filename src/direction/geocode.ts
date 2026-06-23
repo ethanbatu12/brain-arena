@@ -5,6 +5,7 @@
  * geocodeAddress itself touches the network.
  */
 import { NOMINATIM_URL } from "./constants";
+import { fetchWithTimeout } from "./fetchWithTimeout";
 import type { Coords } from "./types";
 
 export interface NominatimResult {
@@ -32,7 +33,7 @@ export async function geocodeAddress(address: string): Promise<Coords | null> {
   const trimmed = address.trim();
   if (!trimmed) return null;
   try {
-    const res = await fetch(buildGeocodeUrl(trimmed), {
+    const res = await fetchWithTimeout(buildGeocodeUrl(trimmed), {
       headers: { Accept: "application/json" },
     });
     if (!res.ok) return null;
