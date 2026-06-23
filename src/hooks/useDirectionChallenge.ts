@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { mulberry32 } from "../game/rng";
+import { MIN_FEATURES_REQUIRED, SEARCH_RADIUS_M } from "../direction/constants";
 import { geocodeAddress } from "../direction/geocode";
 import { fetchSampleRoutes } from "../direction/osrm";
 import { directionInitialState, directionReduce } from "../direction/reducer";
 import { fetchNearbyFeatures } from "../direction/overpass";
-import type { Coords, DirectionAction, DirectionState } from "../direction/types";
+import type { Coords, DirectionAction, DirectionState, MapFeature } from "../direction/types";
 import { usePlayerProfile } from "../player/PlayerContext";
 import { useGeolocation } from "./useGeolocation";
 
 const TICK_MS = 100;
+
+// Escalating search radii (meters) — widen the search before giving up,
+// since 1.5km can genuinely be too sparse in suburban/rural areas.
+const RETRY_RADII_M = [SEARCH_RADIUS_M, SEARCH_RADIUS_M * 2, SEARCH_RADIUS_M * 4];
 
 /**
  * React binding for the pure Direction Challenge reducer. Owns geolocation,
@@ -39,16 +44,37 @@ export function useDirectionChallenge() {
 
   const proceedFromOrigin = useCallback((origin: Coords) => {
     dispatch({ type: "LOCATED", origin });
-    fetchNearbyFeatures(origin)
-      .then(async (features) => {
-        // Sample routes are best-effort — if OSRM is unreachable, the game
-        // still plays fine with the non-routing question types.
-        const routes = features.length > 0 ? await fetchSampleRoutes(origin, features, rngRef.current) : [];
-        dispatch({ type: "FEATURES_LOADED", features, routes });
-      })
-      .catch(() => {
-        dispatch({ type: "LOAD_FAILED", message: "Could not load nearby map data. Try again." });
-      });
+    (async () => {
+      let features: MapFeature[] = [];
+      let requestFailed = false;
+
+      for (const radius of RETRY_RADII_M) {
+        try {
+          features = await fetchNearbyFeatures(origin, radius);
+          requestFailed = false;
+          if (features.length >= MIN_FEATURES_REQUIRED) break;
+        } catch {
+          requestFailed = true;
+          // Network/server failure — retrying at a bigger radius won't help,
+          // but a later radius might succeed if the failure was transient.
+        }
+      }
+
+      if (features.length < MIN_FEATURES_REQUIRED) {
+        dispatch({
+          type: "LOAD_FAILED",
+          message: requestFailed
+            ? "Could not reach the map data service (OpenStreetMap/Overpass). Check your internet connection and try again."
+            : `No named roads or landmarks were found within ${RETRY_RADII_M[RETRY_RADII_M.length - 1] / 1000}km of this location, even after expanding the search. Try a different address.`,
+        });
+        return;
+      }
+
+      // Sample routes are best-effort — if OSRM is unreachable, the game
+      // still plays fine with the non-routing question types.
+      const routes = await fetchSampleRoutes(origin, features, rngRef.current).catch(() => []);
+      dispatch({ type: "FEATURES_LOADED", features, routes });
+    })();
   }, []);
 
   const start = useCallback(() => {

@@ -69,19 +69,22 @@ export function parseOverpassElements(elements: OverpassElement[]): MapFeature[]
   return features;
 }
 
-/** Fetches and parses nearby map features for `origin`. Returns [] on any failure. */
+/**
+ * Fetches and parses nearby map features for `origin`. Throws on network or
+ * server failure — callers should catch this to distinguish "the request
+ * failed" from "the request succeeded but found nothing nearby", which need
+ * very different error messages and retry strategies.
+ */
 export async function fetchNearbyFeatures(origin: Coords, radiusM: number = SEARCH_RADIUS_M): Promise<MapFeature[]> {
-  try {
-    const query = buildOverpassQuery(origin, radiusM);
-    const res = await fetch(OVERPASS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: query,
-    });
-    if (!res.ok) return [];
-    const data = (await res.json()) as OverpassResponse;
-    return parseOverpassElements(data.elements ?? []);
-  } catch {
-    return [];
+  const query = buildOverpassQuery(origin, radiusM);
+  const res = await fetch(OVERPASS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: query,
+  });
+  if (!res.ok) {
+    throw new Error(`Overpass request failed with status ${res.status}`);
   }
+  const data = (await res.json()) as OverpassResponse;
+  return parseOverpassElements(data.elements ?? []);
 }
