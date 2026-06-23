@@ -12,8 +12,8 @@
     "postinstall": "node -e \"const fs=require('fs');const b='node_modules/stockfish/bin';const p='public';fs.mkdirSync(p,{recursive:true});fs.copyFileSync(b+'/stockfish-18-lite-single.js',p+'/stockfish-worker.js');fs.copyFileSync(b+'/stockfish-18-lite-single.wasm',p+'/stockfish.wasm');\""
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^2.1.1",
     "idb": "^8.0.3",
-    "leaflet": "^1.9.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "stockfish": "^18.0.8"
@@ -22,7 +22,7 @@
     "@testing-library/jest-dom": "^6.4.8",
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
-    "@types/leaflet": "^1.9.21",
+    "@types/google.maps": "^3.65.2",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

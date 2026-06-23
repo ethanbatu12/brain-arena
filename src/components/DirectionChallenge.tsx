@@ -1,7 +1,6 @@
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import { MAP_MEMORY_REVEAL_MS, DIRECTION_GAME_MS, BONUS_EVERY_CORRECT, BONUS_POINTS, POINTS_PER_CORRECT } from "../direction/constants";
+import { loadGoogleMaps } from "../direction/google/loader";
 import type { DirectionState } from "../direction/types";
 import { useDirectionChallenge } from "../hooks/useDirectionChallenge";
 
@@ -146,7 +145,7 @@ function DirectionPlayingView({
   const question = state.question!;
   const origin = state.origin!;
   const mapRef = useRef<HTMLDivElement>(null);
-  const leafletMapRef = useRef<L.Map | null>(null);
+  const googleMapRef = useRef<google.maps.Map | null>(null);
   const [mapVisible, setMapVisible] = useState(!question.showMapFirst);
 
   // Reset the reveal-then-hide timer whenever a new map-memory question appears.
@@ -162,36 +161,46 @@ function DirectionPlayingView({
 
   useEffect(() => {
     if (!mapVisible || !mapRef.current) return;
+    let cancelled = false;
+    const markers: google.maps.Marker[] = [];
 
-    const map = L.map(mapRef.current, { zoomControl: false, attributionControl: false }).setView(
-      [origin.lat, origin.lon],
-      15,
-    );
-    leafletMapRef.current = map;
-    // Esri World Imagery — free satellite photography, no API key required.
-    L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      { maxZoom: 19, attribution: "" },
-    ).addTo(map);
-    // Esri's free labels-only overlay — satellite photos alone have no road/place names.
-    L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-      { maxZoom: 19, attribution: "" },
-    ).addTo(map);
+    loadGoogleMaps().then((g) => {
+      if (cancelled || !mapRef.current) return;
 
-    L.circleMarker([origin.lat, origin.lon], { radius: 9, color: "#ffffff", weight: 2, fillColor: "var(--accent)", fillOpacity: 1 })
-      .addTo(map)
-      .bindPopup("You");
+      const map = new g.maps.Map(mapRef.current, {
+        center: { lat: origin.lat, lng: origin.lon },
+        zoom: 15,
+        mapTypeId: g.maps.MapTypeId.SATELLITE,
+        disableDefaultUI: true,
+        clickableIcons: false,
+      });
+      googleMapRef.current = map;
 
-    for (const f of state.features) {
-      L.circleMarker([f.lat, f.lon], { radius: 6, color: "#0b0d12", weight: 1, fillColor: "var(--direction)", fillOpacity: 0.9 })
-        .addTo(map)
-        .bindPopup(f.name);
-    }
+      markers.push(
+        new g.maps.Marker({
+          position: { lat: origin.lat, lng: origin.lon },
+          map,
+          title: "You",
+          icon: { path: g.maps.SymbolPath.CIRCLE, scale: 8, fillColor: "#ffffff", fillOpacity: 1, strokeColor: "#000000", strokeWeight: 2 },
+        }),
+      );
+
+      for (const f of state.features) {
+        markers.push(
+          new g.maps.Marker({
+            position: { lat: f.lat, lng: f.lon },
+            map,
+            title: f.name,
+            icon: { path: g.maps.SymbolPath.CIRCLE, scale: 6, fillColor: "#facc15", fillOpacity: 0.9, strokeColor: "#0b0d12", strokeWeight: 1 },
+          }),
+        );
+      }
+    });
 
     return () => {
-      map.remove();
-      leafletMapRef.current = null;
+      cancelled = true;
+      for (const m of markers) m.setMap(null);
+      googleMapRef.current = null;
     };
   }, [mapVisible, origin, state.features]);
 

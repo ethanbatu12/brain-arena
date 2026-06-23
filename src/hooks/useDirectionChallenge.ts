@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { mulberry32 } from "../game/rng";
-import { MIN_FEATURES_REQUIRED, SEARCH_RADIUS_M } from "../direction/constants";
-import { geocodeAddress } from "../direction/geocode";
-import { fetchSampleRoutes } from "../direction/osrm";
+import { MAX_SAMPLE_ROUTES, MIN_FEATURES_REQUIRED, SEARCH_RADIUS_M } from "../direction/constants";
+import { fetchSampleRoutesGoogle } from "../direction/google/directions";
+import { geocodeAddressGoogle } from "../direction/google/geocode";
+import { fetchNearbyFeaturesGoogle } from "../direction/google/places";
 import { directionInitialState, directionReduce } from "../direction/reducer";
-import { fetchNearbyFeatures, fetchTrafficSignalCount } from "../direction/overpass";
 import type { Coords, DirectionAction, DirectionState, MapFeature } from "../direction/types";
 import { usePlayerProfile } from "../player/PlayerContext";
 import { useGeolocation } from "./useGeolocation";
@@ -17,9 +17,9 @@ const RETRY_RADII_M = [SEARCH_RADIUS_M, SEARCH_RADIUS_M * 2, SEARCH_RADIUS_M * 4
 
 /**
  * React binding for the pure Direction Challenge reducer. Owns geolocation,
- * the Overpass fetch, and the 3-minute countdown; all game rules live in the
- * tested reducer. Best score and result recording come from the shared
- * player profile.
+ * the Google Places/Directions lookups, and the 3-minute countdown; all
+ * game rules live in the tested reducer. Best score and result recording
+ * come from the shared player profile.
  */
 export function useDirectionChallenge() {
   const rngRef = useRef(mulberry32((Math.random() * 2 ** 31) >>> 0));
@@ -46,50 +46,24 @@ export function useDirectionChallenge() {
     dispatch({ type: "LOCATED", origin });
     (async () => {
       let features: MapFeature[] = [];
-      let requestFailed = false;
 
       for (const radius of RETRY_RADII_M) {
-        try {
-          features = await fetchNearbyFeatures(origin, radius);
-          requestFailed = false;
-          if (features.length >= MIN_FEATURES_REQUIRED) break;
-        } catch {
-          requestFailed = true;
-          // Network/server failure — retrying at a bigger radius won't help,
-          // but a later radius might succeed if the failure was transient.
-        }
+        features = await fetchNearbyFeaturesGoogle(origin, radius);
+        if (features.length >= MIN_FEATURES_REQUIRED) break;
       }
 
       if (features.length < MIN_FEATURES_REQUIRED) {
         dispatch({
           type: "LOAD_FAILED",
-          message: requestFailed
-            ? "Could not reach the map data service (OpenStreetMap/Overpass). Check your internet connection and try again."
-            : `No named roads or landmarks were found within ${RETRY_RADII_M[RETRY_RADII_M.length - 1] / 1000}km of this location, even after expanding the search. Try a different address.`,
+          message: `No named roads or landmarks were found within ${RETRY_RADII_M[RETRY_RADII_M.length - 1] / 1000}km of this location, even after expanding the search. Try a different address.`,
         });
         return;
       }
 
-      // Sample routes are best-effort — if OSRM is unreachable, the game
-      // still plays fine with the non-routing question types. Start the
-      // game as soon as these are ready; don't make the player wait on
-      // traffic-signal data too.
-      const routes = await fetchSampleRoutes(origin, features, rngRef.current).catch(() => []);
+      // Sample routes are best-effort — if Directions is unreachable, the
+      // game still plays fine with the non-routing question types.
+      const routes = await fetchSampleRoutesGoogle(origin, features, rngRef.current, MAX_SAMPLE_ROUTES).catch(() => []);
       dispatch({ type: "FEATURES_LOADED", features, routes });
-
-      // Traffic-signal counts enrich the routes in the background — each
-      // is its own Overpass query, so this can take a while and must never
-      // block play from starting.
-      if (routes.length > 0) {
-        Promise.all(
-          routes.map(async (route) => ({ ...route, trafficSignalCount: await fetchTrafficSignalCount(route) })),
-        )
-          .then((enriched) => dispatch({ type: "ROUTES_ENRICHED", routes: enriched }))
-          .catch(() => {
-            // Best-effort — if this fails, traffic-light questions simply
-            // won't appear this round.
-          });
-      }
     })();
   }, []);
 
@@ -110,7 +84,7 @@ export function useDirectionChallenge() {
     (address: string) => {
       rngRef.current = mulberry32((Math.random() * 2 ** 31) >>> 0);
       dispatch({ type: "START" });
-      geocodeAddress(address)
+      geocodeAddressGoogle(address)
         .then((origin) => {
           if (!origin) {
             dispatch({ type: "LOAD_FAILED", message: "Could not find that address. Try being more specific." });
