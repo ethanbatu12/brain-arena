@@ -248,14 +248,25 @@ function Torso({
   shadow: string;
 }) {
   const isSleeveless = style === "tank";
+  const isOversized = style === "oversizedHoodie";
   return (
     <>
-      <path d="M42 230 C42 168 66 148 100 148 C134 148 158 168 158 230 L158 232 L42 232 Z" fill={color} />
+      <path
+        d={
+          isOversized
+            ? "M34 232 C34 172 62 150 100 150 C138 150 166 172 166 232 L166 234 L34 234 Z"
+            : "M42 230 C42 168 66 148 100 148 C134 148 158 168 158 230 L158 232 L42 232 Z"
+        }
+        fill={color}
+      />
       {!isSleeveless && (
         <>
-          <rect x="34" y="155" width="20" height="40" rx="10" fill={color} />
-          <rect x="146" y="155" width="20" height="40" rx="10" fill={color} />
+          <rect x={isOversized ? 26 : 34} y={isOversized ? 162 : 155} width="20" height={isOversized ? 34 : 40} rx="10" fill={color} />
+          <rect x={isOversized ? 154 : 146} y={isOversized ? 162 : 155} width="20" height={isOversized ? 34 : 40} rx="10" fill={color} />
         </>
+      )}
+      {isOversized && (
+        <path d="M64 159 C78 150 122 150 136 159 L132 172 C114 164 86 164 68 172 Z" fill={shadow} opacity="0.5" />
       )}
       {style === "hoodie" && (
         <>

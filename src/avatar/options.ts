@@ -128,6 +128,7 @@ export const MOUTH_STYLES: AvatarOption<MouthStyle>[] = [
 export const CLOTHING_STYLES: AvatarOption<ClothingStyle>[] = [
   { value: "tshirt", label: "T-Shirt", unlockLevel: 1 },
   { value: "hoodie", label: "Hoodie", unlockLevel: 1 },
+  { value: "oversizedHoodie", label: "Oversized Hoodie", unlockLevel: 1 },
   { value: "jacket", label: "Jacket", unlockLevel: 1 },
   { value: "polo", label: "Polo", unlockLevel: 1 },
   { value: "tank", label: "Tank Top", unlockLevel: 1 },

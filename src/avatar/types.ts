@@ -18,7 +18,7 @@ export type MouthStyle = "smile" | "bigSmile" | "neutral" | "smirk" | "openSmile
 
 export type ClothingStyle =
   | "tshirt" | "hoodie" | "jacket" | "jersey"
-  | "tracksuit" | "varsity" | "polo" | "tank" | "graphicTee";
+  | "tracksuit" | "varsity" | "polo" | "tank" | "graphicTee" | "oversizedHoodie";
 export type ClothingColor = "red" | "blue" | "green" | "yellow" | "purple" | "black" | "white" | "orange";
 
 export type PantsStyle = "jeans" | "shorts" | "joggers" | "trackPants" | "cargo";
