@@ -1,4 +1,12 @@
-import { clothingColorValue, darken, eyeColorValue, hairColorValue, skinToneColor } from "../avatar/colors";
+import {
+  clothingColorValue,
+  darken,
+  eyeColorValue,
+  hairColorValue,
+  pantsColorValue,
+  shoeColorValue,
+  skinToneColor,
+} from "../avatar/colors";
 import type { AvatarConfig } from "../avatar/types";
 
 interface AvatarSvgProps {
@@ -24,10 +32,10 @@ const BG_GRADIENTS: Record<string, [string, string]> = {
 };
 
 /**
- * Renders a player's avatar as a layered, parametric SVG — every visual
- * trait is drawn as simple flat-cartoon shapes derived from AvatarConfig,
- * never as a stored image. Fast (pure SVG, no network) and fully
- * deterministic for a given config.
+ * Renders a player's avatar as a full-body, standing, layered, parametric
+ * SVG — every visual trait is drawn as flat-cartoon shapes derived from
+ * AvatarConfig, never as a stored image. Fast (pure SVG, no network) and
+ * fully deterministic for a given config.
  */
 export function AvatarSvg({ config, size = 96, className }: AvatarSvgProps) {
   const gradId = `avatar-bg-${config.background}`;
@@ -38,14 +46,18 @@ export function AvatarSvg({ config, size = 96, className }: AvatarSvgProps) {
   const eye = eyeColorValue(config.eyeColor);
   const clothing = clothingColorValue(config.clothingColor);
   const clothingShadow = darken(clothing, 0.15);
+  const pants = pantsColorValue(config.pantsColor);
+  const pantsShadow = darken(pants, 0.18);
+  const shoe = shoeColorValue(config.shoeColor);
+  const shoeShadow = darken(shoe, 0.2);
 
   const hairLengthScale = config.hairLength === "short" ? 0.7 : config.hairLength === "long" ? 1.3 : 1;
 
   return (
     <svg
-      viewBox="0 0 200 220"
+      viewBox="0 0 200 340"
       width={size}
-      height={size}
+      height={(size * 340) / 200}
       className={className}
       role="img"
       aria-label="Player avatar"
@@ -64,36 +76,39 @@ export function AvatarSvg({ config, size = 96, className }: AvatarSvgProps) {
         x="0"
         y="0"
         width="200"
-        height="220"
+        height="340"
         rx="24"
         fill={BG_GRADIENTS[config.background] ? `url(#${gradId})` : BG_FILLS[config.background] ?? "#bfe3f7"}
       />
 
-      {/* hair behind head (long/ponytail) */}
-      {(config.hairStyle === "long" || config.hairStyle === "ponytail") && (
+      {/* hair behind head (long/ponytail/bun/dreadlocks) */}
+      {(config.hairStyle === "long" || config.hairStyle === "ponytail" || config.hairStyle === "dreadlocks") && (
         <ellipse cx="100" cy={95 + 15 * hairLengthScale} rx={62} ry={70 * hairLengthScale} fill={hair} />
       )}
       {config.hairStyle === "ponytail" && (
         <ellipse cx="158" cy={110 + 20 * hairLengthScale} rx={14} ry={32 * hairLengthScale} fill={hair} />
       )}
+      {config.hairStyle === "bun" && <circle cx="100" cy="28" r="16" fill={hair} />}
+      {config.hairStyle === "dreadlocks" && (
+        <g fill={hair}>
+          {[-50, -30, -10, 10, 30, 50].map((dx) => (
+            <rect key={dx} x={100 + dx - 5} y="40" width="10" height={70 * hairLengthScale} rx="5" />
+          ))}
+        </g>
+      )}
 
-      {/* body / clothing */}
-      <path
-        d="M40 220 C40 165 65 145 100 145 C135 145 160 165 160 220 Z"
-        fill={clothing}
-      />
-      {config.clothingStyle === "hoodie" && (
-        <path d="M62 158 C75 148 125 148 138 158 L132 175 C115 165 85 165 68 175 Z" fill={clothingShadow} />
-      )}
-      {config.clothingStyle === "jacket" && (
-        <rect x="96" y="150" width="8" height="60" fill={clothingShadow} />
-      )}
-      {config.clothingStyle === "jersey" && (
-        <>
-          <rect x="70" y="150" width="14" height="14" fill="#ffffff" opacity="0.85" />
-          <rect x="116" y="150" width="14" height="14" fill="#ffffff" opacity="0.85" />
-        </>
-      )}
+      {/* legs / pants (drawn behind torso so the waistband tucks under the shirt) */}
+      <PantsLegs style={config.pantsStyle} color={pants} shadow={pantsShadow} skin={skinShadow} />
+
+      {/* shoes */}
+      <Shoes style={config.shoeStyle} color={shoe} shadow={shoeShadow} />
+
+      {/* arms at sides */}
+      <rect x="34" y="160" width="20" height="80" rx="10" fill={skin} />
+      <rect x="146" y="160" width="20" height="80" rx="10" fill={skin} />
+
+      {/* torso / clothing */}
+      <Torso style={config.clothingStyle} color={clothing} shadow={clothingShadow} />
 
       {/* neck */}
       <rect x="85" y="130" width="30" height="25" fill={skinShadow} />
@@ -102,6 +117,12 @@ export function AvatarSvg({ config, size = 96, className }: AvatarSvgProps) {
       {config.faceShape === "round" && <circle cx="100" cy="95" r="56" fill={skin} />}
       {config.faceShape === "oval" && <ellipse cx="100" cy="95" rx="48" ry="62" fill={skin} />}
       {config.faceShape === "square" && <rect x="48" y="38" width="104" height="112" rx="28" fill={skin} />}
+      {config.faceShape === "heart" && (
+        <path d="M100 36 C140 36 156 66 156 92 C156 128 124 156 100 158 C76 156 44 128 44 92 C44 66 60 36 100 36 Z" fill={skin} />
+      )}
+      {config.faceShape === "diamond" && (
+        <path d="M100 34 C128 50 148 80 148 100 C148 130 124 156 100 158 C76 156 52 130 52 100 C52 80 72 50 100 34 Z" fill={skin} />
+      )}
 
       {/* blush */}
       {config.blush && (
@@ -138,6 +159,151 @@ export function AvatarSvg({ config, size = 96, className }: AvatarSvgProps) {
       {/* accessories */}
       {renderAccessory(config.accessory)}
     </svg>
+  );
+}
+
+function PantsLegs({
+  style,
+  color,
+  shadow,
+  skin,
+}: {
+  style: AvatarConfig["pantsStyle"];
+  color: string;
+  shadow: string;
+  skin: string;
+}) {
+  const legBottom = style === "shorts" ? 250 : 305;
+  return (
+    <>
+      <rect x="58" y="210" width="34" height={legBottom - 210} rx="10" fill={color} />
+      <rect x="108" y="210" width="34" height={legBottom - 210} rx="10" fill={color} />
+      {style === "jeans" && (
+        <>
+          <rect x="72" y="220" width="6" height={legBottom - 230} fill={shadow} opacity="0.5" />
+          <rect x="122" y="220" width="6" height={legBottom - 230} fill={shadow} opacity="0.5" />
+        </>
+      )}
+      {style === "cargo" && (
+        <>
+          <rect x="60" y="250" width="14" height="16" rx="3" fill={shadow} opacity="0.7" />
+          <rect x="126" y="250" width="14" height="16" rx="3" fill={shadow} opacity="0.7" />
+        </>
+      )}
+      {style === "trackPants" && (
+        <>
+          <rect x="58" y="210" width="8" height={legBottom - 210} fill="#ffffff" opacity="0.85" />
+          <rect x="118" y="210" width="8" height={legBottom - 210} fill="#ffffff" opacity="0.85" />
+        </>
+      )}
+      {style === "shorts" && (
+        <>
+          <rect x="58" y="245" width="34" height="14" rx="6" fill={shadow} opacity="0.4" />
+          <rect x="108" y="245" width="34" height="14" rx="6" fill={shadow} opacity="0.4" />
+          <rect x="62" y="259" width="26" height="46" rx="8" fill={skin} />
+          <rect x="112" y="259" width="26" height="46" rx="8" fill={skin} />
+        </>
+      )}
+    </>
+  );
+}
+
+function Shoes({
+  style,
+  color,
+  shadow,
+}: {
+  style: AvatarConfig["shoeStyle"];
+  color: string;
+  shadow: string;
+}) {
+  if (style === "sandals") {
+    return (
+      <>
+        <rect x="56" y="300" width="38" height="12" rx="5" fill={color} />
+        <rect x="106" y="300" width="38" height="12" rx="5" fill={color} />
+        <rect x="68" y="290" width="4" height="20" fill={shadow} />
+        <rect x="118" y="290" width="4" height="20" fill={shadow} />
+      </>
+    );
+  }
+  const height = style === "boots" ? 28 : style === "highTops" ? 22 : 16;
+  return (
+    <>
+      <rect x="56" y={312 - height} width="38" height={height} rx="8" fill={color} />
+      <rect x="106" y={312 - height} width="38" height={height} rx="8" fill={color} />
+      <rect x="56" y="304" width="38" height="8" rx="4" fill={shadow} />
+      <rect x="106" y="304" width="38" height="8" rx="4" fill={shadow} />
+    </>
+  );
+}
+
+function Torso({
+  style,
+  color,
+  shadow,
+}: {
+  style: AvatarConfig["clothingStyle"];
+  color: string;
+  shadow: string;
+}) {
+  const isSleeveless = style === "tank";
+  return (
+    <>
+      <path d="M42 230 C42 168 66 148 100 148 C134 148 158 168 158 230 L158 232 L42 232 Z" fill={color} />
+      {!isSleeveless && (
+        <>
+          <rect x="34" y="155" width="20" height="40" rx="10" fill={color} />
+          <rect x="146" y="155" width="20" height="40" rx="10" fill={color} />
+        </>
+      )}
+      {style === "hoodie" && (
+        <>
+          <path d="M62 161 C75 151 125 151 138 161 L132 178 C115 168 85 168 68 178 Z" fill={shadow} />
+          <circle cx="92" cy="195" r="2.5" fill={shadow} />
+          <circle cx="108" cy="195" r="2.5" fill={shadow} />
+        </>
+      )}
+      {style === "jacket" && (
+        <>
+          <rect x="96" y="153" width="8" height="78" fill={shadow} />
+          <rect x="50" y="170" width="14" height="10" rx="3" fill={shadow} opacity="0.6" />
+          <rect x="136" y="170" width="14" height="10" rx="3" fill={shadow} opacity="0.6" />
+        </>
+      )}
+      {style === "varsity" && (
+        <>
+          <path d="M62 161 C75 151 125 151 138 161 L134 172 C115 163 85 163 66 172 Z" fill={shadow} />
+          <rect x="42" y="200" width="116" height="10" fill={shadow} opacity="0.5" />
+          <text x="100" y="200" textAnchor="middle" fontSize="22" fontWeight="700" fill="#ffffff">V</text>
+        </>
+      )}
+      {style === "jersey" && (
+        <>
+          <rect x="70" y="153" width="14" height="14" fill="#ffffff" opacity="0.85" />
+          <rect x="116" y="153" width="14" height="14" fill="#ffffff" opacity="0.85" />
+          <text x="100" y="210" textAnchor="middle" fontSize="20" fontWeight="700" fill="#ffffff" opacity="0.9">7</text>
+        </>
+      )}
+      {style === "polo" && (
+        <>
+          <path d="M92 153 L100 168 L108 153 L104 150 L96 150 Z" fill="#ffffff" />
+          <rect x="138" y="158" width="10" height="3" fill={shadow} opacity="0.6" />
+        </>
+      )}
+      {style === "graphicTee" && (
+        <g transform="translate(100 195)" fill="#ffffff" opacity="0.9">
+          <circle r="14" fill="none" stroke="#ffffff" strokeWidth="3" />
+          <path d="M-6 0 L0 8 L8 -6" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+      )}
+      {style === "tracksuit" && (
+        <>
+          <path d="M44 200 L70 192 L73 200 L46 209 Z" fill="#ffffff" opacity="0.85" />
+          <path d="M156 200 L130 192 L127 200 L154 209 Z" fill="#ffffff" opacity="0.85" />
+        </>
+      )}
+    </>
   );
 }
 
@@ -185,6 +351,28 @@ function renderEyes(shape: AvatarConfig["eyeShape"], eyeColor: string) {
       </>
     );
   }
+  if (shape === "narrow") {
+    return (
+      <>
+        <ellipse cx="80" cy="96" rx="9" ry="3.5" fill="#ffffff" />
+        <ellipse cx="120" cy="96" rx="9" ry="3.5" fill="#ffffff" />
+        <circle cx="80" cy="96" r="3" fill={eyeColor} />
+        <circle cx="120" cy="96" r="3" fill={eyeColor} />
+      </>
+    );
+  }
+  if (shape === "wide") {
+    return (
+      <>
+        <circle cx="80" cy="96" r="11" fill="#ffffff" />
+        <circle cx="120" cy="96" r="11" fill="#ffffff" />
+        <circle cx="80" cy="96" r="5.5" fill={eyeColor} />
+        <circle cx="120" cy="96" r="5.5" fill={eyeColor} />
+        <circle cx="80" cy="96" r="2" fill="#1a1a1a" />
+        <circle cx="120" cy="96" r="2" fill="#1a1a1a" />
+      </>
+    );
+  }
   if (shape === "almond") {
     return (
       <>
@@ -213,6 +401,8 @@ function renderEyes(shape: AvatarConfig["eyeShape"], eyeColor: string) {
 function renderNose(style: AvatarConfig["noseStyle"], shadow: string) {
   if (style === "button") return <circle cx="100" cy="110" r="4" fill={shadow} />;
   if (style === "defined") return <path d="M97 102 L94 115 Q100 119 106 115 L103 102" fill={shadow} opacity="0.7" />;
+  if (style === "wide") return <ellipse cx="100" cy="110" rx="6" ry="4" fill={shadow} opacity="0.7" />;
+  if (style === "upturned") return <path d="M98 104 Q104 108 100 114 Q97 116 95 113" fill={shadow} opacity="0.7" />;
   // small
   return <ellipse cx="100" cy="110" rx="2.5" ry="3.5" fill={shadow} />;
 }
@@ -221,6 +411,8 @@ function renderMouth(style: AvatarConfig["mouthStyle"]) {
   if (style === "bigSmile") return <path d="M78 122 Q100 142 122 122 Q100 132 78 122" fill="#7a3b3b" />;
   if (style === "neutral") return <rect x="86" y="124" width="28" height="3" rx="1.5" fill="#7a3b3b" />;
   if (style === "smirk") return <path d="M85 124 Q105 130 118 120" stroke="#7a3b3b" strokeWidth="4" fill="none" strokeLinecap="round" />;
+  if (style === "openSmile") return <ellipse cx="100" cy="126" rx="16" ry="10" fill="#7a3b3b" />;
+  if (style === "pursed") return <ellipse cx="100" cy="124" rx="6" ry="4" fill="#7a3b3b" />;
   // smile
   return <path d="M82 120 Q100 134 118 120" stroke="#7a3b3b" strokeWidth="4" fill="none" strokeLinecap="round" />;
 }
@@ -245,7 +437,18 @@ function renderHairFront(style: AvatarConfig["hairStyle"], hair: string, hairSha
       </g>
     );
   }
-  // short / long / ponytail front bangs
+  if (style === "afro") return <circle cx="100" cy="58" r="52" fill={hair} />;
+  if (style === "spiky") {
+    return (
+      <g fill={hair}>
+        {[50, 70, 90, 110, 130, 150].map((x, i) => (
+          <path key={x} d={`M${x - 8} 55 L${x} ${15 + (i % 2) * 10} L${x + 8} 55 Z`} />
+        ))}
+      </g>
+    );
+  }
+  if (style === "bun") return <path d="M44 70 Q100 18 156 70 L156 50 Q100 6 44 50 Z" fill={hair} />;
+  // short / long / ponytail / dreadlocks / bangs front
   return <path d="M44 70 Q100 20 156 70 L156 50 Q100 8 44 50 Z" fill={hair} />;
 }
 
@@ -269,6 +472,28 @@ function renderAccessory(accessory: AvatarConfig["accessory"]) {
         <rect x="46" y="44" width="108" height="16" rx="8" fill="#3b3b3b" />
         <path d="M58 46 Q100 8 142 46 Z" fill="#3b3b3b" />
       </>
+    );
+  }
+  if (accessory === "cap" || accessory === "snapback") {
+    const crown = accessory === "snapback" ? "#1f2937" : "#2563eb";
+    return (
+      <>
+        <path d="M46 56 Q100 18 154 56 L154 64 L46 64 Z" fill={crown} />
+        <path d="M100 60 L170 64 L168 72 L100 68 Z" fill={darken(crown, 0.15)} />
+      </>
+    );
+  }
+  if (accessory === "bucketHat") {
+    return (
+      <>
+        <path d="M40 60 Q100 24 160 60 L168 70 L32 70 Z" fill="#86915e" />
+        <rect x="42" y="56" width="116" height="10" rx="5" fill="#6f7a4a" />
+      </>
+    );
+  }
+  if (accessory === "crown") {
+    return (
+      <path d="M50 56 L62 32 L80 50 L100 26 L120 50 L138 32 L150 56 Z" fill="#fbbf24" stroke="#b45309" strokeWidth="2" />
     );
   }
   if (accessory === "beanie") {

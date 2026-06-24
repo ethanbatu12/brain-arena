@@ -14,6 +14,8 @@ import {
   HAIR_STYLES,
   MOUTH_STYLES,
   NOSE_STYLES,
+  PANTS_STYLES,
+  SHOE_STYLES,
   SKIN_TONES,
   type AvatarOption,
 } from "../avatar/options";
@@ -106,8 +108,12 @@ export function AvatarEditor({ initialConfig, playerLevel = 1, onSave, onCancel 
 
         {category === "clothing" && (
           <>
-            <OptionRow label="Clothing style" options={CLOTHING_STYLES} value={config.clothingStyle} level={playerLevel} onSelect={(v) => set("clothingStyle", v)} />
-            <ColorRow label="Clothing color" options={CLOTHING_COLORS} value={config.clothingColor} level={playerLevel} onSelect={(v) => set("clothingColor", v)} />
+            <OptionRow label="Top style" options={CLOTHING_STYLES} value={config.clothingStyle} level={playerLevel} onSelect={(v) => set("clothingStyle", v)} />
+            <ColorRow label="Top color" options={CLOTHING_COLORS} value={config.clothingColor} level={playerLevel} onSelect={(v) => set("clothingColor", v)} />
+            <OptionRow label="Pants style" options={PANTS_STYLES} value={config.pantsStyle} level={playerLevel} onSelect={(v) => set("pantsStyle", v)} />
+            <ColorRow label="Pants color" options={CLOTHING_COLORS} value={config.pantsColor} level={playerLevel} onSelect={(v) => set("pantsColor", v)} />
+            <OptionRow label="Shoe style" options={SHOE_STYLES} value={config.shoeStyle} level={playerLevel} onSelect={(v) => set("shoeStyle", v)} />
+            <ColorRow label="Shoe color" options={CLOTHING_COLORS} value={config.shoeColor} level={playerLevel} onSelect={(v) => set("shoeColor", v)} />
           </>
         )}
 

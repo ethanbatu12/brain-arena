@@ -13,6 +13,8 @@ import {
   HAIR_STYLES,
   MOUTH_STYLES,
   NOSE_STYLES,
+  PANTS_STYLES,
+  SHOE_STYLES,
   SKIN_TONES,
 } from "./options";
 import { unlockedValues } from "./unlocks";
@@ -44,6 +46,12 @@ export function randomizeAvatar(playerLevel: number, rng: Rng): AvatarConfig {
 
     clothingStyle: pick(unlockedValues(CLOTHING_STYLES, playerLevel), rng),
     clothingColor: pick(unlockedValues(CLOTHING_COLORS, playerLevel), rng),
+
+    pantsStyle: pick(unlockedValues(PANTS_STYLES, playerLevel), rng),
+    pantsColor: pick(unlockedValues(CLOTHING_COLORS, playerLevel), rng),
+
+    shoeStyle: pick(unlockedValues(SHOE_STYLES, playerLevel), rng),
+    shoeColor: pick(unlockedValues(CLOTHING_COLORS, playerLevel), rng),
 
     accessory: pick(unlockedValues(ACCESSORIES, playerLevel), rng),
 

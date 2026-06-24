@@ -1,22 +1,33 @@
-export type FaceShape = "round" | "oval" | "square";
+export type FaceShape = "round" | "oval" | "square" | "heart" | "diamond";
 export type SkinTone = "porcelain" | "light" | "tan" | "honey" | "brown" | "deep";
 
-export type HairStyle = "bald" | "short" | "long" | "curly" | "ponytail" | "buzzcut" | "mohawk";
+export type HairStyle =
+  | "bald" | "short" | "long" | "curly" | "ponytail" | "buzzcut" | "mohawk"
+  | "afro" | "bun" | "bangs" | "dreadlocks" | "spiky";
 export type HairLength = "short" | "medium" | "long";
-export type HairColor = "black" | "brown" | "blonde" | "red" | "gray" | "blue" | "pink" | "purple";
+export type HairColor =
+  | "black" | "brown" | "blonde" | "red" | "gray" | "blue" | "pink" | "purple" | "white" | "green";
 
-export type EyeShape = "round" | "almond" | "sleepy";
-export type EyeColor = "brown" | "blue" | "green" | "hazel" | "gray" | "amber";
+export type EyeShape = "round" | "almond" | "sleepy" | "wide" | "narrow";
+export type EyeColor = "brown" | "blue" | "green" | "hazel" | "gray" | "amber" | "violet";
 export type EyebrowStyle = "straight" | "arched" | "thick" | "thin";
 
-export type NoseStyle = "small" | "button" | "defined";
+export type NoseStyle = "small" | "button" | "defined" | "wide" | "upturned";
 
-export type MouthStyle = "smile" | "bigSmile" | "neutral" | "smirk";
+export type MouthStyle = "smile" | "bigSmile" | "neutral" | "smirk" | "openSmile" | "pursed";
 
-export type ClothingStyle = "tshirt" | "hoodie" | "jacket" | "jersey";
+export type ClothingStyle =
+  | "tshirt" | "hoodie" | "jacket" | "jersey"
+  | "tracksuit" | "varsity" | "polo" | "tank" | "graphicTee";
 export type ClothingColor = "red" | "blue" | "green" | "yellow" | "purple" | "black" | "white" | "orange";
 
-export type AccessoryStyle = "none" | "glasses" | "sunglasses" | "hat" | "headband" | "beanie";
+export type PantsStyle = "jeans" | "shorts" | "joggers" | "trackPants" | "cargo";
+
+export type ShoeStyle = "sneakers" | "highTops" | "boots" | "sandals";
+
+export type AccessoryStyle =
+  | "none" | "glasses" | "sunglasses" | "hat" | "headband" | "beanie"
+  | "cap" | "snapback" | "bucketHat" | "crown";
 
 export type BackgroundStyle =
   | "solid-sky"
@@ -50,6 +61,12 @@ export interface AvatarConfig {
 
   clothingStyle: ClothingStyle;
   clothingColor: ClothingColor;
+
+  pantsStyle: PantsStyle;
+  pantsColor: ClothingColor;
+
+  shoeStyle: ShoeStyle;
+  shoeColor: ClothingColor;
 
   accessory: AccessoryStyle;
 

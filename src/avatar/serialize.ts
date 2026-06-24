@@ -13,6 +13,8 @@ import {
   HAIR_STYLES,
   MOUTH_STYLES,
   NOSE_STYLES,
+  PANTS_STYLES,
+  SHOE_STYLES,
   SKIN_TONES,
   type AvatarOption,
 } from "./options";
@@ -52,6 +54,12 @@ export function sanitizeAvatarConfig(raw: Partial<AvatarConfig> | null | undefin
 
     clothingStyle: validValue(CLOTHING_STYLES, r.clothingStyle, DEFAULT_AVATAR_CONFIG.clothingStyle),
     clothingColor: validValue(CLOTHING_COLORS, r.clothingColor, DEFAULT_AVATAR_CONFIG.clothingColor),
+
+    pantsStyle: validValue(PANTS_STYLES, r.pantsStyle, DEFAULT_AVATAR_CONFIG.pantsStyle),
+    pantsColor: validValue(CLOTHING_COLORS, r.pantsColor, DEFAULT_AVATAR_CONFIG.pantsColor),
+
+    shoeStyle: validValue(SHOE_STYLES, r.shoeStyle, DEFAULT_AVATAR_CONFIG.shoeStyle),
+    shoeColor: validValue(CLOTHING_COLORS, r.shoeColor, DEFAULT_AVATAR_CONFIG.shoeColor),
 
     accessory: validValue(ACCESSORIES, r.accessory, DEFAULT_AVATAR_CONFIG.accessory),
 

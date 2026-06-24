@@ -21,6 +21,12 @@ export const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
   clothingStyle: "tshirt",
   clothingColor: "blue",
 
+  pantsStyle: "jeans",
+  pantsColor: "black",
+
+  shoeStyle: "sneakers",
+  shoeColor: "white",
+
   accessory: "none",
 
   background: "solid-sky",

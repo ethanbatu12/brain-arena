@@ -21,6 +21,10 @@ export function clothingColorValue(color: ClothingColor): string {
   return lookup(CLOTHING_COLORS, color);
 }
 
+/** Pants and shoes reuse the same color catalog as tops. */
+export const pantsColorValue = clothingColorValue;
+export const shoeColorValue = clothingColorValue;
+
 /** Darkens a hex color by a fraction (0-1) for shading/outlines. */
 export function darken(hex: string, amount: number): string {
   const n = hex.replace("#", "");
