@@ -26,6 +26,7 @@ export interface RawPlaceResult {
   name?: string;
   lat?: number;
   lng?: number;
+  rating?: number;
 }
 
 /** Pure: converts raw place results (plain data, no SDK classes) into deduplicated MapFeatures. */
@@ -33,7 +34,7 @@ export function parseRawPlaceResults(results: RawPlaceResult[], kind: FeatureKin
   const features: MapFeature[] = [];
   for (const r of results) {
     if (!r.placeId || !r.name || r.lat === undefined || r.lng === undefined) continue;
-    features.push({ id: r.placeId, name: r.name, kind, lat: r.lat, lon: r.lng });
+    features.push({ id: r.placeId, name: r.name, kind, lat: r.lat, lon: r.lng, rating: r.rating });
   }
   return features;
 }
@@ -41,7 +42,7 @@ export function parseRawPlaceResults(results: RawPlaceResult[], kind: FeatureKin
 async function searchOneType(origin: Coords, radiusM: number, type: string): Promise<RawPlaceResult[]> {
   const g = await loadGoogleMaps();
   const { places } = await g.maps.places.Place.searchNearby({
-    fields: ["displayName", "location", "id"],
+    fields: ["displayName", "location", "id", "rating"],
     locationRestriction: { center: { lat: origin.lat, lng: origin.lon }, radius: radiusM },
     includedPrimaryTypes: [type],
     maxResultCount: 20,
@@ -51,6 +52,7 @@ async function searchOneType(origin: Coords, radiusM: number, type: string): Pro
     name: p.displayName ?? undefined,
     lat: p.location?.lat(),
     lng: p.location?.lng(),
+    rating: p.rating ?? undefined,
   }));
 }
 

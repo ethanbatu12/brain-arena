@@ -9,6 +9,8 @@ export interface MapFeature extends Coords {
   id: string;
   name: string;
   kind: FeatureKind;
+  /** Google user rating (1-5), when available. */
+  rating?: number;
 }
 
 export type CompassDirection = "N" | "NE" | "E" | "SE" | "S" | "SW" | "W" | "NW";
@@ -21,7 +23,8 @@ export type DirectionQuestionKind =
   | "distance-ranking"
   | "map-memory"
   | "advanced-navigation"
-  | "highway-navigation";
+  | "highway-navigation"
+  | "place-rating";
 
 /** A single turn-by-turn step of a route, from OSRM. */
 export interface RouteStep {
@@ -37,11 +40,11 @@ export interface RouteInfo {
   destinationFeatureId: string;
   destinationName: string;
   totalDistanceM: number;
+  /** Estimated drive time in seconds, from Google Directions. */
+  durationSec: number;
   steps: RouteStep[];
   /** Full route geometry (one coordinate per shape point), for distance-to-route calculations. */
   polyline: Coords[];
-  /** Traffic signals found within a small buffer of the route. Undefined if not yet fetched. */
-  trafficSignalCount?: number;
 }
 
 export interface DirectionQuestion {
@@ -83,7 +86,6 @@ export type DirectionAction =
   | { type: "START" }
   | { type: "LOCATED"; origin: Coords }
   | { type: "FEATURES_LOADED"; features: MapFeature[]; routes: RouteInfo[] }
-  | { type: "ROUTES_ENRICHED"; routes: RouteInfo[] }
   | { type: "LOAD_FAILED"; message: string }
   | { type: "ANSWER"; questionId: number; choiceIndex: number }
   | { type: "TICK"; deltaMs: number }

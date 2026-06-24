@@ -20,8 +20,8 @@ const ROUTES: RouteInfo[] = [
     destinationFeatureId: "3",
     destinationName: "Central Park",
     totalDistanceM: 2400,
+    durationSec: 420,
     polyline: [],
-    trafficSignalCount: 3,
     steps: [
       { roadName: "Main Street", distanceM: 100, maneuverType: "depart", isHighway: false },
       { roadName: "Oak Avenue", distanceM: 400, maneuverType: "turn", modifier: "left", isHighway: false },
@@ -33,8 +33,8 @@ const ROUTES: RouteInfo[] = [
     destinationFeatureId: "5",
     destinationName: "Town Hall",
     totalDistanceM: 900,
+    durationSec: 150,
     polyline: [],
-    trafficSignalCount: 1,
     steps: [
       { roadName: "Main Street", distanceM: 100, maneuverType: "depart", isHighway: false },
       { roadName: "Corner Market Road", distanceM: 700, maneuverType: "turn", modifier: "right", isHighway: false },
@@ -157,14 +157,36 @@ describe("makeQuestion", () => {
     expect(checked).toBeGreaterThan(0);
   });
 
-  it("generates traffic-lights questions whose correct answer matches a route's signal count", () => {
+  it("generates duration questions whose correct answer is derived from a route's real drive time", () => {
     const rng = mulberry32(33);
     let checked = 0;
     for (let i = 0; i < 500 && checked < 5; i++) {
       const q = makeQuestion(ORIGIN, FEATURES, ROUTES, rng, i);
-      if (q?.kind === "highway-navigation" && q.prompt.includes("traffic lights")) {
-        const answer = Number(q.choices[q.correctIndex]);
-        expect(ROUTES.some((r) => r.trafficSignalCount === answer)).toBe(true);
+      if (q?.kind === "highway-navigation" && q.prompt.includes("how long would it take")) {
+        const answerMinutes = Number(q.choices[q.correctIndex].replace(" min", ""));
+        const matchesARoute = ROUTES.some((r) => Math.max(1, Math.round(r.durationSec / 60)) === answerMinutes);
+        expect(matchesARoute).toBe(true);
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  it("generates place-rating questions whose correct answer has the highest rating in the sample", () => {
+    const ratedFeatures: MapFeature[] = [
+      { id: "10", name: "Top Cafe", kind: "business", lat: 40.001, lon: -75.001, rating: 4.8 },
+      { id: "11", name: "Mid Diner", kind: "business", lat: 40.002, lon: -75.002, rating: 4.0 },
+      { id: "12", name: "Low Spot", kind: "business", lat: 40.003, lon: -75.003, rating: 3.0 },
+      ...FEATURES,
+    ];
+    const rng = mulberry32(44);
+    let checked = 0;
+    for (let i = 0; i < 500 && checked < 5; i++) {
+      const q = makeQuestion(ORIGIN, ratedFeatures, [], rng, i);
+      if (q?.kind === "place-rating") {
+        const correctName = q.choices[q.correctIndex];
+        const feature = ratedFeatures.find((f) => f.name === correctName);
+        expect(feature?.rating).toBeDefined();
         checked++;
       }
     }

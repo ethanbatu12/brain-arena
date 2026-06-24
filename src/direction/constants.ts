@@ -6,7 +6,7 @@ export const BONUS_EVERY_CORRECT = 5;
 export const BONUS_POINTS = 100;
 
 /** Radius (meters) searched around the player for map features. */
-export const SEARCH_RADIUS_M = 1500;
+export const SEARCH_RADIUS_M = 3000;
 
 /** Minimum number of features required to generate questions reliably. */
 export const MIN_FEATURES_REQUIRED = 4;
@@ -23,24 +23,6 @@ export const QUESTION_KINDS = [
   "map-memory",
   "advanced-navigation",
 ] as const;
-
-/**
- * Free, keyless Overpass API mirrors, tried in order. overpass-api.de is the
- * main instance but is sometimes unreachable or rate-limited from browsers;
- * the others are independently-run public mirrors of the same OpenStreetMap
- * data with no signup required.
- */
-export const OVERPASS_URLS = [
-  "https://overpass-api.de/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter",
-  "https://overpass.openstreetmap.ru/api/interpreter",
-];
-
-/** Nominatim geocoding endpoint — free, no API key required (OpenStreetMap). */
-export const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
-
-/** OSRM public demo routing server — free, no API key required. */
-export const OSRM_URL = "https://router.project-osrm.org";
 
 /** How many sample routes to fetch per game (for highway-navigation questions). */
 export const MAX_SAMPLE_ROUTES = 3;

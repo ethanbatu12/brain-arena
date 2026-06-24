@@ -94,6 +94,7 @@ export async function fetchRouteGoogle(origin: Coords, destination: MapFeature):
       destinationFeatureId: destination.id,
       destinationName: destination.name,
       totalDistanceM: leg.distance?.value ?? 0,
+      durationSec: leg.duration?.value ?? 0,
       steps: parseGoogleSteps(rawSteps),
       polyline,
     };

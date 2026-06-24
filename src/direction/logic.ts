@@ -58,13 +58,36 @@ function namesExcluding(features: MapFeature[], exclude: MapFeature[]): string[]
 
 // ── individual question builders ───────────────────────────────────────────
 
+const BASIC_DIRECTION_TEMPLATES = [
+  (kind: string, dir: string) => `Which ${kind} is ${dir} of your location?`,
+  (kind: string, dir: string) => `If you look ${dir}, which ${kind} would you be facing?`,
+  (kind: string, dir: string) => `Which ${kind} lies to the ${dir} of where you are now?`,
+  (kind: string, dir: string) => `Heading ${dir} from here, which ${kind} is in that direction?`,
+  (kind: string, dir: string) => `Which ${kind} sits ${dir} of your current location?`,
+];
+
 function buildBasicDirection(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
   const target = pick(features, rng);
   const dir = directionFrom(origin, target);
-  const prompt = `Which ${kindLabel(target)} is ${DIRECTION_WORDS[dir]} of your location?`;
+  const template = pick(BASIC_DIRECTION_TEMPLATES, rng);
+  const prompt = template(kindLabel(target), DIRECTION_WORDS[dir]);
   const { choices, correctIndex } = buildChoices(rng, target.name, namesExcluding(features, [target]));
   return { id, kind: "basic-direction", prompt, choices, correctIndex };
 }
+
+const CLOSEST_TEMPLATES = [
+  (ref: string) => `Which location is closest to ${ref}?`,
+  (ref: string) => `Out of these, which is nearest to ${ref}?`,
+  (ref: string) => `Which place is the shortest distance from ${ref}?`,
+  (ref: string) => `Which of these would you reach first starting from ${ref}?`,
+];
+
+const FURTHEST_TEMPLATES = [
+  (ref: string) => `Which location is furthest from ${ref}?`,
+  (ref: string) => `Which of these is farthest away from ${ref}?`,
+  (ref: string) => `Out of these, which is the most distant from ${ref}?`,
+  (ref: string) => `Which place would take the longest to reach from ${ref}?`,
+];
 
 function buildClosest(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
   const useReference = features.length >= 5 && rng() < 0.5;
@@ -74,7 +97,7 @@ function buildClosest(origin: Coords, features: MapFeature[], rng: Rng, id: numb
   const sorted = sortByDistance(refPoint, pool);
   const correct = sorted[0];
   const refLabel = reference ? reference.name : "your location";
-  const prompt = `Which location is closest to ${refLabel}?`;
+  const prompt = pick(CLOSEST_TEMPLATES, rng)(refLabel);
   const { choices, correctIndex } = buildChoices(rng, correct.name, namesExcluding(pool, [correct]));
   return { id, kind: "closest", prompt, choices, correctIndex };
 }
@@ -87,17 +110,24 @@ function buildFurthest(origin: Coords, features: MapFeature[], rng: Rng, id: num
   const sorted = sortByDistance(refPoint, pool);
   const correct = sorted[sorted.length - 1];
   const refLabel = reference ? reference.name : "your location";
-  const prompt = `Which location is furthest from ${refLabel}?`;
+  const prompt = pick(FURTHEST_TEMPLATES, rng)(refLabel);
   const { choices, correctIndex } = buildChoices(rng, correct.name, namesExcluding(pool, [correct]));
   return { id, kind: "furthest", prompt, choices, correctIndex };
 }
+
+const RELATIVE_POSITION_TEMPLATES = [
+  (dir: string, ref: string) => `Which location is ${dir} of ${ref}?`,
+  (dir: string, ref: string) => `What's located ${dir} of ${ref}?`,
+  (dir: string, ref: string) => `Looking ${dir} from ${ref}, which place is there?`,
+  (dir: string, ref: string) => `Which place sits ${dir} of ${ref}?`,
+];
 
 function buildRelativePosition(_origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
   const reference = pick(features, rng);
   const others = features.filter((f) => f.id !== reference.id);
   const target = pick(others, rng);
   const dir = directionFrom(reference, target);
-  const prompt = `Which location is ${DIRECTION_WORDS[dir]} of ${reference.name}?`;
+  const prompt = pick(RELATIVE_POSITION_TEMPLATES, rng)(DIRECTION_WORDS[dir], reference.name);
   const { choices, correctIndex } = buildChoices(rng, target.name, namesExcluding(others, [target]));
   return { id, kind: "relative-position", prompt, choices, correctIndex };
 }
@@ -197,14 +227,14 @@ function countTurns(route: RouteInfo): number {
   return route.steps.filter((s) => s.maneuverType !== "depart" && s.maneuverType !== "arrive").length;
 }
 
-type HighwayVariant = "turns-to-highway" | "first-road" | "distance" | "direction" | "total-turns" | "traffic-lights";
+type HighwayVariant = "turns-to-highway" | "first-road" | "distance" | "direction" | "total-turns" | "duration";
 const HIGHWAY_VARIANTS: HighwayVariant[] = [
   "turns-to-highway",
   "first-road",
   "distance",
   "direction",
   "total-turns",
-  "traffic-lights",
+  "duration",
 ];
 
 function buildHighwayNavigation(routes: RouteInfo[], rng: Rng, id: number): DirectionQuestion | null {
@@ -230,12 +260,12 @@ function buildHighwayNavigation(routes: RouteInfo[], rng: Rng, id: number): Dire
       return { id, kind: "highway-navigation", prompt, choices, correctIndex };
     }
 
-    if (variant === "traffic-lights") {
-      if (route.trafficSignalCount === undefined) continue;
-      const count = route.trafficSignalCount;
-      const prompt = `About how many traffic lights are on the way to ${route.destinationName}?`;
-      const distractors = [count + 1, Math.max(0, count - 1), count + 2].map(String);
-      const { choices, correctIndex } = buildChoices(rng, String(count), distractors);
+    if (variant === "duration") {
+      if (route.durationSec <= 0) continue;
+      const minutes = Math.max(1, Math.round(route.durationSec / 60));
+      const distractors = [minutes + 2, Math.max(1, minutes - 2), minutes + 5].map((v) => `${v} min`);
+      const prompt = `About how long would it take to drive to ${route.destinationName}?`;
+      const { choices, correctIndex } = buildChoices(rng, `${minutes} min`, distractors);
       return { id, kind: "highway-navigation", prompt, choices, correctIndex };
     }
 
@@ -271,8 +301,27 @@ function buildHighwayNavigation(routes: RouteInfo[], rng: Rng, id: number): Dire
   return null;
 }
 
+// ── place-rating (real Google user ratings) ────────────────────────────────
+
+const RATING_QUESTION_TEMPLATES = [
+  (kind: string) => `Which ${kind} has the highest rating?`,
+  (kind: string) => `Out of these, which ${kind} is rated best by visitors?`,
+  (kind: string) => `Which ${kind} do people rate the highest?`,
+];
+
+function buildPlaceRating(_origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion | null {
+  const rated = features.filter((f) => f.rating !== undefined);
+  if (rated.length < 2) return null;
+  const sample = shuffle(rated, rng).slice(0, Math.min(4, rated.length));
+  const best = sample.reduce((a, b) => (b.rating! > a.rating! ? b : a));
+  const kind = kindLabel(best);
+  const prompt = pick(RATING_QUESTION_TEMPLATES, rng)(kind);
+  const { choices, correctIndex } = buildChoices(rng, best.name, namesExcluding(sample, [best]));
+  return { id, kind: "place-rating", prompt, choices, correctIndex };
+}
+
 const GENERATORS: Record<
-  Exclude<DirectionQuestionKind, "highway-navigation">,
+  Exclude<DirectionQuestionKind, "highway-navigation" | "place-rating">,
   (origin: Coords, features: MapFeature[], rng: Rng, id: number) => DirectionQuestion
 > = {
   "basic-direction": buildBasicDirection,
@@ -286,8 +335,8 @@ const GENERATORS: Record<
 
 /**
  * Generates one question from real map features (and, when available, real
- * driving routes) around `origin`. Returns null if there aren't enough
- * features to build a well-formed question at all.
+ * driving routes / place ratings) around `origin`. Returns null if there
+ * aren't enough features to build a well-formed question at all.
  */
 export function makeQuestion(
   origin: Coords,
@@ -297,12 +346,19 @@ export function makeQuestion(
   id: number,
 ): DirectionQuestion | null {
   if (features.length < MIN_FEATURES_REQUIRED) return null;
-  const pool: DirectionQuestionKind[] = routes.length > 0 ? [...QUESTION_KINDS, "highway-navigation"] : [...QUESTION_KINDS];
+  const pool: DirectionQuestionKind[] = [...QUESTION_KINDS];
+  if (routes.length > 0) pool.push("highway-navigation");
+  if (features.filter((f) => f.rating !== undefined).length >= 2) pool.push("place-rating");
 
   for (let attempt = 0; attempt < 6; attempt++) {
     const kind = pick(pool, rng);
     if (kind === "highway-navigation") {
       const q = buildHighwayNavigation(routes, rng, id);
+      if (q) return q;
+      continue;
+    }
+    if (kind === "place-rating") {
+      const q = buildPlaceRating(origin, features, rng, id);
       if (q) return q;
       continue;
     }

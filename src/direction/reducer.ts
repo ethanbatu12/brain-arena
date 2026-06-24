@@ -62,13 +62,6 @@ export function directionReduce(state: DirectionState, action: DirectionAction, 
       };
     }
 
-    case "ROUTES_ENRICHED": {
-      // Traffic-signal counts arrive in the background after play has
-      // already started — just update the data, never the active question.
-      if (state.phase !== "playing" && state.phase !== "over") return state;
-      return { ...state, routes: action.routes };
-    }
-
     case "ANSWER": {
       if (state.phase !== "playing" || !state.question || !state.origin) return state;
       if (action.questionId !== state.question.id) return state; // stale answer, ignore
