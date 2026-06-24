@@ -45,7 +45,11 @@ async function searchOneType(origin: Coords, radiusM: number, type: string): Pro
     fields: ["displayName", "location", "id", "rating"],
     locationRestriction: { center: { lat: origin.lat, lng: origin.lon }, radius: radiusM },
     includedPrimaryTypes: [type],
-    maxResultCount: 20,
+    // Ranked by popularity (not just distance) and capped at a smaller
+    // count, so the question pool skews toward well-known places rather
+    // than every obscure result within the radius.
+    rankPreference: google.maps.places.SearchNearbyRankPreference.POPULARITY,
+    maxResultCount: 10,
   });
   return places.map((p) => ({
     placeId: p.id,

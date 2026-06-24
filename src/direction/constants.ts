@@ -14,9 +14,12 @@ export const MIN_FEATURES_REQUIRED = 4;
 /** How long a map-memory question shows the map before hiding it (ms). */
 export const MAP_MEMORY_REVEAL_MS = 4_000;
 
+// "furthest" appears twice to weight "which is farthest" questions more
+// heavily, per request.
 export const QUESTION_KINDS = [
   "basic-direction",
   "closest",
+  "furthest",
   "furthest",
   "relative-position",
   "distance-ranking",

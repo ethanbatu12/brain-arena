@@ -144,6 +144,12 @@ function permutationsOf3<T>(items: [T, T, T]): T[][] {
   ];
 }
 
+const DISTANCE_RANKING_TEMPLATES = [
+  (listed: string) => `Order these locations from closest to furthest: ${listed}`,
+  (listed: string) => `Rank these from nearest to farthest: ${listed}`,
+  (listed: string) => `Which order puts these from closest to farthest away: ${listed}?`,
+];
+
 function buildDistanceRanking(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
   const sample = shuffle(features, rng).slice(0, 3) as [MapFeature, MapFeature, MapFeature];
   const correctOrder = sortByDistance(origin, sample).map((f) => f.name);
@@ -153,10 +159,26 @@ function buildDistanceRanking(origin: Coords, features: MapFeature[], rng: Rng, 
     .filter((p) => p !== correctStr);
   const distractors = shuffle(allPerms, rng).slice(0, 3);
   const listed = shuffle(sample, rng).map((f) => f.name).join(", ");
-  const prompt = `Order these locations from closest to furthest: ${listed}`;
+  const prompt = pick(DISTANCE_RANKING_TEMPLATES, rng)(listed);
   const { choices, correctIndex } = buildChoices(rng, correctStr, distractors);
   return { id, kind: "distance-ranking", prompt, choices, correctIndex };
 }
+
+const MAP_MEMORY_WHICH_SHOWN_TEMPLATES = [
+  () => "Which of these locations appeared on the map you saw?",
+  () => "Which one of these did you actually see on the map?",
+  () => "Which of these was on the map a moment ago?",
+];
+const MAP_MEMORY_CLOSEST_TEMPLATES = [
+  () => "Which location was closest to your location on the map you saw?",
+  () => "Of the places shown, which was nearest to you?",
+  () => "On the map you saw, which place was closest to your position?",
+];
+const MAP_MEMORY_DIRECTION_TEMPLATES = [
+  (dir: string) => `Which location was ${dir} of your location on the map you saw?`,
+  (dir: string) => `On the map you saw, which place was to the ${dir}?`,
+  (dir: string) => `Which place appeared ${dir} of you on that map?`,
+];
 
 function buildMapMemory(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
   const variant = pick(["which-shown", "closest", "direction"] as const, rng);
@@ -164,7 +186,7 @@ function buildMapMemory(origin: Coords, features: MapFeature[], rng: Rng, id: nu
   if (variant === "which-shown") {
     const shown = pick(features, rng);
     const distractors = decoyNamesNotIn(features, rng, 3);
-    const prompt = "Which of these locations appeared on the map you saw?";
+    const prompt = pick(MAP_MEMORY_WHICH_SHOWN_TEMPLATES, rng)();
     const { choices, correctIndex } = buildChoices(rng, shown.name, distractors);
     return { id, kind: "map-memory", prompt, choices, correctIndex, showMapFirst: true };
   }
@@ -172,17 +194,28 @@ function buildMapMemory(origin: Coords, features: MapFeature[], rng: Rng, id: nu
   if (variant === "closest") {
     const sorted = sortByDistance(origin, features);
     const correct = sorted[0];
-    const prompt = "Which location was closest to your location on the map you saw?";
+    const prompt = pick(MAP_MEMORY_CLOSEST_TEMPLATES, rng)();
     const { choices, correctIndex } = buildChoices(rng, correct.name, namesExcluding(features, [correct]));
     return { id, kind: "map-memory", prompt, choices, correctIndex, showMapFirst: true };
   }
 
   const target = pick(features, rng);
   const dir = directionFrom(origin, target);
-  const prompt = `Which location was ${DIRECTION_WORDS[dir]} of your location on the map you saw?`;
+  const prompt = pick(MAP_MEMORY_DIRECTION_TEMPLATES, rng)(DIRECTION_WORDS[dir]);
   const { choices, correctIndex } = buildChoices(rng, target.name, namesExcluding(features, [target]));
   return { id, kind: "map-memory", prompt, choices, correctIndex, showMapFirst: true };
 }
+
+const WAYPOINT_TEMPLATES = [
+  () => "If you travel north then east from your location, which of these would you reach first?",
+  () => "Heading north and then turning east, which place would you come across first?",
+  () => "Starting north then east from here, which of these is closest to that path?",
+];
+const DIAGONAL_TEMPLATES = [
+  (dir: string) => `Which location is most directly ${dir} of your location?`,
+  (dir: string) => `Out of these, which is positioned most precisely to the ${dir}?`,
+  (dir: string) => `Which place is closest to due ${dir} of where you are?`,
+];
 
 function buildAdvancedNavigation(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
   const variant = pick(["waypoint", "diagonal"] as const, rng);
@@ -190,7 +223,7 @@ function buildAdvancedNavigation(origin: Coords, features: MapFeature[], rng: Rn
   if (variant === "waypoint") {
     const waypoint = offsetCoords(origin, 400, 400);
     const correct = sortByDistance(waypoint, features)[0];
-    const prompt = "If you travel north then east from your location, which of these would you reach first?";
+    const prompt = pick(WAYPOINT_TEMPLATES, rng)();
     const { choices, correctIndex } = buildChoices(rng, correct.name, namesExcluding(features, [correct]));
     return { id, kind: "advanced-navigation", prompt, choices, correctIndex };
   }
@@ -204,7 +237,7 @@ function buildAdvancedNavigation(origin: Coords, features: MapFeature[], rng: Rn
   };
   const sorted = [...features].sort((a, b) => angularDiff(a) - angularDiff(b));
   const correct = sorted[0];
-  const prompt = `Which location is most directly ${DIRECTION_WORDS[dir]} of your location?`;
+  const prompt = pick(DIAGONAL_TEMPLATES, rng)(DIRECTION_WORDS[dir]);
   const { choices, correctIndex } = buildChoices(rng, correct.name, namesExcluding(features, [correct]));
   return { id, kind: "advanced-navigation", prompt, choices, correctIndex };
 }
@@ -228,13 +261,35 @@ function countTurns(route: RouteInfo): number {
 }
 
 type HighwayVariant = "turns-to-highway" | "first-road" | "distance" | "direction" | "total-turns" | "duration";
+// turns-to-highway and total-turns appear twice each to weight "how many
+// turns" questions more heavily, per request.
 const HIGHWAY_VARIANTS: HighwayVariant[] = [
   "turns-to-highway",
+  "turns-to-highway",
+  "total-turns",
+  "total-turns",
   "first-road",
   "distance",
   "direction",
-  "total-turns",
   "duration",
+];
+
+const FIRST_ROAD_TEMPLATES = [
+  (dest: string) => `Which road do you turn onto first when driving to ${dest}?`,
+  (dest: string) => `What's the first road you turn onto on the way to ${dest}?`,
+  (dest: string) => `Driving to ${dest}, which road comes first after your initial turn?`,
+];
+
+const ROUTE_DISTANCE_TEMPLATES = [
+  (dest: string) => `About how far is the drive to ${dest}?`,
+  (dest: string) => `Roughly how many kilometers is it to ${dest}?`,
+  (dest: string) => `What's the approximate driving distance to ${dest}?`,
+];
+
+const FIRST_TURN_DIRECTION_TEMPLATES = [
+  (dest: string) => `Which way do you turn first when driving to ${dest}?`,
+  (dest: string) => `What's your first turn on the route to ${dest}?`,
+  (dest: string) => `Driving to ${dest}, which direction is your first turn?`,
 ];
 
 function buildHighwayNavigation(routes: RouteInfo[], rng: Rng, id: number): DirectionQuestion | null {
@@ -276,7 +331,7 @@ function buildHighwayNavigation(routes: RouteInfo[], rng: Rng, id: number): Dire
         .filter((r) => r !== route)
         .map((r) => firstTurnStep(r)?.roadName)
         .filter((name): name is string => Boolean(name) && name !== step.roadName);
-      const prompt = `Which road do you turn onto first when driving to ${route.destinationName}?`;
+      const prompt = pick(FIRST_ROAD_TEMPLATES, rng)(route.destinationName);
       const { choices, correctIndex } = buildChoices(rng, step.roadName, otherRoads);
       return { id, kind: "highway-navigation", prompt, choices, correctIndex };
     }
@@ -284,7 +339,7 @@ function buildHighwayNavigation(routes: RouteInfo[], rng: Rng, id: number): Dire
     if (variant === "distance") {
       const km = Math.round(route.totalDistanceM / 100) / 10;
       const distractors = [km + 0.5, Math.max(0.1, km - 0.5), km + 1].map((v) => `${Math.round(v * 10) / 10} km`);
-      const prompt = `About how far is the drive to ${route.destinationName}?`;
+      const prompt = pick(ROUTE_DISTANCE_TEMPLATES, rng)(route.destinationName);
       const { choices, correctIndex } = buildChoices(rng, `${km} km`, distractors);
       return { id, kind: "highway-navigation", prompt, choices, correctIndex };
     }
@@ -294,7 +349,7 @@ function buildHighwayNavigation(routes: RouteInfo[], rng: Rng, id: number): Dire
     if (!step) continue;
     const correct = bucketModifier(step.modifier);
     const allDirections: Array<"left" | "right" | "straight" | "u-turn"> = ["left", "right", "straight", "u-turn"];
-    const prompt = `Which way do you turn first when driving to ${route.destinationName}?`;
+    const prompt = pick(FIRST_TURN_DIRECTION_TEMPLATES, rng)(route.destinationName);
     const { choices, correctIndex } = buildChoices(rng, correct, allDirections.filter((d) => d !== correct));
     return { id, kind: "highway-navigation", prompt, choices, correctIndex };
   }
@@ -347,7 +402,8 @@ export function makeQuestion(
 ): DirectionQuestion | null {
   if (features.length < MIN_FEATURES_REQUIRED) return null;
   const pool: DirectionQuestionKind[] = [...QUESTION_KINDS];
-  if (routes.length > 0) pool.push("highway-navigation");
+  // Pushed twice to weight navigation/turn questions more heavily, per request.
+  if (routes.length > 0) pool.push("highway-navigation", "highway-navigation");
   if (features.filter((f) => f.rating !== undefined).length >= 2) pool.push("place-rating");
 
   for (let attempt = 0; attempt < 6; attempt++) {
