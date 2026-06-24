@@ -2,6 +2,7 @@ import { CHALLENGE_META, GAMES } from "../games";
 import { getDailyGameId, getTodaysDailyRecord } from "../player/dailyChallenge";
 import { getToday } from "../player/streak";
 import type { GameId, PlayerProfile } from "../player/types";
+import { AvatarSvg } from "./AvatarSvg";
 
 interface HubProps {
   profile: PlayerProfile;
@@ -47,7 +48,9 @@ export function Hub({ profile, onPick, onChess, onProfile, onDb, onLeaderboard, 
 
       {/* ── Player greeting ─────────────────────────────────────────── */}
       <div className="home__player">
-        <div className="home__avatar">{profile.avatar ?? "🧠"}</div>
+        <div className="home__avatar">
+          <AvatarSvg config={profile.avatarConfig} size={56} />
+        </div>
         <div className="home__player-info">
           <p className="home__greeting">
             Welcome back, <strong>{profile.username}</strong>

@@ -1,3 +1,5 @@
+import { DEFAULT_AVATAR_CONFIG } from "../avatar/defaults";
+import { sanitizeAvatarConfig } from "../avatar/serialize";
 import { indexedDbProfileStore, type ProfileStore } from "./db";
 import {
   GAME_IDS,
@@ -123,7 +125,12 @@ export function avgSolveTimeMs(stats: RatedPuzzleStats): number {
   return stats.totalSolveTimeMs / stats.totalCorrect;
 }
 
-export function createProfile(username: string, passwordHash: string, passwordSalt: string): PlayerProfile {
+export function createProfile(
+  username: string,
+  passwordHash: string,
+  passwordSalt: string,
+  avatarConfig = DEFAULT_AVATAR_CONFIG,
+): PlayerProfile {
   const games = {} as Record<GameId, GameStats>;
   for (const id of GAME_IDS) games[id] = emptyGameStats();
 
@@ -144,6 +151,8 @@ export function createProfile(username: string, passwordHash: string, passwordSa
     achievements: [],
     dailyChallenges: [],
     avatar: "🧠",
+    avatarConfig,
+    level: 1,
     reactionDotsHit: 0,
     triviaQuestionsAnswered: 0,
     triviaCorrectAnswers: 0,
@@ -316,6 +325,8 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
     achievements: profile.achievements ?? [],
     dailyChallenges: profile.dailyChallenges ?? [],
     avatar: profile.avatar ?? "🧠",
+    avatarConfig: sanitizeAvatarConfig(profile.avatarConfig),
+    level: profile.level ?? 1,
     reactionDotsHit: profile.reactionDotsHit ?? 0,
     triviaQuestionsAnswered: profile.triviaQuestionsAnswered ?? 0,
     triviaCorrectAnswers: profile.triviaCorrectAnswers ?? 0,

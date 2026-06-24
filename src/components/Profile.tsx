@@ -1,6 +1,5 @@
 import { GAMES } from "../games";
 import { ACHIEVEMENT_DEFS } from "../player/achievements";
-import { usePlayerProfile } from "../player/PlayerContext";
 import {
   averageScore,
   avgSolveTimeMs,
@@ -11,8 +10,7 @@ import {
   triviaAccuracy,
 } from "../player/storage";
 import type { PlayerProfile } from "../player/types";
-
-const AVATARS = ["🧠", "🎯", "🏆", "⚡", "🔥", "💎", "🦁", "🌟", "🚀", "🎮"];
+import { AvatarSvg } from "./AvatarSvg";
 
 function formatTime(ms: number): string {
   if (ms === 0) return "—";
@@ -25,6 +23,7 @@ function formatTime(ms: number): string {
 interface ProfileProps {
   profile: PlayerProfile;
   onBack: () => void;
+  onEditAvatar: () => void;
   onSignOut: () => void;
 }
 
@@ -32,9 +31,7 @@ function round(value: number): number {
   return Math.round(value);
 }
 
-export function Profile({ profile, onBack, onSignOut }: ProfileProps) {
-  const { setAvatar } = usePlayerProfile();
-
+export function Profile({ profile, onBack, onEditAvatar, onSignOut }: ProfileProps) {
   const unlockedIds = new Set(profile.achievements.map((a) => a.id));
 
   return (
@@ -54,18 +51,11 @@ export function Profile({ profile, onBack, onSignOut }: ProfileProps) {
       {/* ── Avatar ──────────────────────────────────────────────────── */}
       <section className="profile__section">
         <h2 className="profile__section-title">Avatar</h2>
-        <div className="avatar-picker">
-          {AVATARS.map((emoji) => (
-            <button
-              key={emoji}
-              className={`avatar-option${profile.avatar === emoji ? " avatar-option--active" : ""}`}
-              onClick={() => setAvatar(emoji)}
-              aria-label={`Select avatar ${emoji}`}
-              aria-pressed={profile.avatar === emoji}
-            >
-              {emoji}
-            </button>
-          ))}
+        <div className="profile__avatar">
+          <AvatarSvg config={profile.avatarConfig} size={120} />
+          <button className="btn btn--primary" onClick={onEditAvatar}>
+            Edit Avatar
+          </button>
         </div>
       </section>
 

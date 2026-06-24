@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AchievementToast } from "./components/AchievementToast";
 import { AllGamesChallenge } from "./components/AllGamesChallenge";
+import { AvatarEditor } from "./components/AvatarEditor";
 import { BalloonGame } from "./components/BalloonGame";
 import { ChessLobby } from "./components/ChessLobby";
 import { DbViewer } from "./components/DbViewer";
@@ -27,6 +28,8 @@ export type { GameId };
 type Screen =
   | "hub"
   | "profile"
+  | "avatar-setup"
+  | "avatar-edit"
   | "leaderboard"
   | "challenge"
   | "db"
@@ -53,9 +56,16 @@ function AppShell() {
     signOut,
     recordCombinedResult,
     recordRatedPuzzle,
+    setAvatarConfig,
   } = usePlayerProfile();
   const [screen, setScreen] = useState<Screen>("hub");
   const goHub = () => setScreen("hub");
+
+  const handleCreateAccount = async (username: string, password: string) => {
+    const result = await createAccount(username, password);
+    if (result.ok) setScreen("avatar-setup");
+    return result;
+  };
 
   if (loading) {
     return (
@@ -68,7 +78,7 @@ function AppShell() {
   if (!profile) {
     return (
       <SignIn
-        onCreateAccount={createAccount}
+        onCreateAccount={handleCreateAccount}
         onSignIn={signIn}
         initialError={bannedNotice}
         onDismissInitialError={dismissBannedNotice}
@@ -103,10 +113,32 @@ function AppShell() {
         <Profile
           profile={profile}
           onBack={goHub}
+          onEditAvatar={() => setScreen("avatar-edit")}
           onSignOut={() => {
             signOut();
             goHub();
           }}
+        />
+      )}
+      {screen === "avatar-setup" && (
+        <AvatarEditor
+          initialConfig={profile.avatarConfig}
+          playerLevel={profile.level}
+          onSave={(config) => {
+            setAvatarConfig(config);
+            goHub();
+          }}
+        />
+      )}
+      {screen === "avatar-edit" && (
+        <AvatarEditor
+          initialConfig={profile.avatarConfig}
+          playerLevel={profile.level}
+          onSave={(config) => {
+            setAvatarConfig(config);
+            setScreen("profile");
+          }}
+          onCancel={() => setScreen("profile")}
         />
       )}
       {screen === "leaderboard" && (

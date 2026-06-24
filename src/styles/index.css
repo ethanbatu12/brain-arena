@@ -1776,6 +1776,11 @@ button {
   font-size: 2.4rem;
   line-height: 1;
   flex-shrink: 0;
+  display: flex;
+}
+
+.home__avatar svg {
+  border-radius: var(--radius-sm);
 }
 
 .home__player-info {
@@ -1901,6 +1906,194 @@ button {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 16%, var(--surface-2));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.profile__avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.profile__avatar svg {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Avatar editor (Bitmoji-style customizer)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.avatar-editor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: clamp(12px, 2.4vw, 20px);
+}
+
+.avatar-editor__preview {
+  display: flex;
+  justify-content: center;
+}
+
+.avatar-editor__preview svg {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.avatar-editor__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.avatar-editor__tab {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.avatar-editor__tab:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.avatar-editor__tab--active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface-2));
+  color: var(--text);
+}
+
+.avatar-editor__panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: clamp(12px, 2.4vw, 18px);
+}
+
+.avatar-editor__row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.avatar-editor__row-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+
+.avatar-editor__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.avatar-editor__option {
+  position: relative;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+
+.avatar-editor__option:hover:not(:disabled) {
+  border-color: var(--accent);
+  transform: scale(1.04);
+}
+
+.avatar-editor__option--active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface-2));
+}
+
+.avatar-editor__option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.avatar-editor__swatch {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+
+.avatar-editor__swatch:hover:not(:disabled) {
+  transform: scale(1.08);
+}
+
+.avatar-editor__swatch--active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.avatar-editor__swatch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.avatar-editor__lock {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  font-size: 11px;
+}
+
+.avatar-editor__toggle {
+  align-self: flex-start;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.avatar-editor__toggle--on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface-2));
+  color: var(--text);
+}
+
+.avatar-editor__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

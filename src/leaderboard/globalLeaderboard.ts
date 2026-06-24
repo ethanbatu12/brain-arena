@@ -1,5 +1,7 @@
 import { averageScore } from "../player/storage";
 import type { PlayerProfile } from "../player/types";
+import { sanitizeAvatarConfig } from "../avatar/serialize";
+import type { AvatarConfig } from "../avatar/types";
 
 const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "")
   ?? "https://ftctcjjvjlnpgxqxdqvt.supabase.co";
@@ -25,6 +27,7 @@ function supabaseHeaders(): HeadersInit {
 export interface GlobalEntry {
   username: string;
   avatar: string;
+  avatar_config: AvatarConfig | null;
   combined_best_score: number;
   total_games_played: number;
   longest_streak: number;
@@ -56,6 +59,7 @@ function profileToEntry(profile: PlayerProfile): Record<string, unknown> {
     device_id: profile.username,
     username: profile.username,
     avatar: profile.avatar ?? "🧠",
+    avatar_config: sanitizeAvatarConfig(profile.avatarConfig),
     combined_best_score: profile.combinedBestScore,
     total_games_played: profile.totalGamesPlayed,
     longest_streak: profile.streak.longestStreak,

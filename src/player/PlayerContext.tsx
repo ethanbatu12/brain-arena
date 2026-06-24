@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { generateSalt, hashPassword, verifyPassword } from "./crypto";
 import type { AchievementRecord, GameId, PlayerProfile } from "./types";
+import type { AvatarConfig } from "../avatar/types";
 import {
   clearCurrentUsername,
   createProfile,
@@ -58,6 +59,7 @@ interface PlayerContextValue {
   recordRatedPuzzle: (correct: boolean, elapsedMs: number, puzzleId?: number) => void;
   recordRatedPatternRun: (solved: number, attempted: number, ratingDelta: number) => void;
   setAvatar: (avatar: string) => void;
+  setAvatarConfig: (avatarConfig: AvatarConfig) => void;
   existingUsernames: string[];
 }
 
@@ -316,6 +318,22 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [currentUsername],
   );
 
+  const setAvatarConfig = useCallback(
+    (avatarConfig: AvatarConfig) => {
+      setProfiles((prev) => {
+        if (!currentUsername) return prev;
+        const current = prev[currentUsername];
+        if (!current) return prev;
+        const updated = { ...current, avatarConfig };
+        void saveProfile(updated);
+        void pushToGlobalLeaderboard(updated);
+        void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
+        return { ...prev, [currentUsername]: updated };
+      });
+    },
+    [currentUsername],
+  );
+
   const profile = currentUsername ? profiles[currentUsername] ?? null : null;
   const allProfiles = useMemo(() => Object.values(profiles), [profiles]);
   const existingUsernames = useMemo(() => Object.keys(profiles), [profiles]);
@@ -339,6 +357,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     recordRatedPuzzle,
     recordRatedPatternRun,
     setAvatar,
+    setAvatarConfig,
     existingUsernames,
   };
 

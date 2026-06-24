@@ -1,3 +1,5 @@
+import type { AvatarConfig } from "../avatar/types";
+
 export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern" | "reaction" | "trivia" | "direction";
 
 export interface StreakData {
@@ -132,8 +134,12 @@ export interface PlayerProfile {
   streak: StreakData;
   achievements: AchievementRecord[];
   dailyChallenges: DailyChallengeRecord[];
-  /** Emoji avatar selected by the user. */
+  /** Emoji avatar selected by the user — legacy fallback for accounts created before the SVG avatar system. */
   avatar: string;
+  /** Fully customizable SVG avatar — the player's primary visual identity. */
+  avatarConfig: AvatarConfig;
+  /** Player level, used by the avatar unlock framework. Defaults to 1 until the future XP/Level system lands. */
+  level: number;
   /** Cumulative blue dots successfully tapped across every Reaction Grid game. */
   reactionDotsHit: number;
   /** Cumulative trivia questions answered (correct + incorrect) across every Brain Blitz game. */

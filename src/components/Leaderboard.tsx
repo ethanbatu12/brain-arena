@@ -8,6 +8,10 @@ import {
 import { ratingTier } from "../pattern/ratedPatternReducer";
 import { averageScore } from "../player/storage";
 import type { GameId, PlayerProfile } from "../player/types";
+import { DEFAULT_AVATAR_CONFIG } from "../avatar/defaults";
+import { sanitizeAvatarConfig } from "../avatar/serialize";
+import type { AvatarConfig } from "../avatar/types";
+import { AvatarSvg } from "./AvatarSvg";
 
 type AvgKey =
   | "memory-avg" | "math-avg" | "logic-avg" | "balloon-avg" | "pattern-avg"
@@ -35,6 +39,7 @@ interface LeaderboardProps {
 interface Row {
   username: string;
   avatar: string;
+  avatarConfig: AvatarConfig;
   value: number;
   label: string;
   isCurrentUser: boolean;
@@ -77,7 +82,14 @@ function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): 
       default:               value = 0; label = "0";
     }
   }
-  return { username: p.username, avatar: p.avatar ?? "🧠", value, label, isCurrentUser: p.username === currentUsername };
+  return {
+    username: p.username,
+    avatar: p.avatar ?? "🧠",
+    avatarConfig: sanitizeAvatarConfig(p.avatarConfig),
+    value,
+    label,
+    isCurrentUser: p.username === currentUsername,
+  };
 }
 
 function globalEntryToRow(e: GlobalEntry, key: SortKey, currentUsername: string): Row {
@@ -109,7 +121,14 @@ function globalEntryToRow(e: GlobalEntry, key: SortKey, currentUsername: string)
     case "direction-avg":       value = e.direction_avg ?? 0; label = value === 0 ? "—" : String(value); break;
     default:                    value = 0; label = "0";
   }
-  return { username: e.username, avatar: e.avatar ?? "🧠", value, label, isCurrentUser: e.username === currentUsername };
+  return {
+    username: e.username,
+    avatar: e.avatar ?? "🧠",
+    avatarConfig: e.avatar_config ? sanitizeAvatarConfig(e.avatar_config) : DEFAULT_AVATAR_CONFIG,
+    value,
+    label,
+    isCurrentUser: e.username === currentUsername,
+  };
 }
 
 interface TabGroup {
@@ -266,7 +285,9 @@ VITE_SUPABASE_ANON_KEY=your-anon-key`}</pre>
               <span className="leaderboard__rank">
                 {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`}
               </span>
-              <span className="leaderboard__avatar">{row.avatar}</span>
+              <span className="leaderboard__avatar">
+                <AvatarSvg config={row.avatarConfig} size={32} />
+              </span>
               <span className="leaderboard__name">
                 {row.username}
                 {row.isCurrentUser && <span className="leaderboard__you-tag"> (you)</span>}
@@ -284,6 +305,7 @@ const SETUP_SQL = `CREATE TABLE leaderboard_entries (
   device_id   TEXT NOT NULL,
   username    TEXT NOT NULL,
   avatar      TEXT DEFAULT '🧠',
+  avatar_config JSONB,
   combined_best_score   INTEGER DEFAULT 0,
   total_games_played    INTEGER DEFAULT 0,
   longest_streak        INTEGER DEFAULT 0,
