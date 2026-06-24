@@ -148,6 +148,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       await saveProfile(profile);
       await saveCurrentUsername(username);
       void pushCloudProfile(username, hash, salt, profile as unknown as Record<string, unknown>);
+      void pushToGlobalLeaderboard(profile);
       setProfiles((prev) => ({ ...prev, [username]: profile }));
       setCurrentUsername(username);
       return { ok: true };
@@ -178,6 +179,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         // Restore the profile from cloud data
         profile = normalizeProfile({ ...createProfile(username, cloud.password_hash, cloud.password_salt), ...(cloud.profile_data as object) });
         await saveProfile(profile);
+        void pushToGlobalLeaderboard(profile);
         setProfiles((prev) => ({ ...prev, [username]: profile! }));
         await saveCurrentUsername(username);
         setCurrentUsername(username);
@@ -188,8 +190,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         return { ok: false, error: "Invalid username or password." };
       }
 
-      // Push to cloud so this account is accessible from other devices
+      // Push to cloud so this account is accessible from other devices, and
+      // ensure they show up on the global leaderboard even if they haven't
+      // played a game yet.
       void pushCloudProfile(profile.username, profile.passwordHash, profile.passwordSalt, profile as unknown as Record<string, unknown>);
+      void pushToGlobalLeaderboard(profile);
       await saveCurrentUsername(username);
       setCurrentUsername(username);
       return { ok: true };
