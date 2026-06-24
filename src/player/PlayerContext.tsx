@@ -25,16 +25,40 @@ import { getDailyGameId, recordDailyChallengeResult } from "./dailyChallenge";
 import { getToday, updateStreak } from "./streak";
 import { pushToGlobalLeaderboard } from "../leaderboard/globalLeaderboard";
 import { fetchCloudProfile, isUserBanned, isUsernameTaken, pushCloudProfile } from "./cloudSync";
+import { awardXp } from "../xp/award";
+import { unlockedTitles, XP_AWARDS } from "../xp/levels";
+import { applyChallengeEvent, ensureTodaysChallenges, type TripleChallengeEvent } from "./tripleChallenges";
+import { sanitizeBorder } from "./borders";
 
-/** Apply streak update + achievement check to an already-updated profile. */
-function applyPostGameEffects(profile: PlayerProfile): {
+/** Apply streak update, daily-challenge tracking, and achievement check to an already-updated profile. */
+function applyPostGameEffects(profile: PlayerProfile, events: TripleChallengeEvent[] = []): {
   updated: PlayerProfile;
   newAchievements: AchievementRecord[];
 } {
   const today = getToday();
-  const withStreak: PlayerProfile = { ...profile, streak: updateStreak(profile.streak, today) };
-  const newIds = checkAchievements(withStreak);
-  const updated = applyAchievements(withStreak, newIds);
+  let working: PlayerProfile = { ...profile, streak: updateStreak(profile.streak, today) };
+
+  const rollover = ensureTodaysChallenges(working.tripleChallenges, working.challengeStreak, today);
+  working = { ...working, tripleChallenges: rollover.state, challengeStreak: rollover.streak };
+
+  for (const event of events) {
+    const { state, xpGained, newlyCompleted } = applyChallengeEvent(working.tripleChallenges, event);
+    working = { ...working, tripleChallenges: state };
+    if (newlyCompleted.length > 0) {
+      working = {
+        ...working,
+        challengeStreak: {
+          ...working.challengeStreak,
+          totalCompleted: working.challengeStreak.totalCompleted + newlyCompleted.length,
+        },
+      };
+    }
+    if (xpGained > 0) working = awardXp(working, xpGained);
+  }
+
+  const newIds = checkAchievements(working);
+  let updated = applyAchievements(working, newIds);
+  if (newIds.length > 0) updated = awardXp(updated, newIds.length * XP_AWARDS.ACHIEVEMENT_UNLOCKED);
   const newAchievements = updated.achievements.filter((a) => newIds.includes(a.id));
   return { updated, newAchievements };
 }
@@ -60,6 +84,8 @@ interface PlayerContextValue {
   recordRatedPatternRun: (solved: number, attempted: number, ratingDelta: number) => void;
   setAvatar: (avatar: string) => void;
   setAvatarConfig: (avatarConfig: AvatarConfig) => void;
+  setSelectedTitle: (title: string) => void;
+  setProfileBorder: (borderId: string) => void;
   existingUsernames: string[];
 }
 
@@ -188,7 +214,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         if (getDailyGameId(today) === gameId) {
           updated = recordDailyChallengeResult(updated, today, gameId, score);
         }
-        const { updated: final, newAchievements } = applyPostGameEffects(updated);
+        const { updated: final, newAchievements } = applyPostGameEffects(updated, [{ type: "game", gameId, score }]);
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(final);
         void pushToGlobalLeaderboard(final);
@@ -206,7 +232,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const current = prev[currentUsername];
         if (!current) return prev;
         const updated = recordReactionResultInStorage(current, score, dotsHit);
-        const { updated: final, newAchievements } = applyPostGameEffects(updated);
+        const { updated: final, newAchievements } = applyPostGameEffects(updated, [{ type: "game", gameId: "reaction", score }]);
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(final);
         void pushToGlobalLeaderboard(final);
@@ -224,7 +250,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const current = prev[currentUsername];
         if (!current) return prev;
         const updated = recordTriviaResultInStorage(current, score, correctCount, totalAnswered);
-        const { updated: final, newAchievements } = applyPostGameEffects(updated);
+        const { updated: final, newAchievements } = applyPostGameEffects(updated, [{ type: "game", gameId: "trivia", score }]);
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(final);
         void pushToGlobalLeaderboard(final);
@@ -242,7 +268,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const current = prev[currentUsername];
         if (!current) return prev;
         const updated = recordDirectionResultInStorage(current, score, correctCount, totalAnswered);
-        const { updated: final, newAchievements } = applyPostGameEffects(updated);
+        const events: TripleChallengeEvent[] = [{ type: "game", gameId: "direction", score }];
+        if (correctCount > 0) events.push({ type: "direction-correct", count: correctCount });
+        const { updated: final, newAchievements } = applyPostGameEffects(updated, events);
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(final);
         void pushToGlobalLeaderboard(final);
@@ -260,7 +288,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const current = prev[currentUsername];
         if (!current) return prev;
         const afterResult = recordCombinedResultInStorage(current, score);
-        const { updated, newAchievements } = applyPostGameEffects(afterResult);
+        const { updated, newAchievements } = applyPostGameEffects(afterResult, [{ type: "all-games-challenge" }]);
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(updated);
         void pushToGlobalLeaderboard(updated);
@@ -277,7 +305,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const current = prev[currentUsername];
         if (!current) return prev;
         const afterResult = recordRatedPuzzleResult(current, correct, elapsedMs, puzzleId);
-        const { updated, newAchievements } = applyPostGameEffects(afterResult);
+        const { updated, newAchievements } = applyPostGameEffects(afterResult, correct ? [{ type: "puzzle-solved" }] : []);
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(updated);
         void pushToGlobalLeaderboard(updated);
@@ -334,9 +362,55 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [currentUsername],
   );
 
+  const setSelectedTitle = useCallback(
+    (title: string) => {
+      setProfiles((prev) => {
+        if (!currentUsername) return prev;
+        const current = prev[currentUsername];
+        if (!current || !unlockedTitles(current.level).includes(title)) return prev;
+        const updated = { ...current, selectedTitle: title };
+        void saveProfile(updated);
+        void pushToGlobalLeaderboard(updated);
+        void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
+        return { ...prev, [currentUsername]: updated };
+      });
+    },
+    [currentUsername],
+  );
+
+  const setProfileBorder = useCallback(
+    (borderId: string) => {
+      setProfiles((prev) => {
+        if (!currentUsername) return prev;
+        const current = prev[currentUsername];
+        if (!current) return prev;
+        const sanitized = sanitizeBorder(borderId, current.level);
+        if (sanitized === "none" && borderId !== "none") return prev;
+        const updated = { ...current, profileBorder: sanitized };
+        void saveProfile(updated);
+        void pushToGlobalLeaderboard(updated);
+        void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
+        return { ...prev, [currentUsername]: updated };
+      });
+    },
+    [currentUsername],
+  );
+
   const profile = currentUsername ? profiles[currentUsername] ?? null : null;
   const allProfiles = useMemo(() => Object.values(profiles), [profiles]);
   const existingUsernames = useMemo(() => Object.keys(profiles), [profiles]);
+
+  // Ensure today's 3 daily challenges exist as soon as a profile becomes active,
+  // not just after the player finishes a game.
+  useEffect(() => {
+    if (!profile) return;
+    const today = getToday();
+    if (profile.tripleChallenges.date === today) return;
+    const rollover = ensureTodaysChallenges(profile.tripleChallenges, profile.challengeStreak, today);
+    const updated = { ...profile, tripleChallenges: rollover.state, challengeStreak: rollover.streak };
+    void saveProfile(updated);
+    setProfiles((prev) => ({ ...prev, [updated.username]: updated }));
+  }, [profile]);
 
   const value: PlayerContextValue = {
     profile,
@@ -358,6 +432,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     recordRatedPatternRun,
     setAvatar,
     setAvatarConfig,
+    setSelectedTitle,
+    setProfileBorder,
     existingUsernames,
   };
 

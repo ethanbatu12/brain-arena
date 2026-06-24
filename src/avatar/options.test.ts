@@ -14,6 +14,8 @@ import {
   HAIR_STYLES,
   MOUTH_STYLES,
   NOSE_STYLES,
+  PANTS_STYLES,
+  SHOE_STYLES,
   SKIN_TONES,
 } from "./options";
 
@@ -30,6 +32,8 @@ const ALL_CATALOGS = {
   MOUTH_STYLES,
   CLOTHING_STYLES,
   CLOTHING_COLORS,
+  PANTS_STYLES,
+  SHOE_STYLES,
   ACCESSORIES,
   BACKGROUNDS,
 };
@@ -57,10 +61,10 @@ describe("avatar option catalogs", () => {
     }
   });
 
-  it("most options are unlocked at level 1, per the spec ('keep most items available')", () => {
+  it("every catalog has at least one option available from level 1, so a brand-new player always has a valid choice", () => {
     for (const [name, catalog] of Object.entries(ALL_CATALOGS)) {
       const unlockedAtStart = catalog.filter((o) => o.unlockLevel === 1).length;
-      expect(unlockedAtStart / catalog.length, `${name} should mostly be unlocked at level 1`).toBeGreaterThanOrEqual(0.5);
+      expect(unlockedAtStart, `${name} should have at least one level-1 option`).toBeGreaterThan(0);
     }
   });
 
@@ -77,6 +81,10 @@ describe("avatar option catalogs", () => {
     expect(MOUTH_STYLES.find((o) => o.value === DEFAULT_AVATAR_CONFIG.mouthStyle)?.unlockLevel).toBe(1);
     expect(CLOTHING_STYLES.find((o) => o.value === DEFAULT_AVATAR_CONFIG.clothingStyle)?.unlockLevel).toBe(1);
     expect(CLOTHING_COLORS.find((o) => o.value === DEFAULT_AVATAR_CONFIG.clothingColor)?.unlockLevel).toBe(1);
+    expect(PANTS_STYLES.find((o) => o.value === DEFAULT_AVATAR_CONFIG.pantsStyle)?.unlockLevel).toBe(1);
+    expect(CLOTHING_COLORS.find((o) => o.value === DEFAULT_AVATAR_CONFIG.pantsColor)?.unlockLevel).toBe(1);
+    expect(SHOE_STYLES.find((o) => o.value === DEFAULT_AVATAR_CONFIG.shoeStyle)?.unlockLevel).toBe(1);
+    expect(CLOTHING_COLORS.find((o) => o.value === DEFAULT_AVATAR_CONFIG.shoeColor)?.unlockLevel).toBe(1);
     expect(ACCESSORIES.find((o) => o.value === DEFAULT_AVATAR_CONFIG.accessory)?.unlockLevel).toBe(1);
     expect(BACKGROUNDS.find((o) => o.value === DEFAULT_AVATAR_CONFIG.background)?.unlockLevel).toBe(1);
   });

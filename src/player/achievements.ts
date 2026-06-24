@@ -241,7 +241,36 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
     icon: "🌍",
     check: (p) => Object.values(p.games).every((g) => g.gamesPlayed >= 1),
   },
-  // ── Daily challenge ───────────────────────────────────────────────────────
+  // ── Daily challenge streaks (3-per-day system) ──────────────────────────
+  {
+    id: "challenge-streak-3",
+    label: "3-Day Challenger",
+    description: "Complete all 3 daily challenges for 3 days in a row.",
+    icon: "🔥",
+    check: (p) => (p.challengeStreak?.longestStreak ?? 0) >= 3,
+  },
+  {
+    id: "challenge-streak-7",
+    label: "7-Day Challenger",
+    description: "Complete all 3 daily challenges for 7 days in a row.",
+    icon: "⚡",
+    check: (p) => (p.challengeStreak?.longestStreak ?? 0) >= 7,
+  },
+  {
+    id: "challenge-streak-30",
+    label: "30-Day Challenger",
+    description: "Complete all 3 daily challenges for 30 days in a row.",
+    icon: "💎",
+    check: (p) => (p.challengeStreak?.longestStreak ?? 0) >= 30,
+  },
+  {
+    id: "challenge-streak-100",
+    label: "100-Day Challenger",
+    description: "Complete all 3 daily challenges for 100 days in a row.",
+    icon: "🌈",
+    check: (p) => (p.challengeStreak?.longestStreak ?? 0) >= 100,
+  },
+  // ── Daily challenge (legacy single-game spotlight) ──────────────────────
   {
     id: "daily-first",
     label: "Daily Player",

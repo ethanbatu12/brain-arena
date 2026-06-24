@@ -62,6 +62,11 @@ export const HAIR_STYLES: AvatarOption<HairStyle>[] = [
   { value: "dreadlocks", label: "Dreadlocks", unlockLevel: 1 },
   { value: "spiky", label: "Spiky", unlockLevel: 1 },
   { value: "mohawk", label: "Mohawk", unlockLevel: 5 },
+  { value: "spikyPro", label: "Spiky Hair", unlockLevel: 10 },
+  { value: "longWavy", label: "Long Wavy Hair", unlockLevel: 10 },
+  { value: "samuraiBun", label: "Samurai Bun", unlockLevel: 20 },
+  { value: "curlyFade", label: "Curly Fade", unlockLevel: 20 },
+  { value: "lightningHair", label: "Lightning Hair", unlockLevel: 35 },
 ];
 
 export const HAIR_LENGTHS: AvatarOption<HairLength>[] = [
@@ -81,6 +86,11 @@ export const HAIR_COLORS: AvatarOption<HairColor>[] = [
   { value: "purple", label: "Purple", unlockLevel: 5, swatch: "#8b5cf6" },
   { value: "white", label: "White", unlockLevel: 5, swatch: "#f1f1f1" },
   { value: "green", label: "Green", unlockLevel: 5, swatch: "#22c55e" },
+  { value: "gold", label: "Gold", unlockLevel: 15, swatch: "#d4af37" },
+  { value: "silver", label: "Silver", unlockLevel: 15, swatch: "#c0c0c8" },
+  { value: "neonRed", label: "Neon Red", unlockLevel: 15, swatch: "#ff1744" },
+  { value: "rainbow", label: "Rainbow", unlockLevel: 30, swatch: "#f472b6" },
+  { value: "galaxy", label: "Galaxy", unlockLevel: 30, swatch: "#6d28d9" },
 ];
 
 export const EYE_SHAPES: AvatarOption<EyeShape>[] = [
@@ -136,7 +146,12 @@ export const CLOTHING_STYLES: AvatarOption<ClothingStyle>[] = [
   { value: "tracksuit", label: "Tracksuit", unlockLevel: 1 },
   { value: "varsity", label: "Varsity Jacket", unlockLevel: 5 },
   { value: "jersey", label: "Jersey", unlockLevel: 5 },
+  { value: "sportsHoodie", label: "Sports Hoodie", unlockLevel: 10 },
+  { value: "trainingJacket", label: "Training Jacket", unlockLevel: 10 },
   { value: "brainLabHoodie", label: "Brain Lab Hoodie", unlockLevel: 15 },
+  { value: "championHoodie", label: "Champion Hoodie", unlockLevel: 25 },
+  { value: "eliteJersey", label: "Elite Jersey", unlockLevel: 25 },
+  { value: "grandmasterRobe", label: "Grandmaster Robe", unlockLevel: 40 },
 ];
 
 export const PANTS_STYLES: AvatarOption<PantsStyle>[] = [
@@ -145,6 +160,8 @@ export const PANTS_STYLES: AvatarOption<PantsStyle>[] = [
   { value: "joggers", label: "Joggers", unlockLevel: 1 },
   { value: "cargo", label: "Cargo Pants", unlockLevel: 1 },
   { value: "trackPants", label: "Track Pants", unlockLevel: 5 },
+  { value: "cargoElite", label: "Tactical Cargo Pants", unlockLevel: 15 },
+  { value: "eliteJoggers", label: "Elite Joggers", unlockLevel: 25 },
 ];
 
 export const SHOE_STYLES: AvatarOption<ShoeStyle>[] = [
@@ -152,6 +169,9 @@ export const SHOE_STYLES: AvatarOption<ShoeStyle>[] = [
   { value: "highTops", label: "High-Tops", unlockLevel: 1 },
   { value: "sandals", label: "Sandals", unlockLevel: 1 },
   { value: "boots", label: "Boots", unlockLevel: 5 },
+  { value: "basketballShoes", label: "Basketball Shoes", unlockLevel: 10 },
+  { value: "runningShoes", label: "Running Shoes", unlockLevel: 20 },
+  { value: "goldenSneakers", label: "Golden Sneakers", unlockLevel: 35 },
 ];
 
 export const CLOTHING_COLORS: AvatarOption<ClothingColor>[] = [
@@ -176,6 +196,10 @@ export const ACCESSORIES: AvatarOption<AccessoryStyle>[] = [
   { value: "hat", label: "Hat", unlockLevel: 5 },
   { value: "beanie", label: "Beanie", unlockLevel: 10 },
   { value: "crown", label: "Crown", unlockLevel: 10 },
+  { value: "headphones", label: "Headphones", unlockLevel: 20 },
+  { value: "sportsHeadband", label: "Sports Headband", unlockLevel: 20 },
+  { value: "goldenCrown", label: "Golden Crown", unlockLevel: 30 },
+  { value: "diamondCrown", label: "Diamond Crown", unlockLevel: 50 },
 ];
 
 export const BACKGROUNDS: AvatarOption<BackgroundStyle>[] = [
@@ -189,4 +213,12 @@ export const BACKGROUNDS: AvatarOption<BackgroundStyle>[] = [
   { value: "gradient-ocean", label: "Ocean", unlockLevel: 1 },
   { value: "gradient-candy", label: "Candy", unlockLevel: 5 },
   { value: "gradient-forest", label: "Forest", unlockLevel: 5 },
+  { value: "gradient-ocean-deep", label: "Ocean Gradient", unlockLevel: 10 },
+  { value: "gradient-sunset-blaze", label: "Sunset Gradient", unlockLevel: 10 },
+  { value: "city-lights", label: "City Lights", unlockLevel: 20 },
+  { value: "basketball-court", label: "Basketball Court", unlockLevel: 20 },
+  { value: "chess-board", label: "Chess Board", unlockLevel: 35 },
+  { value: "neon-arena", label: "Neon Arena", unlockLevel: 35 },
+  { value: "galaxy", label: "Galaxy", unlockLevel: 50 },
+  { value: "golden-trophy-room", label: "Golden Trophy Room", unlockLevel: 50 },
 ];

@@ -1920,6 +1920,41 @@ button {
   box-shadow: var(--shadow);
 }
 
+.profile__avatar-frame {
+  border-radius: var(--radius);
+  display: inline-flex;
+}
+
+.profile__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.profile__row-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.profile__row select {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.profile__locked-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-mute);
+  text-align: center;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    Avatar editor (Bitmoji-style customizer)
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -2094,6 +2129,157 @@ button {
   justify-content: center;
   gap: 10px;
   width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   XP bar
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.xp-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: clamp(10px, 2vw, 16px);
+  background: linear-gradient(180deg, var(--surface), var(--bg-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.xp-bar--compact {
+  padding: 8px 12px;
+}
+
+.xp-bar__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.xp-bar__level {
+  font-weight: 800;
+  font-size: clamp(14px, 3vw, 17px);
+  color: var(--accent);
+}
+
+.xp-bar__title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+
+.xp-bar__track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.xp-bar__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #fbbf24);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.xp-bar__caption {
+  font-size: 11px;
+  color: var(--text-mute);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Daily Challenges widget
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.daily-challenges {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: clamp(12px, 2.4vw, 18px);
+  background: linear-gradient(180deg, var(--surface), var(--bg-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.daily-challenges__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.daily-challenges__title {
+  margin: 0;
+  font-size: clamp(15px, 3.5vw, 18px);
+  font-weight: 700;
+}
+
+.daily-challenges__reset {
+  font-size: 11px;
+  color: var(--text-mute);
+}
+
+.daily-challenges__streak {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--warn);
+}
+
+.daily-challenges__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.daily-challenges__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.daily-challenges__item--done {
+  opacity: 0.7;
+}
+
+.daily-challenges__item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.daily-challenges__item-desc {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.daily-challenges__item-xp {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.daily-challenges__track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.daily-challenges__fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.daily-challenges__progress {
+  font-size: 11px;
+  color: var(--text-mute);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

@@ -124,6 +124,7 @@ function AppShell() {
         <AvatarEditor
           initialConfig={profile.avatarConfig}
           playerLevel={profile.level}
+          xp={profile.xp}
           onSave={(config) => {
             setAvatarConfig(config);
             goHub();
@@ -134,6 +135,7 @@ function AppShell() {
         <AvatarEditor
           initialConfig={profile.avatarConfig}
           playerLevel={profile.level}
+          xp={profile.xp}
           onSave={(config) => {
             setAvatarConfig(config);
             setScreen("profile");

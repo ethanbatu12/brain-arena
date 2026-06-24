@@ -3,10 +3,12 @@ export type SkinTone = "porcelain" | "light" | "tan" | "honey" | "brown" | "deep
 
 export type HairStyle =
   | "bald" | "short" | "long" | "curly" | "ponytail" | "buzzcut" | "mohawk"
-  | "afro" | "bun" | "bangs" | "dreadlocks" | "spiky";
+  | "afro" | "bun" | "bangs" | "dreadlocks" | "spiky"
+  | "spikyPro" | "longWavy" | "samuraiBun" | "curlyFade" | "lightningHair";
 export type HairLength = "short" | "medium" | "long";
 export type HairColor =
-  | "black" | "brown" | "blonde" | "red" | "gray" | "blue" | "pink" | "purple" | "white" | "green";
+  | "black" | "brown" | "blonde" | "red" | "gray" | "blue" | "pink" | "purple" | "white" | "green"
+  | "gold" | "silver" | "neonRed" | "rainbow" | "galaxy";
 
 export type EyeShape = "round" | "almond" | "sleepy" | "wide" | "narrow";
 export type EyeColor = "brown" | "blue" | "green" | "hazel" | "gray" | "amber" | "violet";
@@ -19,16 +21,18 @@ export type MouthStyle = "smile" | "bigSmile" | "neutral" | "smirk" | "openSmile
 export type ClothingStyle =
   | "tshirt" | "hoodie" | "jacket" | "jersey"
   | "tracksuit" | "varsity" | "polo" | "tank" | "graphicTee" | "oversizedHoodie"
-  | "brainLabHoodie";
+  | "brainLabHoodie"
+  | "sportsHoodie" | "trainingJacket" | "championHoodie" | "eliteJersey" | "grandmasterRobe";
 export type ClothingColor = "red" | "blue" | "green" | "yellow" | "purple" | "black" | "white" | "orange";
 
-export type PantsStyle = "jeans" | "shorts" | "joggers" | "trackPants" | "cargo";
+export type PantsStyle = "jeans" | "shorts" | "joggers" | "trackPants" | "cargo" | "cargoElite" | "eliteJoggers";
 
-export type ShoeStyle = "sneakers" | "highTops" | "boots" | "sandals";
+export type ShoeStyle = "sneakers" | "highTops" | "boots" | "sandals" | "basketballShoes" | "runningShoes" | "goldenSneakers";
 
 export type AccessoryStyle =
   | "none" | "glasses" | "sunglasses" | "hat" | "headband" | "beanie"
-  | "cap" | "snapback" | "bucketHat" | "crown";
+  | "cap" | "snapback" | "bucketHat" | "crown"
+  | "headphones" | "sportsHeadband" | "goldenCrown" | "diamondCrown";
 
 export type BackgroundStyle =
   | "solid-sky"
@@ -40,7 +44,15 @@ export type BackgroundStyle =
   | "gradient-sunset"
   | "gradient-ocean"
   | "gradient-candy"
-  | "gradient-forest";
+  | "gradient-forest"
+  | "gradient-ocean-deep"
+  | "gradient-sunset-blaze"
+  | "city-lights"
+  | "basketball-court"
+  | "chess-board"
+  | "neon-arena"
+  | "galaxy"
+  | "golden-trophy-room";
 
 export interface AvatarConfig {
   faceShape: FaceShape;

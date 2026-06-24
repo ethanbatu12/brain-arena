@@ -29,6 +29,14 @@ const BG_GRADIENTS: Record<string, [string, string]> = {
   "gradient-ocean": ["#7fd8e6", "#3b6fd6"],
   "gradient-candy": ["#f7a6e0", "#9a6bf0"],
   "gradient-forest": ["#9fe6a0", "#2f9e6e"],
+  "gradient-ocean-deep": ["#1e3a8a", "#0c4a6e"],
+  "gradient-sunset-blaze": ["#f97316", "#be123c"],
+  "city-lights": ["#1e293b", "#7c3aed"],
+  "basketball-court": ["#c2410c", "#7c2d12"],
+  "chess-board": ["#27272a", "#71717a"],
+  "neon-arena": ["#0f172a", "#22d3ee"],
+  galaxy: ["#1e1b4b", "#7e22ce"],
+  "golden-trophy-room": ["#78350f", "#fbbf24"],
 };
 
 /**
@@ -184,10 +192,22 @@ function PantsLegs({
           <rect x="122" y="220" width="6" height={legBottom - 230} fill={shadow} opacity="0.5" />
         </>
       )}
-      {style === "cargo" && (
+      {(style === "cargo" || style === "cargoElite") && (
         <>
           <rect x="60" y="250" width="14" height="16" rx="3" fill={shadow} opacity="0.7" />
           <rect x="126" y="250" width="14" height="16" rx="3" fill={shadow} opacity="0.7" />
+          {style === "cargoElite" && (
+            <>
+              <rect x="60" y="222" width="14" height="10" rx="3" fill={shadow} opacity="0.7" />
+              <rect x="126" y="222" width="14" height="10" rx="3" fill={shadow} opacity="0.7" />
+            </>
+          )}
+        </>
+      )}
+      {style === "eliteJoggers" && (
+        <>
+          <rect x="58" y="210" width="8" height={legBottom - 210} fill="#fbbf24" opacity="0.85" />
+          <rect x="118" y="210" width="8" height={legBottom - 210} fill="#fbbf24" opacity="0.85" />
         </>
       )}
       {style === "trackPants" && (
@@ -227,13 +247,20 @@ function Shoes({
       </>
     );
   }
-  const height = style === "boots" ? 28 : style === "highTops" ? 22 : 16;
+  const height = style === "boots" ? 28 : style === "highTops" || style === "basketballShoes" ? 22 : 16;
+  const fill = style === "goldenSneakers" ? "#d4af37" : color;
   return (
     <>
-      <rect x="56" y={312 - height} width="38" height={height} rx="8" fill={color} />
-      <rect x="106" y={312 - height} width="38" height={height} rx="8" fill={color} />
+      <rect x="56" y={312 - height} width="38" height={height} rx="8" fill={fill} />
+      <rect x="106" y={312 - height} width="38" height={height} rx="8" fill={fill} />
       <rect x="56" y="304" width="38" height="8" rx="4" fill={shadow} />
       <rect x="106" y="304" width="38" height="8" rx="4" fill={shadow} />
+      {(style === "basketballShoes" || style === "runningShoes") && (
+        <>
+          <rect x="60" y="296" width="30" height="4" rx="2" fill="#ffffff" opacity="0.8" />
+          <rect x="110" y="296" width="30" height="4" rx="2" fill="#ffffff" opacity="0.8" />
+        </>
+      )}
     </>
   );
 }
@@ -281,18 +308,26 @@ function Torso({
           </text>
         </>
       )}
-      {style === "hoodie" && (
+      {(style === "hoodie" || style === "sportsHoodie" || style === "championHoodie") && (
         <>
           <path d="M62 161 C75 151 125 151 138 161 L132 178 C115 168 85 168 68 178 Z" fill={shadow} />
           <circle cx="92" cy="195" r="2.5" fill={shadow} />
           <circle cx="108" cy="195" r="2.5" fill={shadow} />
+          {style === "sportsHoodie" && <rect x="44" y="185" width="10" height="40" fill="#ffffff" opacity="0.8" />}
+          {style === "championHoodie" && <text x="100" y="212" textAnchor="middle" fontSize="13" fontWeight="800" fill="#ffffff">CHAMP</text>}
         </>
       )}
-      {style === "jacket" && (
+      {(style === "jacket" || style === "trainingJacket") && (
         <>
           <rect x="96" y="153" width="8" height="78" fill={shadow} />
           <rect x="50" y="170" width="14" height="10" rx="3" fill={shadow} opacity="0.6" />
           <rect x="136" y="170" width="14" height="10" rx="3" fill={shadow} opacity="0.6" />
+          {style === "trainingJacket" && (
+            <>
+              <rect x="34" y="160" width="6" height="60" fill="#ffffff" opacity="0.8" />
+              <rect x="160" y="160" width="6" height="60" fill="#ffffff" opacity="0.8" />
+            </>
+          )}
         </>
       )}
       {style === "varsity" && (
@@ -302,11 +337,19 @@ function Torso({
           <text x="100" y="200" textAnchor="middle" fontSize="22" fontWeight="700" fill="#ffffff">V</text>
         </>
       )}
-      {style === "jersey" && (
+      {(style === "jersey" || style === "eliteJersey") && (
         <>
           <rect x="70" y="153" width="14" height="14" fill="#ffffff" opacity="0.85" />
           <rect x="116" y="153" width="14" height="14" fill="#ffffff" opacity="0.85" />
-          <text x="100" y="210" textAnchor="middle" fontSize="20" fontWeight="700" fill="#ffffff" opacity="0.9">7</text>
+          <text x="100" y="210" textAnchor="middle" fontSize="20" fontWeight="700" fill="#ffffff" opacity="0.9">
+            {style === "eliteJersey" ? "1" : "7"}
+          </text>
+        </>
+      )}
+      {style === "grandmasterRobe" && (
+        <>
+          <path d="M30 234 C30 165 60 150 100 150 C140 150 170 165 170 234 L170 236 L30 236 Z" fill={fillColor} opacity="0.95" />
+          <rect x="96" y="150" width="8" height="86" fill="#fbbf24" opacity="0.9" />
         </>
       )}
       {style === "polo" && (
@@ -487,8 +530,17 @@ function renderAccessory(accessory: AvatarConfig["accessory"]) {
       </g>
     );
   }
-  if (accessory === "headband") {
-    return <rect x="44" y="58" width="112" height="12" rx="6" fill="#e85d75" />;
+  if (accessory === "headband" || accessory === "sportsHeadband") {
+    return <rect x="44" y="58" width="112" height="12" rx="6" fill={accessory === "sportsHeadband" ? "#2563eb" : "#e85d75"} />;
+  }
+  if (accessory === "headphones") {
+    return (
+      <g stroke="#2a2a2a" strokeWidth="4" fill="#2a2a2a">
+        <path d="M48 90 Q48 30 100 30 Q152 30 152 90" fill="none" />
+        <rect x="40" y="86" width="16" height="26" rx="6" />
+        <rect x="144" y="86" width="16" height="26" rx="6" />
+      </g>
+    );
   }
   if (accessory === "hat") {
     return (
@@ -515,9 +567,16 @@ function renderAccessory(accessory: AvatarConfig["accessory"]) {
       </>
     );
   }
-  if (accessory === "crown") {
+  if (accessory === "crown" || accessory === "goldenCrown" || accessory === "diamondCrown") {
+    const fill = accessory === "diamondCrown" ? "#a5f3fc" : "#fbbf24";
+    const stroke = accessory === "diamondCrown" ? "#0891b2" : "#b45309";
     return (
-      <path d="M50 56 L62 32 L80 50 L100 26 L120 50 L138 32 L150 56 Z" fill="#fbbf24" stroke="#b45309" strokeWidth="2" />
+      <>
+        <path d="M50 56 L62 32 L80 50 L100 26 L120 50 L138 32 L150 56 Z" fill={fill} stroke={stroke} strokeWidth="2" />
+        {accessory === "diamondCrown" && (
+          <circle cx="100" cy="42" r="5" fill="#ffffff" opacity="0.9" />
+        )}
+      </>
     );
   }
   if (accessory === "beanie") {

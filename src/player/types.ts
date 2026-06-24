@@ -1,4 +1,6 @@
 import type { AvatarConfig } from "../avatar/types";
+import type { BorderId } from "./borders";
+import type { ChallengeStreakData, TripleChallengeState } from "./tripleChallenges";
 
 export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern" | "reaction" | "trivia" | "direction";
 
@@ -56,7 +58,11 @@ export type AchievementId =
   | "trivia-questions-100"
   | "trivia-questions-500"
   | "trivia-questions-1000"
-  | "trivia-accuracy-90";
+  | "trivia-accuracy-90"
+  | "challenge-streak-3"
+  | "challenge-streak-7"
+  | "challenge-streak-30"
+  | "challenge-streak-100";
 
 export interface AchievementRecord {
   id: AchievementId;
@@ -138,8 +144,18 @@ export interface PlayerProfile {
   avatar: string;
   /** Fully customizable SVG avatar — the player's primary visual identity. */
   avatarConfig: AvatarConfig;
-  /** Player level, used by the avatar unlock framework. Defaults to 1 until the future XP/Level system lands. */
+  /** Player level, derived from xp; used by the avatar/border/title unlock frameworks. */
   level: number;
+  /** Total lifetime XP earned across the platform. */
+  xp: number;
+  /** The title currently displayed on the profile (must be one the player has unlocked). */
+  selectedTitle: string;
+  /** The profile border currently displayed (must be one the player has unlocked). */
+  profileBorder: BorderId;
+  /** Today's set of 3 daily challenges and progress toward each. */
+  tripleChallenges: TripleChallengeState;
+  /** Streak of consecutive days completing all 3 daily challenges. */
+  challengeStreak: ChallengeStreakData;
   /** Cumulative blue dots successfully tapped across every Reaction Grid game. */
   reactionDotsHit: number;
   /** Cumulative trivia questions answered (correct + incorrect) across every Brain Blitz game. */

@@ -23,6 +23,7 @@ import { mulberry32 } from "../game/rng";
 import { randomizeAvatar } from "../avatar/random";
 import { AVATAR_CATEGORIES, type AvatarCategory, type AvatarConfig } from "../avatar/types";
 import { AvatarSvg } from "./AvatarSvg";
+import { XpBar } from "./XpBar";
 
 const CATEGORY_LABELS: Record<AvatarCategory, string> = {
   face: "Face",
@@ -38,11 +39,12 @@ const CATEGORY_LABELS: Record<AvatarCategory, string> = {
 interface AvatarEditorProps {
   initialConfig: AvatarConfig;
   playerLevel?: number;
+  xp?: number;
   onSave: (config: AvatarConfig) => void;
   onCancel?: () => void;
 }
 
-export function AvatarEditor({ initialConfig, playerLevel = 1, onSave, onCancel }: AvatarEditorProps) {
+export function AvatarEditor({ initialConfig, playerLevel = 1, xp, onSave, onCancel }: AvatarEditorProps) {
   const [config, setConfig] = useState<AvatarConfig>(initialConfig);
   const [category, setCategory] = useState<AvatarCategory>("face");
 
@@ -54,6 +56,7 @@ export function AvatarEditor({ initialConfig, playerLevel = 1, onSave, onCancel 
 
   return (
     <div className="avatar-editor">
+      {xp !== undefined && <XpBar xp={xp} compact />}
       <div className="avatar-editor__preview">
         <AvatarSvg config={config} size={160} />
       </div>

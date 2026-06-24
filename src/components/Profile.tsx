@@ -11,6 +11,10 @@ import {
 } from "../player/storage";
 import type { PlayerProfile } from "../player/types";
 import { AvatarSvg } from "./AvatarSvg";
+import { XpBar } from "./XpBar";
+import { usePlayerProfile } from "../player/PlayerContext";
+import { unlockedTitles } from "../xp/levels";
+import { BORDERS, getBorderDef, unlockedBorders } from "../player/borders";
 
 function formatTime(ms: number): string {
   if (ms === 0) return "—";
@@ -32,7 +36,11 @@ function round(value: number): number {
 }
 
 export function Profile({ profile, onBack, onEditAvatar, onSignOut }: ProfileProps) {
+  const { setSelectedTitle, setProfileBorder } = usePlayerProfile();
   const unlockedIds = new Set(profile.achievements.map((a) => a.id));
+  const titles = unlockedTitles(profile.level);
+  const borders = unlockedBorders(profile.level);
+  const border = getBorderDef(profile.profileBorder);
 
   return (
     <div className="app__shell">
@@ -48,14 +56,80 @@ export function Profile({ profile, onBack, onEditAvatar, onSignOut }: ProfilePro
         </button>
       </div>
 
+      {/* ── Level & XP ──────────────────────────────────────────────── */}
+      <section className="profile__section">
+        <h2 className="profile__section-title">Level & XP</h2>
+        <XpBar xp={profile.xp} selectedTitle={profile.selectedTitle} />
+        {titles.length > 1 && (
+          <div className="profile__row">
+            <label htmlFor="title-select" className="profile__row-label">Display title</label>
+            <select
+              id="title-select"
+              value={profile.selectedTitle}
+              onChange={(e) => setSelectedTitle(e.target.value)}
+            >
+              {titles.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      </section>
+
       {/* ── Avatar ──────────────────────────────────────────────────── */}
       <section className="profile__section">
         <h2 className="profile__section-title">Avatar</h2>
         <div className="profile__avatar">
-          <AvatarSvg config={profile.avatarConfig} size={120} />
+          <div
+            className="profile__avatar-frame"
+            style={{ boxShadow: border.id === "none" ? undefined : `0 0 0 5px ${border.colors[0]}, 0 0 0 8px ${border.colors[1]}` }}
+          >
+            <AvatarSvg config={profile.avatarConfig} size={120} />
+          </div>
           <button className="btn btn--primary" onClick={onEditAvatar}>
             Edit Avatar
           </button>
+        </div>
+        {borders.length > 1 && (
+          <div className="profile__row">
+            <label htmlFor="border-select" className="profile__row-label">Profile border</label>
+            <select
+              id="border-select"
+              value={profile.profileBorder}
+              onChange={(e) => setProfileBorder(e.target.value)}
+            >
+              {borders.map((b) => (
+                <option key={b.id} value={b.id}>{b.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        {borders.length < BORDERS.length && (
+          <p className="profile__locked-hint">
+            🔒 Next border: {BORDERS.find((b) => !borders.includes(b))?.label} — Requires Level{" "}
+            {BORDERS.find((b) => !borders.includes(b))?.unlockLevel}
+          </p>
+        )}
+      </section>
+
+      {/* ── Daily Challenge Streak ───────────────────────────────────── */}
+      <section className="profile__section">
+        <h2 className="profile__section-title">Daily Challenge Streak</h2>
+        <div className="hud">
+          <div className="hud__stats">
+            <div className="stat">
+              <span className="stat__value">🔥 {profile.challengeStreak.currentStreak}</span>
+              <span className="stat__label">Current streak</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.challengeStreak.longestStreak}</span>
+              <span className="stat__label">Longest streak</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.challengeStreak.totalCompleted}</span>
+              <span className="stat__label">Challenges completed</span>
+            </div>
+          </div>
         </div>
       </section>
 

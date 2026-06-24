@@ -15,6 +15,15 @@ import {
   RATED_PATTERN_INITIAL_RATING,
 } from "../pattern/constants";
 import { emptyStreak } from "./streak";
+import { awardXp } from "../xp/award";
+import { levelForTotalXp, titleForLevel, XP_AWARDS } from "../xp/levels";
+import { sanitizeBorder } from "./borders";
+import {
+  emptyChallengeStreak,
+  emptyTripleChallengeState,
+  type ChallengeStreakData,
+  type TripleChallengeState,
+} from "./tripleChallenges";
 
 const USERNAME_PATTERN = /^[A-Za-z0-9 _-]+$/;
 
@@ -47,7 +56,7 @@ export function recordRatedPatternRun(
   const prev = profile.ratedPatterns;
   const newRating = Math.max(0, prev.rating + ratingDelta);
   const newHistory = [...prev.ratingHistory, newRating].slice(-RATED_PATTERN_HISTORY_SIZE);
-  return {
+  const updated = {
     ...profile,
     ratedPatterns: {
       rating: newRating,
@@ -59,6 +68,7 @@ export function recordRatedPatternRun(
       ratingHistory: newHistory,
     },
   };
+  return awardXp(updated, XP_AWARDS.GAME_COMPLETE);
 }
 
 export function emptyRatedPuzzleStats(): RatedPuzzleStats {
@@ -112,7 +122,7 @@ export function recordRatedPuzzleResult(
     totalSolveTimeMs: prev.totalSolveTimeMs + (correct ? elapsedMs : 0),
     puzzleStats,
   };
-  return { ...profile, ratedPuzzles: updated };
+  return awardXp({ ...profile, ratedPuzzles: updated }, XP_AWARDS.GAME_COMPLETE);
 }
 
 export function puzzleWinPct(stats: RatedPuzzleStats): number {
@@ -153,6 +163,11 @@ export function createProfile(
     avatar: "🧠",
     avatarConfig,
     level: 1,
+    xp: 0,
+    selectedTitle: titleForLevel(1),
+    profileBorder: "none",
+    tripleChallenges: emptyTripleChallengeState(),
+    challengeStreak: emptyChallengeStreak(),
     reactionDotsHit: 0,
     triviaQuestionsAnswered: 0,
     triviaCorrectAnswers: 0,
@@ -188,21 +203,31 @@ export function validatePassword(raw: string): { ok: true; password: string } | 
   return { ok: true, password: raw };
 }
 
+/** Base XP for completing a game, plus any bonuses (high score, new personal best). */
+export function xpForGameResult(score: number, isNewBest: boolean): number {
+  let xp = XP_AWARDS.GAME_COMPLETE;
+  if (score >= 1000) xp += XP_AWARDS.SCORE_OVER_1000;
+  if (isNewBest) xp += XP_AWARDS.NEW_PERSONAL_BEST;
+  return xp;
+}
+
 export function recordGameResult(profile: PlayerProfile, gameId: GameId, score: number): PlayerProfile {
   const prevGame = profile.games[gameId];
+  const isNewBest = score > prevGame.bestScore;
   const nextGame: GameStats = {
     bestScore: Math.max(prevGame.bestScore, score),
     gamesPlayed: prevGame.gamesPlayed + 1,
     totalScore: prevGame.totalScore + score,
   };
 
-  return {
+  const updated = {
     ...profile,
     games: { ...profile.games, [gameId]: nextGame },
     totalGamesPlayed: profile.totalGamesPlayed + 1,
     overallBestScore: Math.max(profile.overallBestScore, score),
     overallTotalScore: profile.overallTotalScore + score,
   };
+  return awardXp(updated, xpForGameResult(score, isNewBest));
 }
 
 /** Records a Reaction Grid result: updates games.reaction stats plus the cumulative dots-hit tally. */
@@ -254,7 +279,7 @@ export function directionAccuracy(profile: PlayerProfile): number {
 }
 
 export function recordCombinedResult(profile: PlayerProfile, score: number): PlayerProfile {
-  return {
+  const updated = {
     ...profile,
     combinedBestScore: Math.max(profile.combinedBestScore, score),
     combinedTotalScore: profile.combinedTotalScore + score,
@@ -262,6 +287,7 @@ export function recordCombinedResult(profile: PlayerProfile, score: number): Pla
     overallBestScore: Math.max(profile.overallBestScore, score),
     overallTotalScore: profile.overallTotalScore + score,
   };
+  return awardXp(updated, XP_AWARDS.ALL_GAMES_CHALLENGE);
 }
 
 /** Average score per game session. Zero when no games have been played. */
@@ -301,6 +327,16 @@ function normalizeStreak(s: Partial<StreakData> | undefined): StreakData {
   return { ...emptyStreak(), ...s };
 }
 
+function normalizeTripleChallenges(s: Partial<TripleChallengeState> | undefined): TripleChallengeState {
+  if (!s) return emptyTripleChallengeState();
+  return { ...emptyTripleChallengeState(), ...s };
+}
+
+function normalizeChallengeStreak(s: Partial<ChallengeStreakData> | undefined): ChallengeStreakData {
+  if (!s) return emptyChallengeStreak();
+  return { ...emptyChallengeStreak(), ...s };
+}
+
 export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile {
   // Ensure every game key exists so recordGameResult never crashes on missing keys
   const games = {} as Record<GameId, GameStats>;
@@ -326,7 +362,12 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
     dailyChallenges: profile.dailyChallenges ?? [],
     avatar: profile.avatar ?? "🧠",
     avatarConfig: sanitizeAvatarConfig(profile.avatarConfig),
-    level: profile.level ?? 1,
+    xp: profile.xp ?? 0,
+    level: levelForTotalXp(profile.xp ?? 0).level,
+    selectedTitle: profile.selectedTitle ?? titleForLevel(levelForTotalXp(profile.xp ?? 0).level),
+    profileBorder: sanitizeBorder(profile.profileBorder, levelForTotalXp(profile.xp ?? 0).level),
+    tripleChallenges: normalizeTripleChallenges(profile.tripleChallenges),
+    challengeStreak: normalizeChallengeStreak(profile.challengeStreak),
     reactionDotsHit: profile.reactionDotsHit ?? 0,
     triviaQuestionsAnswered: profile.triviaQuestionsAnswered ?? 0,
     triviaCorrectAnswers: profile.triviaCorrectAnswers ?? 0,

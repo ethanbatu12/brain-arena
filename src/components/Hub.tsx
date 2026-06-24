@@ -3,6 +3,8 @@ import { getDailyGameId, getTodaysDailyRecord } from "../player/dailyChallenge";
 import { getToday } from "../player/streak";
 import type { GameId, PlayerProfile } from "../player/types";
 import { AvatarSvg } from "./AvatarSvg";
+import { XpBar } from "./XpBar";
+import { DailyChallengesWidget } from "./DailyChallengesWidget";
 
 interface HubProps {
   profile: PlayerProfile;
@@ -65,6 +67,12 @@ export function Hub({ profile, onPick, onChess, onProfile, onDb, onLeaderboard, 
           </div>
         </div>
       </div>
+
+      <XpBar xp={profile.xp} selectedTitle={profile.selectedTitle} />
+
+      {profile.tripleChallenges.challenges.length > 0 && (
+        <DailyChallengesWidget challenges={profile.tripleChallenges} streak={profile.challengeStreak} />
+      )}
 
       {/* ── Quick stats ─────────────────────────────────────────────── */}
       <div className="home__summary hud__stats">
