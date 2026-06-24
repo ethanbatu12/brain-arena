@@ -136,6 +136,7 @@ export const CLOTHING_STYLES: AvatarOption<ClothingStyle>[] = [
   { value: "tracksuit", label: "Tracksuit", unlockLevel: 1 },
   { value: "varsity", label: "Varsity Jacket", unlockLevel: 5 },
   { value: "jersey", label: "Jersey", unlockLevel: 5 },
+  { value: "brainLabHoodie", label: "Brain Lab Hoodie", unlockLevel: 15 },
 ];
 
 export const PANTS_STYLES: AvatarOption<PantsStyle>[] = [

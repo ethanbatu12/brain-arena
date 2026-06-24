@@ -249,6 +249,9 @@ function Torso({
 }) {
   const isSleeveless = style === "tank";
   const isOversized = style === "oversizedHoodie";
+  const isBrainLab = style === "brainLabHoodie";
+  const fillColor = isBrainLab ? "#f0b429" : color;
+  const fillShadow = isBrainLab ? "#c8881a" : shadow;
   return (
     <>
       <path
@@ -257,16 +260,26 @@ function Torso({
             ? "M34 232 C34 172 62 150 100 150 C138 150 166 172 166 232 L166 234 L34 234 Z"
             : "M42 230 C42 168 66 148 100 148 C134 148 158 168 158 230 L158 232 L42 232 Z"
         }
-        fill={color}
+        fill={fillColor}
       />
       {!isSleeveless && (
         <>
-          <rect x={isOversized ? 26 : 34} y={isOversized ? 162 : 155} width="20" height={isOversized ? 34 : 40} rx="10" fill={color} />
-          <rect x={isOversized ? 154 : 146} y={isOversized ? 162 : 155} width="20" height={isOversized ? 34 : 40} rx="10" fill={color} />
+          <rect x={isOversized ? 26 : 34} y={isOversized ? 162 : 155} width="20" height={isOversized ? 34 : 40} rx="10" fill={fillColor} />
+          <rect x={isOversized ? 154 : 146} y={isOversized ? 162 : 155} width="20" height={isOversized ? 34 : 40} rx="10" fill={fillColor} />
         </>
       )}
       {isOversized && (
-        <path d="M64 159 C78 150 122 150 136 159 L132 172 C114 164 86 164 68 172 Z" fill={shadow} opacity="0.5" />
+        <path d="M64 159 C78 150 122 150 136 159 L132 172 C114 164 86 164 68 172 Z" fill={fillShadow} opacity="0.5" />
+      )}
+      {isBrainLab && (
+        <>
+          <path d="M62 160 C75 150 125 150 138 160 L132 174 C115 165 85 165 68 174 Z" fill={fillShadow} />
+          <circle cx="92" cy="195" r="2.5" fill={fillShadow} />
+          <circle cx="108" cy="195" r="2.5" fill={fillShadow} />
+          <text x="100" y="212" textAnchor="middle" fontSize="13" fontWeight="800" letterSpacing="0.5" fill="#7a5a10">
+            BRAIN LAB
+          </text>
+        </>
       )}
       {style === "hoodie" && (
         <>
