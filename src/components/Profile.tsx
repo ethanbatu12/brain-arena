@@ -313,9 +313,9 @@ export function Profile({ profile, onBack, onEditAvatar, onSignOut }: ProfilePro
         </div>
       </section>
 
-      {/* ── Brain Blitz Trivia ───────────────────────────────────────── */}
+      {/* ── Mixed Trivia ───────────────────────────────────────── */}
       <section className="profile__section">
-        <h2 className="profile__section-title">Brain Blitz Trivia</h2>
+        <h2 className="profile__section-title">Mixed Trivia</h2>
         <div className="hud">
           <div className="hud__stats">
             <div className="stat">

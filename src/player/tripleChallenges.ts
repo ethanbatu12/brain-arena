@@ -23,7 +23,7 @@ export interface TripleChallengeTemplate {
 /** The full pool of challenge templates a day's 3 are drawn from. */
 export const TRIPLE_CHALLENGE_TEMPLATES: TripleChallengeTemplate[] = [
   { id: "score-memory", description: "Score 1000+ in Memory Matrix", target: 1000 },
-  { id: "score-trivia", description: "Score 1200+ in Brain Blitz Trivia", target: 1200 },
+  { id: "score-trivia", description: "Score 1200+ in Mixed Trivia", target: 1200 },
   { id: "score-pattern", description: "Score 1000+ in Fill in the Pattern", target: 1000 },
   { id: "score-math", description: "Score 800+ in Mental Math", target: 800 },
   { id: "score-balloon", description: "Score 1000+ in Balloon Order", target: 1000 },

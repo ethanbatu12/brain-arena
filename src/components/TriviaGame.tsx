@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   BONUS_EVERY_CORRECT,
   BONUS_POINTS,
   CATEGORY_META,
-  OBSERVATION_REVEAL_MS,
+  DIFFICULTY_META,
   POINTS_PER_CORRECT,
   TRIVIA_GAME_MS,
 } from "../trivia/constants";
@@ -20,19 +20,6 @@ export function TriviaGame({ onExit, mode = "solo", onRoundComplete }: TriviaGam
   const { state, best, start, reset, answer } = useTriviaGame();
   const { phase, question } = state;
 
-  // Observation questions briefly show their grid before the answer choices appear.
-  const [revealed, setRevealed] = useState(true);
-  useEffect(() => {
-    if (!question) return;
-    if (question.category !== "observation" || !question.observationGrid) {
-      setRevealed(true);
-      return;
-    }
-    setRevealed(false);
-    const id = setTimeout(() => setRevealed(true), OBSERVATION_REVEAL_MS);
-    return () => clearTimeout(id);
-  }, [question]);
-
   useEffect(() => {
     if (mode === "challenge" && phase === "idle") start();
   }, [mode, phase, start]);
@@ -44,7 +31,7 @@ export function TriviaGame({ onExit, mode = "solo", onRoundComplete }: TriviaGam
           ‹ Menu
         </button>
         <h1 className="app__logo">
-          Brain<span>Blitz</span>
+          Mixed<span>Trivia</span>
         </h1>
         <p className="app__tag">trivia sprint</p>
       </div>
@@ -57,45 +44,38 @@ export function TriviaGame({ onExit, mode = "solo", onRoundComplete }: TriviaGam
             key={state.flashId}
             className={`trivia__card${state.lastResult ? (state.lastResult.correct ? " trivia__card--correct" : " trivia__card--wrong") : ""}`}
           >
-            <span className="trivia__category">
-              {CATEGORY_META[question.category].icon} {CATEGORY_META[question.category].label}
-            </span>
+            <div className="trivia__meta">
+              <span className="trivia__category">
+                {CATEGORY_META[question.category].icon} {CATEGORY_META[question.category].label}
+              </span>
+              <span className="trivia__difficulty">
+                {DIFFICULTY_META[question.difficulty].icon} {DIFFICULTY_META[question.difficulty].label}
+              </span>
+            </div>
 
-            {question.observationGrid && !revealed ? (
-              <div className="trivia__observation-grid">
-                {question.observationGrid.map((row, ri) => (
-                  <div className="trivia__observation-row" key={ri}>
-                    {row.map((cell, ci) => (
-                      <span className="trivia__observation-cell" key={ci}>
-                        {cell}
-                      </span>
-                    ))}
-                  </div>
-                ))}
-                <p className="trivia__observation-hint">Memorize the grid…</p>
+            {question.type === "image" && question.image && (
+              <div className="trivia__image" aria-hidden>
+                {question.image}
               </div>
-            ) : (
-              <>
-                <p className="trivia__prompt">{question.prompt}</p>
-                <div className="trivia__choices">
-                  {question.choices.map((choice, i) => (
-                    <button key={i} className="trivia__choice" onClick={() => answer(question.id, i)}>
-                      {choice}
-                    </button>
-                  ))}
-                </div>
-              </>
             )}
+
+            <p className="trivia__prompt">{question.prompt}</p>
+            <div className="trivia__choices">
+              {question.choices.map((choice, i) => (
+                <button key={i} className="trivia__choice" onClick={() => answer(question.id, i)}>
+                  {choice}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
         {phase === "idle" && (
           <Overlay>
-            <h2>Brain Blitz Trivia</h2>
+            <h2>Mixed Trivia</h2>
             <p className="overlay__lead">
-              Answer fast, multiple-choice questions across math, logic,
-              patterns, probability, observation, chess, and general
-              knowledge. Difficulty climbs as you go.
+              Fast multiple-choice questions pulled from sports, geography, science, history, technology,
+              entertainment, nature, space, math, logic, and general knowledge. Difficulty climbs as you go.
             </p>
             <ul className="overlay__rules">
               <li>

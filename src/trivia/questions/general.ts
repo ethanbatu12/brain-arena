@@ -1,0 +1,30 @@
+import { mc } from "./seed";
+import type { QuestionSeed } from "./seed";
+
+export const GENERAL_SEEDS: QuestionSeed[] = [
+  mc("easy", "How many days are there in a leap year?", "366", ["365", "364", "367"]),
+  mc("easy", "What is the currency used in Japan?", "Yen", ["Won", "Yuan", "Dollar"]),
+  mc("easy", "How many colors are in a rainbow?", "7", ["6", "8", "5"]),
+  mc("easy", "What is the freezing point of water in Fahrenheit?", "32°F", ["0°F", "100°F", "212°F"]),
+  mc("easy", "How many strings does a standard guitar have?", "6", ["5", "7", "4"]),
+  mc("easy", "What language has the most native speakers worldwide?", "Mandarin Chinese", ["English", "Spanish", "Hindi"]),
+  mc("easy", "How many continents are there?", "7", ["6", "5", "8"]),
+  mc("easy", "What is the most common blood type in humans?", "O positive", ["A positive", "B positive", "AB positive"]),
+  mc("easy", "Which utensil is traditionally used to eat sushi?", "Chopsticks", ["Fork", "Spoon", "Spork"]),
+  mc("easy", "How many sides does a stop sign have?", "8", ["6", "5", "4"]),
+  mc("medium", "What is the most widely spoken official language in the world by number of countries?", "English", ["French", "Spanish", "Arabic"]),
+  mc("medium", "Which spice is derived from the Crocus flower and is the most expensive by weight?", "Saffron", ["Cinnamon", "Vanilla", "Cardamom"]),
+  mc("medium", "What is the term for a fear of spiders?", "Arachnophobia", ["Entomophobia", "Ophidiophobia", "Acrophobia"]),
+  mc("medium", "How many time zones does mainland China officially observe?", "1", ["4", "8", "24"]),
+  mc("medium", "What is the national sport of Japan?", "Sumo wrestling", ["Karate", "Baseball", "Judo"]),
+  mc("medium", "Which metal is liquid at room temperature?", "Mercury", ["Lead", "Tin", "Zinc"]),
+  mc("medium", "What is the most populous city in the world?", "Tokyo", ["Shanghai", "Delhi", "São Paulo"]),
+  mc("medium", "What does 'SOS' traditionally signal?", "Distress / need for help", ["Save Our Ship literally", "Stop Other Signals", "Send Out Supplies"]),
+  mc("hard", "What is the only food that never spoils, given proper storage?", "Honey", ["Salt", "Rice", "Sugar"]),
+  mc("hard", "Which country consumes the most coffee per capita?", "Finland", ["Brazil", "Italy", "United States"]),
+  mc("hard", "What is the term for the fear of long words, ironically?", "Hippopotomonstrosesquippedaliophobia", ["Logophobia", "Sesquipedalophobia", "Verbophobia"]),
+  mc("hard", "What is the rarest blood type in humans?", "AB negative", ["O negative", "B negative", "A negative"]),
+  mc("expert", "What is the only letter that doesn't appear in any U.S. state name?", "Q", ["X", "Z", "J"]),
+  mc("expert", "Which ancient unit of measurement was originally based on the length of a forearm?", "Cubit", ["Span", "Fathom", "League"]),
+  mc("expert", "What was the first product to have a barcode scanned at retail, in 1974?", "A pack of Wrigley's gum", ["A can of Coca-Cola", "A loaf of bread", "A box of cereal"]),
+];

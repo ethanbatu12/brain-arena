@@ -1,6 +1,7 @@
 import type { Rng } from "../game/rng";
 import { TRIVIA_GAME_MS } from "./constants";
-import { bandForQuestionIndex, makeQuestion, scoreForCorrect } from "./logic";
+import { scoreForCorrect } from "./logic";
+import { pickNextQuestion } from "./selection";
 import type { TriviaAction, TriviaState } from "./types";
 
 export function triviaInitialState(): TriviaState {
@@ -12,7 +13,7 @@ export function triviaInitialState(): TriviaState {
     correctCount: 0,
     wrongCount: 0,
     totalAnswered: 0,
-    nextId: 1,
+    usedIds: [],
     lastResult: null,
     flashId: 0,
   };
@@ -25,8 +26,8 @@ export function triviaReduce(state: TriviaState, action: TriviaAction, rng: Rng)
 
     case "START": {
       const base = triviaInitialState();
-      const question = makeQuestion(bandForQuestionIndex(0), rng, base.nextId);
-      return { ...base, phase: "playing", question, nextId: base.nextId + 1 };
+      const question = pickNextQuestion(new Set(), 0, rng);
+      return { ...base, phase: "playing", question, usedIds: [question.id] };
     }
 
     case "ANSWER": {
@@ -39,8 +40,7 @@ export function triviaReduce(state: TriviaState, action: TriviaAction, rng: Rng)
       const totalAnswered = state.totalAnswered + 1;
       const score = correct ? state.score + scoreForCorrect(correctCount) : state.score;
 
-      const nextBand = bandForQuestionIndex(totalAnswered);
-      const question = makeQuestion(nextBand, rng, state.nextId);
+      const question = pickNextQuestion(new Set(state.usedIds), totalAnswered, rng);
 
       return {
         ...state,
@@ -49,7 +49,7 @@ export function triviaReduce(state: TriviaState, action: TriviaAction, rng: Rng)
         correctCount,
         wrongCount,
         totalAnswered,
-        nextId: state.nextId + 1,
+        usedIds: [...state.usedIds, question.id].slice(-200),
         lastResult: { questionId: state.question.id, chosenIndex: action.choiceIndex, correct },
         flashId: state.flashId + 1,
       };

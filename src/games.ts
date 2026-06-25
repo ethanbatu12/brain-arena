@@ -53,9 +53,9 @@ export const GAMES: GameMeta[] = [
   },
   {
     id: "trivia",
-    name: "Brain Blitz Trivia",
+    name: "Mixed Trivia",
     tag: "Quickfire trivia",
-    blurb: "Math, logic, patterns, probability, chess, and more — answer fast, difficulty climbs as you go.",
+    blurb: "Sports, geography, science, history, tech, and more — a huge mix of categories, answer fast, difficulty climbs as you go.",
     accent: "var(--trivia)",
   },
   {

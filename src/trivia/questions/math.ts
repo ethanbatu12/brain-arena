@@ -1,0 +1,31 @@
+import { mc } from "./seed";
+import type { QuestionSeed } from "./seed";
+
+export const MATH_SEEDS: QuestionSeed[] = [
+  mc("easy", "What is 7 + 8?", "15", ["14", "16", "17"]),
+  mc("easy", "What is 9 × 6?", "54", ["56", "52", "48"]),
+  mc("easy", "What is 100 ÷ 4?", "25", ["20", "30", "24"]),
+  mc("easy", "How many sides does a hexagon have?", "6", ["5", "7", "8"]),
+  mc("easy", "What is half of 50?", "25", ["20", "30", "15"]),
+  mc("easy", "What is 12 squared?", "144", ["124", "132", "156"]),
+  mc("easy", "How many degrees are in a right angle?", "90", ["45", "180", "60"]),
+  mc("easy", "What is the next number in the sequence 2, 4, 6, 8, ?", "10", ["9", "12", "11"]),
+  mc("easy", "What is 15% of 200?", "30", ["20", "25", "40"]),
+  mc("easy", "How many minutes are in 2 hours?", "120", ["100", "110", "150"]),
+  mc("medium", "What is the value of pi rounded to two decimal places?", "3.14", ["3.41", "3.16", "3.12"]),
+  mc("medium", "What is the square root of 144?", "12", ["14", "11", "13"]),
+  mc("medium", "If a triangle has angles of 90° and 45°, what is the third angle?", "45°", ["35°", "55°", "60°"]),
+  mc("medium", "What is 8 factorial divided by 7 factorial?", "8", ["7", "56", "1"]),
+  mc("medium", "What is the sum of the interior angles of a triangle?", "180°", ["360°", "90°", "270°"]),
+  mc("medium", "What is 2 to the power of 10?", "1024", ["512", "2048", "1000"]),
+  mc("medium", "What do you call a number that can only be divided by 1 and itself?", "Prime number", ["Composite number", "Whole number", "Rational number"]),
+  mc("medium", "What is the perimeter of a square with side length 9?", "36", ["81", "18", "27"]),
+  mc("hard", "What is the sum of the interior angles of a hexagon?", "720°", ["540°", "900°", "360°"]),
+  mc("hard", "What is the derivative of x² with respect to x?", "2x", ["x", "2", "x²"]),
+  mc("hard", "What is the value of 5! (5 factorial)?", "120", ["100", "60", "20"]),
+  mc("hard", "In a right triangle with legs 3 and 4, what is the hypotenuse?", "5", ["6", "7", "4.5"]),
+  mc("hard", "What is the next number in the Fibonacci sequence: 1, 1, 2, 3, 5, 8, ?", "13", ["11", "12", "15"]),
+  mc("expert", "What is the value of e (Euler's number) rounded to two decimal places?", "2.72", ["3.14", "1.62", "2.42"]),
+  mc("expert", "What is the sum of all interior angles of a 10-sided polygon (decagon)?", "1440°", ["1080°", "1800°", "1260°"]),
+  mc("expert", "What is the result of integrating 2x with respect to x?", "x² + C", ["2x² + C", "x + C", "2 + C"]),
+];

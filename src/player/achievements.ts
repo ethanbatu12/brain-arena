@@ -328,32 +328,32 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
     icon: "✨",
     check: (p) => (p.reactionDotsHit ?? 0) >= 1000,
   },
-  // ── Brain Blitz Trivia ───────────────────────────────────────────────────
+  // ── Mixed Trivia ───────────────────────────────────────────────────
   {
     id: "trivia-first",
     label: "Quiz Rookie",
-    description: "Play your first Brain Blitz Trivia game.",
+    description: "Play your first Mixed Trivia game.",
     icon: "❓",
     check: (p) => p.games.trivia.gamesPlayed >= 1,
   },
   {
     id: "trivia-best-500",
     label: "Quick Thinker",
-    description: "Score 500 in Brain Blitz Trivia.",
+    description: "Score 500 in Mixed Trivia.",
     icon: "💡",
     check: (p) => p.games.trivia.bestScore >= 500,
   },
   {
     id: "trivia-best-1000",
     label: "Trivia Master",
-    description: "Score 1000 in Brain Blitz Trivia.",
+    description: "Score 1000 in Mixed Trivia.",
     icon: "🏅",
     check: (p) => p.games.trivia.bestScore >= 1000,
   },
   {
     id: "trivia-expert",
     label: "Trivia Expert",
-    description: "Score 1500 in Brain Blitz Trivia.",
+    description: "Score 1500 in Mixed Trivia.",
     icon: "🎓",
     check: (p) => p.games.trivia.bestScore >= 1500,
   },

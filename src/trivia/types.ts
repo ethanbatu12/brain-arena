@@ -1,24 +1,31 @@
 export type TriviaCategory =
+  | "sports"
+  | "geography"
+  | "science"
+  | "history"
+  | "technology"
+  | "entertainment"
+  | "nature"
+  | "space"
   | "math"
   | "logic"
-  | "patterns"
-  | "probability"
-  | "observation"
-  | "chess"
   | "general";
 
-export type TriviaDifficulty = "beginner" | "easy" | "medium" | "hard" | "expert" | "master";
+export type TriviaDifficulty = "easy" | "medium" | "hard" | "expert";
+
+export type TriviaQuestionType = "multiple-choice" | "image";
 
 export interface TriviaQuestion {
   id: number;
   category: TriviaCategory;
   difficulty: TriviaDifficulty;
+  type: TriviaQuestionType;
   prompt: string;
+  /** Image-type questions only: an emoji/glyph shown above the prompt (e.g. a flag). */
+  image?: string;
   /** Exactly 4 answer choices. */
   choices: string[];
   correctIndex: number;
-  /** Observation questions only: a small grid briefly shown before the prompt. */
-  observationGrid?: string[][];
 }
 
 export type TriviaPhase = "idle" | "playing" | "over";
@@ -37,7 +44,8 @@ export interface TriviaState {
   correctCount: number;
   wrongCount: number;
   totalAnswered: number;
-  nextId: number;
+  /** Ids of questions already seen this run, most-recent last — used to avoid repeats. */
+  usedIds: number[];
   lastResult: TriviaLastResult | null;
   flashId: number;
 }

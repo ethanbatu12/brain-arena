@@ -1,0 +1,30 @@
+import { mc } from "./seed";
+import type { QuestionSeed } from "./seed";
+
+export const SPACE_SEEDS: QuestionSeed[] = [
+  mc("easy", "What is the closest planet to the Sun?", "Mercury", ["Venus", "Earth", "Mars"]),
+  mc("easy", "What is the name of the galaxy that contains our Solar System?", "Milky Way", ["Andromeda", "Triangulum", "Whirlpool"]),
+  mc("easy", "What do we call a large rock that falls to Earth from space?", "Meteorite", ["Asteroid", "Comet", "Satellite"]),
+  mc("easy", "Which planet is known for its rings?", "Saturn", ["Jupiter", "Uranus", "Neptune"]),
+  mc("easy", "What is the name of Earth's natural satellite?", "The Moon", ["Titan", "Europa", "Phobos"]),
+  mc("easy", "What star is at the center of our Solar System?", "The Sun", ["Sirius", "Polaris", "Proxima Centauri"]),
+  mc("easy", "How many planets are in our Solar System?", "8", ["9", "7", "10"]),
+  mc("easy", "Which agency landed the first humans on the Moon?", "NASA", ["ESA", "Roscosmos", "SpaceX"]),
+  mc("easy", "What is the largest planet in our Solar System?", "Jupiter", ["Saturn", "Earth", "Neptune"]),
+  mc("easy", "What do astronauts wear to breathe in space?", "Spacesuit with oxygen supply", ["Diving mask", "Gas mask", "Oxygen tank only"]),
+  mc("medium", "What is the name of the first artificial satellite launched into space?", "Sputnik 1", ["Explorer 1", "Vostok 1", "Apollo 1"]),
+  mc("medium", "Which planet is known as Earth's 'twin' due to its similar size?", "Venus", ["Mars", "Mercury", "Neptune"]),
+  mc("medium", "What is a black hole's boundary, beyond which nothing can escape, called?", "Event horizon", ["Singularity", "Accretion disk", "Photon sphere"]),
+  mc("medium", "What is the name of NASA's most famous space telescope, launched in 1990?", "Hubble Space Telescope", ["James Webb Telescope", "Kepler Telescope", "Spitzer Telescope"]),
+  mc("medium", "How long does it take light from the Sun to reach Earth?", "About 8 minutes", ["About 1 minute", "About 1 hour", "About 8 seconds"]),
+  mc("medium", "Which planet has the most moons in our Solar System (as currently known)?", "Saturn", ["Jupiter", "Uranus", "Neptune"]),
+  mc("medium", "What is the term for a star's explosive death?", "Supernova", ["Nova", "Pulsar", "Quasar"]),
+  mc("hard", "What was the name of the mission that first landed humans on the Moon?", "Apollo 11", ["Apollo 13", "Gemini 8", "Mercury 7"]),
+  mc("hard", "Which planet has the shortest day in our Solar System?", "Jupiter", ["Saturn", "Mercury", "Earth"]),
+  mc("hard", "What is the name of the dwarf planet that was reclassified from full planet status in 2006?", "Pluto", ["Ceres", "Eris", "Makemake"]),
+  mc("hard", "What is the term for the point in an orbit closest to the Sun?", "Perihelion", ["Aphelion", "Apogee", "Perigee"]),
+  mc("hard", "Which spacecraft was the first to leave the Solar System?", "Voyager 1", ["Pioneer 10", "New Horizons", "Voyager 2"]),
+  mc("expert", "What is the name of the theoretical boundary where the universe's expansion would tear apart all matter?", "Big Rip", ["Heat Death", "Big Crunch", "Vacuum Decay"]),
+  mc("expert", "Which astronomer first proposed that the Earth orbits the Sun, in a heliocentric model?", "Nicolaus Copernicus", ["Galileo Galilei", "Johannes Kepler", "Tycho Brahe"]),
+  mc("expert", "What is the name of the densest known type of star, made almost entirely of neutrons?", "Neutron star", ["White dwarf", "Red giant", "Brown dwarf"]),
+];
