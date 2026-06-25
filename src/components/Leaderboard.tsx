@@ -17,6 +17,7 @@ type SortKey =
   | GameId
   | AvgKey
   | "score"
+  | "level"
   | "pattern-rating"
   | "chess-rating"
   | "chess-puzzle-rating"
@@ -36,6 +37,7 @@ interface Row {
   username: string;
   avatar: string;
   avatarConfig: AvatarConfig;
+  level: number;
   value: number;
   label: string;
   isCurrentUser: boolean;
@@ -69,6 +71,7 @@ function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): 
   } else {
     switch (key) {
       case "score":          value = p.combinedBestScore; label = String(value); break;
+      case "level":          value = p.level; label = `Level ${value}`; break;
       case "pattern-rating": value = p.ratedPatterns.rating; label = `${value} (${ratingTier(value)})`; break;
       case "chess-rating":   value = p.ratedPuzzles.rating; label = String(value); break;
       case "chess-puzzle-rating": value = p.ratedPuzzles.highestRating; label = String(value); break;
@@ -82,6 +85,7 @@ function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): 
     username: p.username,
     avatar: p.avatar ?? "🧠",
     avatarConfig: sanitizeAvatarConfig(p.avatarConfig),
+    level: p.level,
     value,
     label,
     isCurrentUser: p.username === currentUsername,
@@ -98,6 +102,7 @@ const TAB_GROUPS: TabGroup[] = [
     heading: "Overall",
     tabs: [
       { key: "score",          label: "Challenge Score" },
+      { key: "level",          label: "Level" },
       { key: "challenge-runs", label: "Challenge Runs" },
       { key: "games-played",   label: "Games Played" },
       { key: "streak",         label: "Longest Streak" },
@@ -256,6 +261,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key`}</pre>
               <span className="leaderboard__name">
                 {row.username}
                 {row.isCurrentUser && <span className="leaderboard__you-tag"> (you)</span>}
+                {activeKey !== "level" && <span className="leaderboard__level-badge">Lv {row.level}</span>}
               </span>
               <span className="leaderboard__value">{row.label}</span>
             </div>
