@@ -27,3 +27,17 @@ export function partitionByUnlock<T extends string>(
 export function unlockedValues<T extends string>(options: AvatarOption<T>[], playerLevel: number): T[] {
   return options.filter((o) => isUnlocked(o, playerLevel)).map((o) => o.value);
 }
+
+/**
+ * Whether a player can use this option right now — either because they've
+ * leveled up far enough, or (for Weekly Tournament reward items, which are
+ * never unlockable by leveling at all) because they've actually earned it.
+ */
+export function isAvailable<T extends string>(
+  option: AvatarOption<T>,
+  playerLevel: number,
+  ownedExclusives: ReadonlySet<string>,
+): boolean {
+  if (option.exclusive) return ownedExclusives.has(option.value);
+  return isUnlocked(option, playerLevel);
+}

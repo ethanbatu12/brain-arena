@@ -31,7 +31,16 @@ export interface AvatarOption<T extends string> {
   unlockLevel: number;
   /** Swatch color for color-pickers; omitted for shape/style options. */
   swatch?: string;
+  /**
+   * Weekly Tournament reward items: never unlockable by leveling at all
+   * (unlockLevel is a sentinel that's effectively unreachable) — only
+   * granted by owning the item, checked separately from player level.
+   */
+  exclusive?: boolean;
 }
+
+/** Sentinel level used for exclusive items so they never unlock via normal leveling. */
+export const EXCLUSIVE_UNLOCK_LEVEL = 9999;
 
 export const FACE_SHAPES: AvatarOption<FaceShape>[] = [
   { value: "round", label: "Round", unlockLevel: 1 },
@@ -178,6 +187,11 @@ export const CLOTHING_STYLES: AvatarOption<ClothingStyle>[] = [
   { value: "championHoodie", label: "Champion Hoodie", unlockLevel: 25 },
   { value: "eliteJersey", label: "Elite Jersey", unlockLevel: 25 },
   { value: "grandmasterRobe", label: "Grandmaster Robe", unlockLevel: 40 },
+  { value: "tournamentVarsity", label: "Champion Varsity Jacket", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "diamondHoodie", label: "Diamond Hoodie", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "lightningJacket", label: "Lightning Jacket", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "goldChampionJacket", label: "Gold Champion Jacket", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "galaxyChampionHoodie", label: "Galaxy Champion Hoodie", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
 ];
 
 export const PANTS_STYLES: AvatarOption<PantsStyle>[] = [
@@ -226,6 +240,18 @@ export const ACCESSORIES: AvatarOption<AccessoryStyle>[] = [
   { value: "sportsHeadband", label: "Sports Headband", unlockLevel: 20 },
   { value: "goldenCrown", label: "Golden Crown", unlockLevel: 30 },
   { value: "diamondCrown", label: "Diamond Crown", unlockLevel: 50 },
+  { value: "goldChain", label: "Gold Chain", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "diamondChain", label: "Diamond Chain", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "championMedal", label: "Champion Medal", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "platinumNecklace", label: "Platinum Necklace", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "sportWatch", label: "Sport Watch", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "goldWatch", label: "Gold Watch", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "diamondWatch", label: "Diamond Watch", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "championWatch", label: "Champion Watch", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "goldenLaurelCrown", label: "Golden Laurel Crown", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "championHeadband", label: "Champion Headband", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "animatedCrown", label: "Animated Crown", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
+  { value: "championGlasses", label: "Champion Glasses", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
 ];
 
 export const BACKGROUNDS: AvatarOption<BackgroundStyle>[] = [

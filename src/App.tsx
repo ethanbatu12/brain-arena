@@ -21,8 +21,11 @@ import { RatedPatterns } from "./components/RatedPatterns";
 import { PuzzleRush } from "./components/PuzzleRush";
 import { RatedPuzzles } from "./components/RatedPuzzles";
 import { SignIn } from "./components/SignIn";
+import { WeeklyTournament } from "./components/WeeklyTournament";
+import { TournamentHistoryPage } from "./components/TournamentHistoryPage";
 import { PlayerProvider, usePlayerProfile } from "./player/PlayerContext";
 import type { GameId } from "./player/types";
+import { currentTournamentWeek } from "./tournament/schedule";
 
 export type { GameId };
 type Screen =
@@ -40,6 +43,8 @@ type Screen =
   | "pattern-lobby"
   | "pattern-timed"
   | "pattern-rated"
+  | "tournament"
+  | "tournament-history"
   | GameId;
 
 function AppShell() {
@@ -106,9 +111,19 @@ function AppShell() {
           onProfile={() => setScreen("profile")}
           onDb={() => setScreen("db")}
           onLeaderboard={() => setScreen("leaderboard")}
+          onTournament={() => setScreen("tournament")}
           onSignOut={signOut}
         />
       )}
+      {screen === "tournament" && (
+        <WeeklyTournament
+          profile={profile}
+          onBack={goHub}
+          onPlayFeaturedGame={() => setScreen(currentTournamentWeek().gameId)}
+          onViewHistory={() => setScreen("tournament-history")}
+        />
+      )}
+      {screen === "tournament-history" && <TournamentHistoryPage onBack={() => setScreen("tournament")} />}
       {screen === "profile" && (
         <Profile
           profile={profile}
@@ -125,6 +140,7 @@ function AppShell() {
           initialConfig={profile.avatarConfig}
           playerLevel={profile.level}
           xp={profile.xp}
+          ownedExclusives={new Set(profile.exclusiveCosmetics)}
           onSave={(config) => {
             setAvatarConfig(config);
             goHub();
@@ -136,6 +152,7 @@ function AppShell() {
           initialConfig={profile.avatarConfig}
           playerLevel={profile.level}
           xp={profile.xp}
+          ownedExclusives={new Set(profile.exclusiveCosmetics)}
           onSave={(config) => {
             setAvatarConfig(config);
             setScreen("profile");

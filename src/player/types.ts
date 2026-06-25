@@ -1,6 +1,7 @@
 import type { AvatarConfig } from "../avatar/types";
 import type { BorderId } from "./borders";
 import type { ChallengeStreakData, TripleChallengeState } from "./tripleChallenges";
+import type { TournamentStats, WeeklyBadge } from "../tournament/types";
 
 export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern" | "reaction" | "trivia" | "direction";
 
@@ -166,4 +167,12 @@ export interface PlayerProfile {
   directionQuestionsAnswered: number;
   /** Cumulative correct Direction Challenge answers. */
   directionCorrectAnswers: number;
+  /** Avatar option values (clothing/accessory) earned exclusively via Weekly Tournament top-3 finishes. */
+  exclusiveCosmetics: string[];
+  /** Lifetime Weekly Tournament record. */
+  tournamentStats: TournamentStats;
+  /** Temporary Champion/Finalist badge from the most recent top-3 finish, shown for one week. */
+  weeklyBadge: WeeklyBadge | null;
+  /** Tournament week-start dates whose rewards have already been granted, so claiming is idempotent. */
+  claimedTournamentWeeks: string[];
 }

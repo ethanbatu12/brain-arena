@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isUnlocked, partitionByUnlock, unlockedValues } from "./unlocks";
+import { isAvailable, isUnlocked, partitionByUnlock, unlockedValues } from "./unlocks";
 import type { AvatarOption } from "./options";
 
 const OPTIONS: AvatarOption<string>[] = [
@@ -7,6 +7,8 @@ const OPTIONS: AvatarOption<string>[] = [
   { value: "b", label: "B", unlockLevel: 5 },
   { value: "c", label: "C", unlockLevel: 10 },
 ];
+
+const EXCLUSIVE_OPTION: AvatarOption<string> = { value: "trophy-item", label: "Trophy Item", unlockLevel: 9999, exclusive: true };
 
 describe("isUnlocked", () => {
   it("is unlocked when player level meets or exceeds the requirement", () => {
@@ -47,5 +49,24 @@ describe("unlockedValues", () => {
   it("returns just the raw values that are unlocked", () => {
     expect(unlockedValues(OPTIONS, 10)).toEqual(["a", "b", "c"]);
     expect(unlockedValues(OPTIONS, 1)).toEqual(["a"]);
+  });
+});
+
+describe("isAvailable", () => {
+  it("behaves like isUnlocked for ordinary, non-exclusive options", () => {
+    expect(isAvailable(OPTIONS[1], 5, new Set())).toBe(true);
+    expect(isAvailable(OPTIONS[1], 4, new Set())).toBe(false);
+  });
+
+  it("an exclusive option is never available purely from leveling, no matter how high", () => {
+    expect(isAvailable(EXCLUSIVE_OPTION, 999_999, new Set())).toBe(false);
+  });
+
+  it("an exclusive option becomes available once owned", () => {
+    expect(isAvailable(EXCLUSIVE_OPTION, 1, new Set(["trophy-item"]))).toBe(true);
+  });
+
+  it("owning a different exclusive item doesn't unlock this one", () => {
+    expect(isAvailable(EXCLUSIVE_OPTION, 1, new Set(["some-other-item"]))).toBe(false);
   });
 });

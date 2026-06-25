@@ -5,6 +5,7 @@ import type { GameId, PlayerProfile } from "../player/types";
 import { AvatarSvg } from "./AvatarSvg";
 import { XpBar } from "./XpBar";
 import { DailyChallengesWidget } from "./DailyChallengesWidget";
+import { WeeklyTournamentCard } from "./WeeklyTournamentCard";
 
 interface HubProps {
   profile: PlayerProfile;
@@ -13,10 +14,11 @@ interface HubProps {
   onProfile: () => void;
   onDb: () => void;
   onLeaderboard: () => void;
+  onTournament: () => void;
   onSignOut: () => void;
 }
 
-export function Hub({ profile, onPick, onChess, onProfile, onDb, onLeaderboard, onSignOut }: HubProps) {
+export function Hub({ profile, onPick, onChess, onProfile, onDb, onLeaderboard, onTournament, onSignOut }: HubProps) {
   const today = getToday();
   const dailyGameId = getDailyGameId(today);
   const dailyGameMeta = GAMES.find((g) => g.id === dailyGameId)!;
@@ -38,6 +40,9 @@ export function Hub({ profile, onPick, onChess, onProfile, onDb, onLeaderboard, 
           </button>
           <button className="btn btn--ghost" onClick={onLeaderboard}>
             Leaderboard
+          </button>
+          <button className="btn btn--ghost" onClick={onTournament}>
+            Tournament
           </button>
           <button className="btn btn--ghost" onClick={onDb}>
             Database
@@ -69,6 +74,8 @@ export function Hub({ profile, onPick, onChess, onProfile, onDb, onLeaderboard, 
       </div>
 
       <XpBar xp={profile.xp} selectedTitle={profile.selectedTitle} />
+
+      <WeeklyTournamentCard username={profile.username} onView={onTournament} />
 
       {profile.tripleChallenges.challenges.length > 0 && (
         <DailyChallengesWidget challenges={profile.tripleChallenges} streak={profile.challengeStreak} />

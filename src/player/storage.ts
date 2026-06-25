@@ -24,6 +24,7 @@ import {
   type ChallengeStreakData,
   type TripleChallengeState,
 } from "./tripleChallenges";
+import { emptyTournamentStats, type WeeklyBadge } from "../tournament/types";
 
 const USERNAME_PATTERN = /^[A-Za-z0-9 _-]+$/;
 
@@ -173,6 +174,10 @@ export function createProfile(
     triviaCorrectAnswers: 0,
     directionQuestionsAnswered: 0,
     directionCorrectAnswers: 0,
+    exclusiveCosmetics: [],
+    tournamentStats: emptyTournamentStats(),
+    weeklyBadge: null,
+    claimedTournamentWeeks: [],
   };
 }
 
@@ -373,6 +378,10 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
     triviaCorrectAnswers: profile.triviaCorrectAnswers ?? 0,
     directionQuestionsAnswered: profile.directionQuestionsAnswered ?? 0,
     directionCorrectAnswers: profile.directionCorrectAnswers ?? 0,
+    exclusiveCosmetics: profile.exclusiveCosmetics ?? [],
+    tournamentStats: { ...emptyTournamentStats(), ...profile.tournamentStats },
+    weeklyBadge: (profile.weeklyBadge as WeeklyBadge | null | undefined) ?? null,
+    claimedTournamentWeeks: profile.claimedTournamentWeeks ?? [],
   } as PlayerProfile;
 }
 

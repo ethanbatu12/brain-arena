@@ -15,6 +15,7 @@ import { XpBar } from "./XpBar";
 import { usePlayerProfile } from "../player/PlayerContext";
 import { unlockedTitles } from "../xp/levels";
 import { BORDERS, getBorderDef, unlockedBorders } from "../player/borders";
+import { isBadgeActive } from "../tournament/claim";
 
 function formatTime(ms: number): string {
   if (ms === 0) return "—";
@@ -125,6 +126,40 @@ export function Profile({ profile, onBack, onEditAvatar, onSignOut }: ProfilePro
             </p>
           ) : null;
         })()}
+      </section>
+
+      {/* ── Weekly Tournament ─────────────────────────────────────────── */}
+      <section className="profile__section">
+        <h2 className="profile__section-title">Weekly Tournament</h2>
+        {isBadgeActive(profile.weeklyBadge) && profile.weeklyBadge && (
+          <p className={`profile__tournament-badge profile__tournament-badge--${profile.weeklyBadge.type}`}>
+            {profile.weeklyBadge.type === "champion" ? "👑 Weekly Champion" : "🥈 Weekly Finalist"}
+          </p>
+        )}
+        <div className="hud">
+          <div className="hud__stats">
+            <div className="stat">
+              <span className="stat__value">{profile.tournamentStats.weeklyWins}</span>
+              <span className="stat__label">Weekly wins</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.tournamentStats.top3Finishes}</span>
+              <span className="stat__label">Top 3 finishes</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.tournamentStats.bestRank ?? "—"}</span>
+              <span className="stat__label">Best rank</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.tournamentStats.totalTournamentXp}</span>
+              <span className="stat__label">Tournament XP earned</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">{profile.exclusiveCosmetics.length}</span>
+              <span className="stat__label">Exclusive cosmetics</span>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* ── Daily Challenge Streak ───────────────────────────────────── */}

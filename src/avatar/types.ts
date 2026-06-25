@@ -29,7 +29,9 @@ export type ClothingStyle =
   | "tshirt" | "hoodie" | "jacket" | "jersey"
   | "tracksuit" | "varsity" | "polo" | "tank" | "graphicTee" | "oversizedHoodie"
   | "brainLabHoodie"
-  | "sportsHoodie" | "trainingJacket" | "championHoodie" | "eliteJersey" | "grandmasterRobe";
+  | "sportsHoodie" | "trainingJacket" | "championHoodie" | "eliteJersey" | "grandmasterRobe"
+  // Weekly Tournament exclusives — only ever earned by placing top 3, never unlocked by leveling.
+  | "tournamentVarsity" | "diamondHoodie" | "lightningJacket" | "goldChampionJacket" | "galaxyChampionHoodie";
 export type ClothingColor = "red" | "blue" | "green" | "yellow" | "purple" | "black" | "white" | "orange";
 
 export type PantsStyle = "jeans" | "shorts" | "joggers" | "trackPants" | "cargo" | "cargoElite" | "eliteJoggers";
@@ -39,7 +41,11 @@ export type ShoeStyle = "sneakers" | "highTops" | "boots" | "sandals" | "basketb
 export type AccessoryStyle =
   | "none" | "glasses" | "sunglasses" | "hat" | "headband" | "beanie"
   | "cap" | "snapback" | "bucketHat" | "crown"
-  | "headphones" | "sportsHeadband" | "goldenCrown" | "diamondCrown";
+  | "headphones" | "sportsHeadband" | "goldenCrown" | "diamondCrown"
+  // Weekly Tournament exclusives — only ever earned by placing top 3, never unlocked by leveling.
+  | "goldChain" | "diamondChain" | "championMedal" | "platinumNecklace"
+  | "sportWatch" | "goldWatch" | "diamondWatch" | "championWatch"
+  | "goldenLaurelCrown" | "championHeadband" | "animatedCrown" | "championGlasses";
 
 export type BackgroundStyle =
   | "solid-sky"

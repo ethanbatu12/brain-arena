@@ -22,6 +22,7 @@ import {
 } from "../avatar/options";
 import { mulberry32 } from "../game/rng";
 import { randomizeAvatar } from "../avatar/random";
+import { isAvailable } from "../avatar/unlocks";
 import { AVATAR_CATEGORIES, type AvatarCategory, type AvatarConfig } from "../avatar/types";
 import { AvatarSvg } from "./AvatarSvg";
 import { XpBar } from "./XpBar";
@@ -42,11 +43,19 @@ interface AvatarEditorProps {
   initialConfig: AvatarConfig;
   playerLevel?: number;
   xp?: number;
+  ownedExclusives?: ReadonlySet<string>;
   onSave: (config: AvatarConfig) => void;
   onCancel?: () => void;
 }
 
-export function AvatarEditor({ initialConfig, playerLevel = 1, xp, onSave, onCancel }: AvatarEditorProps) {
+export function AvatarEditor({
+  initialConfig,
+  playerLevel = 1,
+  xp,
+  ownedExclusives = new Set(),
+  onSave,
+  onCancel,
+}: AvatarEditorProps) {
   const [config, setConfig] = useState<AvatarConfig>(initialConfig);
   const [category, setCategory] = useState<AvatarCategory>("face");
 
@@ -117,7 +126,7 @@ export function AvatarEditor({ initialConfig, playerLevel = 1, xp, onSave, onCan
 
         {category === "clothing" && (
           <>
-            <OptionRow label="Top style" options={CLOTHING_STYLES} value={config.clothingStyle} level={playerLevel} onSelect={(v) => set("clothingStyle", v)} />
+            <OptionRow label="Top style" options={CLOTHING_STYLES} value={config.clothingStyle} level={playerLevel} ownedExclusives={ownedExclusives} onSelect={(v) => set("clothingStyle", v)} />
             <ColorRow label="Top color" options={CLOTHING_COLORS} value={config.clothingColor} level={playerLevel} onSelect={(v) => set("clothingColor", v)} />
             <OptionRow label="Pants style" options={PANTS_STYLES} value={config.pantsStyle} level={playerLevel} onSelect={(v) => set("pantsStyle", v)} />
             <ColorRow label="Pants color" options={CLOTHING_COLORS} value={config.pantsColor} level={playerLevel} onSelect={(v) => set("pantsColor", v)} />
@@ -127,7 +136,7 @@ export function AvatarEditor({ initialConfig, playerLevel = 1, xp, onSave, onCan
         )}
 
         {category === "accessories" && (
-          <OptionRow label="Accessory" options={ACCESSORIES} value={config.accessory} level={playerLevel} onSelect={(v) => set("accessory", v)} />
+          <OptionRow label="Accessory" options={ACCESSORIES} value={config.accessory} level={playerLevel} ownedExclusives={ownedExclusives} onSelect={(v) => set("accessory", v)} />
         )}
 
         {category === "background" && (
@@ -160,12 +169,14 @@ function OptionRow<T extends string>({
   options,
   value,
   level,
+  ownedExclusives = new Set(),
   onSelect,
 }: {
   label: string;
   options: AvatarOption<T>[];
   value: T;
   level: number;
+  ownedExclusives?: ReadonlySet<string>;
   onSelect: (value: T) => void;
 }) {
   return (
@@ -173,18 +184,20 @@ function OptionRow<T extends string>({
       <p className="avatar-editor__row-label">{label}</p>
       <div className="avatar-editor__swatches">
         {options.map((opt) => {
-          const locked = level < opt.unlockLevel;
+          const locked = !isAvailable(opt, level, ownedExclusives);
+          const lockMsg = opt.exclusive ? "Earn this in a Weekly Tournament top 3" : `Unlocks at level ${opt.unlockLevel}`;
           return (
             <button
               key={opt.value}
               type="button"
-              className={`avatar-editor__option${value === opt.value ? " avatar-editor__option--active" : ""}`}
+              className={`avatar-editor__option${value === opt.value ? " avatar-editor__option--active" : ""}${opt.exclusive ? " avatar-editor__option--exclusive" : ""}`}
               disabled={locked}
-              title={locked ? `Unlocks at level ${opt.unlockLevel}` : opt.label}
+              title={locked ? lockMsg : opt.label}
               onClick={() => onSelect(opt.value)}
             >
               {opt.label}
               {locked && <span className="avatar-editor__lock">🔒</span>}
+              {!locked && opt.exclusive && <span className="avatar-editor__exclusive-tag">🏆</span>}
             </button>
           );
         })}

@@ -299,10 +299,17 @@ function Torso({
   shadow: string;
 }) {
   const isSleeveless = style === "tank";
-  const isOversized = style === "oversizedHoodie";
+  const isOversized = style === "oversizedHoodie" || style === "diamondHoodie" || style === "galaxyChampionHoodie";
   const isBrainLab = style === "brainLabHoodie";
-  const fillColor = isBrainLab ? "#f0b429" : color;
-  const fillShadow = isBrainLab ? "#c8881a" : shadow;
+  const exclusiveFill: Partial<Record<string, [string, string]>> = {
+    diamondHoodie: ["#bdeefc", "#7dd3e0"],
+    lightningJacket: ["#1e293b", "#0f172a"],
+    goldChampionJacket: ["#f0b429", "#c8881a"],
+    galaxyChampionHoodie: ["#4c1d95", "#2e1065"],
+  };
+  const exclusiveColors = exclusiveFill[style];
+  const fillColor = isBrainLab ? "#f0b429" : exclusiveColors ? exclusiveColors[0] : color;
+  const fillShadow = isBrainLab ? "#c8881a" : exclusiveColors ? exclusiveColors[1] : shadow;
   return (
     <>
       <path
@@ -341,24 +348,38 @@ function Torso({
           {style === "championHoodie" && <text x="100" y="212" textAnchor="middle" fontSize="13" fontWeight="800" fill="#ffffff">CHAMP</text>}
         </>
       )}
-      {(style === "jacket" || style === "trainingJacket") && (
+      {(style === "jacket" || style === "trainingJacket" || style === "lightningJacket") && (
         <>
-          <rect x="96" y="153" width="8" height="78" fill={shadow} />
-          <rect x="50" y="170" width="14" height="10" rx="3" fill={shadow} opacity="0.6" />
-          <rect x="136" y="170" width="14" height="10" rx="3" fill={shadow} opacity="0.6" />
+          <rect x="96" y="153" width="8" height="78" fill={fillShadow} />
+          <rect x="50" y="170" width="14" height="10" rx="3" fill={fillShadow} opacity="0.6" />
+          <rect x="136" y="170" width="14" height="10" rx="3" fill={fillShadow} opacity="0.6" />
           {style === "trainingJacket" && (
             <>
               <rect x="34" y="160" width="6" height="60" fill="#ffffff" opacity="0.8" />
               <rect x="160" y="160" width="6" height="60" fill="#ffffff" opacity="0.8" />
             </>
           )}
+          {style === "lightningJacket" && (
+            <path d="M104 158 L88 192 L100 192 L92 224 L116 186 L102 186 Z" fill="#fde047" />
+          )}
         </>
       )}
-      {style === "varsity" && (
+      {(style === "varsity" || style === "tournamentVarsity") && (
         <>
-          <path d="M62 161 C75 151 125 151 138 161 L134 172 C115 163 85 163 66 172 Z" fill={shadow} />
+          <path
+            d="M62 161 C75 151 125 151 138 161 L134 172 C115 163 85 163 66 172 Z"
+            fill={style === "tournamentVarsity" ? "#fbbf24" : shadow}
+          />
           <rect x="42" y="200" width="116" height="10" fill={shadow} opacity="0.5" />
-          <text x="100" y="200" textAnchor="middle" fontSize="22" fontWeight="700" fill="#ffffff">V</text>
+          <text x="100" y="200" textAnchor="middle" fontSize="22" fontWeight="700" fill="#ffffff">
+            {style === "tournamentVarsity" ? "🏆" : "V"}
+          </text>
+        </>
+      )}
+      {style === "goldChampionJacket" && (
+        <>
+          <rect x="96" y="153" width="8" height="78" fill={fillShadow} />
+          <text x="100" y="200" textAnchor="middle" fontSize="18" fontWeight="800" fill="#fff8e1">★</text>
         </>
       )}
       {(style === "jersey" || style === "eliteJersey") && (
@@ -699,18 +720,42 @@ function renderFacialHair(style: AvatarConfig["facialHair"], hair: string, hairS
 }
 
 function renderAccessory(accessory: AvatarConfig["accessory"]) {
-  if (accessory === "glasses" || accessory === "sunglasses") {
-    const lens = accessory === "sunglasses" ? "#2a2a2a" : "none";
+  if (accessory === "glasses" || accessory === "sunglasses" || accessory === "championGlasses") {
+    const lens = accessory === "sunglasses" ? "#2a2a2a" : accessory === "championGlasses" ? "#fbbf24" : "none";
     return (
-      <g stroke="#2a2a2a" strokeWidth="3" fill={lens}>
+      <g stroke={accessory === "championGlasses" ? "#b45309" : "#2a2a2a"} strokeWidth="3" fill={lens}>
         <circle cx="80" cy="96" r="13" />
         <circle cx="120" cy="96" r="13" />
         <line x1="93" y1="96" x2="107" y2="96" />
       </g>
     );
   }
-  if (accessory === "headband" || accessory === "sportsHeadband") {
-    return <rect x="44" y="58" width="112" height="12" rx="6" fill={accessory === "sportsHeadband" ? "#2563eb" : "#e85d75"} />;
+  if (accessory === "goldChain" || accessory === "diamondChain" || accessory === "platinumNecklace") {
+    const linkColor = accessory === "diamondChain" ? "#bdeefc" : accessory === "platinumNecklace" ? "#e5e7eb" : "#d4af37";
+    return (
+      <>
+        <path d="M78 150 Q100 165 122 150" stroke={linkColor} strokeWidth="5" fill="none" strokeLinecap="round" />
+        <circle cx="100" cy="166" r="7" fill={linkColor} stroke={darken(linkColor, 0.25)} strokeWidth="1.5" />
+      </>
+    );
+  }
+  if (accessory === "championMedal") {
+    return (
+      <>
+        <path d="M82 148 Q100 160 118 148" stroke="#dc2626" strokeWidth="6" fill="none" />
+        <circle cx="100" cy="172" r="13" fill="#fbbf24" stroke="#b45309" strokeWidth="2" />
+        <text x="100" y="177" textAnchor="middle" fontSize="13" fontWeight="800" fill="#7c2d12">1</text>
+      </>
+    );
+  }
+  if (accessory === "sportWatch" || accessory === "goldWatch" || accessory === "diamondWatch" || accessory === "championWatch") {
+    const band = accessory === "goldWatch" || accessory === "championWatch" ? "#d4af37" : accessory === "diamondWatch" ? "#bdeefc" : "#2a2a2a";
+    // sits on the wrist of the lowered right arm
+    return <rect x="146" y="226" width="20" height="10" rx="3" fill={band} stroke={darken(band, 0.3)} strokeWidth="1" />;
+  }
+  if (accessory === "headband" || accessory === "sportsHeadband" || accessory === "championHeadband") {
+    const fill = accessory === "championHeadband" ? "#fbbf24" : accessory === "sportsHeadband" ? "#2563eb" : "#e85d75";
+    return <rect x="44" y="58" width="112" height="12" rx="6" fill={fill} />;
   }
   if (accessory === "headphones") {
     return (
@@ -746,15 +791,20 @@ function renderAccessory(accessory: AvatarConfig["accessory"]) {
       </>
     );
   }
-  if (accessory === "crown" || accessory === "goldenCrown" || accessory === "diamondCrown") {
-    const fill = accessory === "diamondCrown" ? "#a5f3fc" : "#fbbf24";
-    const stroke = accessory === "diamondCrown" ? "#0891b2" : "#b45309";
+  if (accessory === "crown" || accessory === "goldenCrown" || accessory === "diamondCrown" || accessory === "goldenLaurelCrown" || accessory === "animatedCrown") {
+    const fill = accessory === "diamondCrown" ? "#a5f3fc" : accessory === "animatedCrown" ? "#f472b6" : "#fbbf24";
+    const stroke = accessory === "diamondCrown" ? "#0891b2" : accessory === "animatedCrown" ? "#9d174d" : "#b45309";
     return (
       <>
         <path d="M50 56 L62 32 L80 50 L100 26 L120 50 L138 32 L150 56 Z" fill={fill} stroke={stroke} strokeWidth="2" />
-        {accessory === "diamondCrown" && (
-          <circle cx="100" cy="42" r="5" fill="#ffffff" opacity="0.9" />
+        {accessory === "diamondCrown" && <circle cx="100" cy="42" r="5" fill="#ffffff" opacity="0.9" />}
+        {accessory === "goldenLaurelCrown" && (
+          <>
+            <path d="M50 56 Q40 44 48 32" stroke="#16a34a" strokeWidth="4" fill="none" strokeLinecap="round" />
+            <path d="M150 56 Q160 44 152 32" stroke="#16a34a" strokeWidth="4" fill="none" strokeLinecap="round" />
+          </>
         )}
+        {accessory === "animatedCrown" && <circle cx="100" cy="38" r="4" fill="#ffffff" opacity="0.95" />}
       </>
     );
   }

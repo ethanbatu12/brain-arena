@@ -2115,6 +2115,17 @@ button {
   font-size: 11px;
 }
 
+.avatar-editor__option--exclusive {
+  border-color: #d4af37;
+}
+
+.avatar-editor__exclusive-tag {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  font-size: 11px;
+}
+
 .avatar-editor__toggle {
   align-self: flex-start;
   font-size: 13px;
@@ -2197,6 +2208,204 @@ button {
 .xp-bar__caption {
   font-size: 11px;
   color: var(--text-mute);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Weekly Tournament
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.tournament-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  padding: clamp(12px, 2.4vw, 18px);
+  background: linear-gradient(135deg, color-mix(in srgb, #d4af37 18%, var(--surface)), var(--surface));
+  border: 1px solid #d4af37;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--text);
+  font-family: inherit;
+}
+
+.tournament-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tournament-card__label {
+  font-size: 13px;
+  font-weight: 800;
+  color: #d4af37;
+}
+
+.tournament-card__timer {
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text-dim);
+}
+
+.tournament-card__game {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.tournament-card__stats {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.tournament-card__cta {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.tournament__hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: clamp(14px, 3vw, 22px);
+  background: linear-gradient(135deg, color-mix(in srgb, #d4af37 14%, var(--surface)), var(--surface));
+  border: 1px solid #d4af37;
+  border-radius: var(--radius);
+}
+
+.tournament__hero-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+.tournament__hero-title {
+  margin: 2px 0 4px;
+  font-size: clamp(18px, 4vw, 24px);
+}
+
+.tournament__hero-blurb {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-dim);
+  max-width: 360px;
+}
+
+.tournament__hero-timer {
+  text-align: right;
+}
+
+.tournament__hero-countdown {
+  display: block;
+  font-size: clamp(20px, 4vw, 28px);
+  font-weight: 800;
+  font-family: var(--mono);
+  color: #d4af37;
+}
+
+.tournament__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tournament__you-summary {
+  font-size: 13px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.tournament__row-gap {
+  text-align: center;
+  color: var(--text-mute);
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.tournament-history__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tournament-history__card {
+  padding: clamp(12px, 2.4vw, 18px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.tournament-history__head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.tournament-history__game {
+  font-weight: 700;
+}
+
+.tournament-history__dates {
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.tournament-history__podium {
+  display: flex;
+  gap: 10px;
+}
+
+.tournament-history__slot {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+}
+
+.tournament-history__place {
+  font-size: 22px;
+}
+
+.tournament-history__name {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tournament-history__score {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+}
+
+.profile__tournament-badge {
+  margin: 0 0 10px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.profile__tournament-badge--champion {
+  background: linear-gradient(135deg, #fbbf24, #b45309);
+  color: #1a1a1a;
+}
+
+.profile__tournament-badge--finalist {
+  background: linear-gradient(135deg, #cbd5e1, #64748b);
+  color: #1a1a1a;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

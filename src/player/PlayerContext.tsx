@@ -28,6 +28,11 @@ import { fetchCloudProfile, isUserBanned, isUsernameTaken, pushCloudProfile } fr
 import { awardXp } from "../xp/award";
 import { unlockedTitles, XP_AWARDS } from "../xp/levels";
 import { applyChallengeEvent, ensureTodaysChallenges, type TripleChallengeEvent } from "./tripleChallenges";
+import { claimTournamentRewards } from "../tournament/claim";
+import { fetchTournamentHistoryForUsername, submitTournamentScore } from "../tournament/cloudSync";
+import { ensureTournamentFinalized } from "../tournament/finalize";
+import { currentTournamentWeek } from "../tournament/schedule";
+import { isPlausibleScore } from "../tournament/scoring";
 import { sanitizeBorder } from "./borders";
 
 /** Apply streak update, daily-challenge tracking, and achievement check to an already-updated profile. */
@@ -207,6 +212,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     void clearCurrentUsername();
   }, []);
 
+  /** Submits this score to the weekly tournament if `gameId` is this week's featured game. */
+  const maybeSubmitTournamentScore = useCallback(
+    (username: string, level: number, gameId: GameId, score: number) => {
+      const week = currentTournamentWeek();
+      if (week.gameId !== gameId || !isPlausibleScore(gameId, score)) return;
+      void submitTournamentScore(week.weekStart, username, gameId, score, level);
+    },
+    [],
+  );
+
   const recordResult = useCallback(
     (gameId: GameId, score: number) => {
       setProfiles((prev) => {
@@ -224,10 +239,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         void saveProfile(final);
         void pushToGlobalLeaderboard(final);
         void pushCloudProfile(final.username, final.passwordHash, final.passwordSalt, final as unknown as Record<string, unknown>);
+        maybeSubmitTournamentScore(final.username, final.level, gameId, score);
         return { ...prev, [currentUsername]: final };
       });
     },
-    [currentUsername],
+    [currentUsername, maybeSubmitTournamentScore],
   );
 
   const recordReactionResult = useCallback(
@@ -242,10 +258,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         void saveProfile(final);
         void pushToGlobalLeaderboard(final);
         void pushCloudProfile(final.username, final.passwordHash, final.passwordSalt, final as unknown as Record<string, unknown>);
+        maybeSubmitTournamentScore(final.username, final.level, "reaction", score);
         return { ...prev, [currentUsername]: final };
       });
     },
-    [currentUsername],
+    [currentUsername, maybeSubmitTournamentScore],
   );
 
   const recordTriviaResult = useCallback(
@@ -260,10 +277,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         void saveProfile(final);
         void pushToGlobalLeaderboard(final);
         void pushCloudProfile(final.username, final.passwordHash, final.passwordSalt, final as unknown as Record<string, unknown>);
+        maybeSubmitTournamentScore(final.username, final.level, "trivia", score);
         return { ...prev, [currentUsername]: final };
       });
     },
-    [currentUsername],
+    [currentUsername, maybeSubmitTournamentScore],
   );
 
   const recordDirectionResult = useCallback(
@@ -280,6 +298,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         void saveProfile(final);
         void pushToGlobalLeaderboard(final);
         void pushCloudProfile(final.username, final.passwordHash, final.passwordSalt, final as unknown as Record<string, unknown>);
+        maybeSubmitTournamentScore(final.username, final.level, "direction", score);
         return { ...prev, [currentUsername]: final };
       });
     },
@@ -421,6 +440,33 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     void saveProfile(updated);
     setProfiles((prev) => ({ ...prev, [updated.username]: updated }));
   }, [profile]);
+
+  // Opportunistically close out last week's tournament and claim any unclaimed
+  // top-3 rewards as soon as a profile becomes active.
+  useEffect(() => {
+    if (!profile) return;
+    const username = profile.username;
+    let cancelled = false;
+    (async () => {
+      await ensureTournamentFinalized();
+      const history = await fetchTournamentHistoryForUsername(username);
+      if (cancelled || history.length === 0) return;
+      const { profile: latest } = (() => {
+        const current = profiles[username];
+        return current ? { profile: current } : { profile: null };
+      })();
+      const base = latest ?? profile;
+      const { profile: updated, newlyClaimed } = claimTournamentRewards(base, history);
+      if (cancelled || newlyClaimed.length === 0) return;
+      void saveProfile(updated);
+      void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
+      setProfiles((prev) => ({ ...prev, [username]: updated }));
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.username]);
 
   const value: PlayerContextValue = {
     profile,
