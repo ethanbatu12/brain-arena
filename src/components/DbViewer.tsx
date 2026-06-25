@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { GAMES } from "../games";
 import { averageScore, combinedAverageScore, overallAverageScore } from "../player/storage";
 import { indexedDbProfileStore } from "../player/db";
+import { diagnoseLeaderboardSync } from "../leaderboard/globalLeaderboard";
 import type { PlayerProfile } from "../player/types";
 
 interface DbViewerProps {
@@ -16,6 +17,8 @@ export function DbViewer({ onBack }: DbViewerProps) {
   const [profiles, setProfiles] = useState<Record<string, PlayerProfile> | null>(null);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [diagResult, setDiagResult] = useState<string | null>(null);
+  const [diagRunning, setDiagRunning] = useState(false);
 
   const refresh = async () => {
     setLoading(true);
@@ -26,6 +29,14 @@ export function DbViewer({ onBack }: DbViewerProps) {
     setProfiles(all);
     setCurrentUsername(current);
     setLoading(false);
+  };
+
+  const runDiagnostic = async () => {
+    setDiagRunning(true);
+    setDiagResult(null);
+    const result = await diagnoseLeaderboardSync();
+    setDiagResult(result);
+    setDiagRunning(false);
   };
 
   useEffect(() => {
@@ -65,6 +76,33 @@ export function DbViewer({ onBack }: DbViewerProps) {
         <button className="btn btn--ghost" onClick={refresh} disabled={loading}>
           {loading ? "Refreshing…" : "Refresh"}
         </button>
+      </section>
+
+      <section className="profile__section">
+        <h2 className="profile__section-title">Cloud Sync Diagnostic</h2>
+        <p className="profile__row-label" style={{ marginBottom: 10 }}>
+          Runs a real test write to the global leaderboard and shows exactly what Supabase says back — use this to
+          debug avatar/sync issues without needing browser DevTools.
+        </p>
+        <button className="btn btn--primary" onClick={runDiagnostic} disabled={diagRunning}>
+          {diagRunning ? "Running…" : "Test Cloud Sync"}
+        </button>
+        {diagResult && (
+          <pre
+            style={{
+              marginTop: 12,
+              padding: 12,
+              background: "var(--surface-2)",
+              borderRadius: 8,
+              fontSize: 12,
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              userSelect: "text",
+            }}
+          >
+            {diagResult}
+          </pre>
+        )}
       </section>
 
       {usernames.map((username) => {

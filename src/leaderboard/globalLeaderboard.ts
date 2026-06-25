@@ -116,6 +116,54 @@ export async function pushToGlobalLeaderboard(profile: PlayerProfile): Promise<v
   }
 }
 
+/**
+ * Performs a real write + read + cleanup against leaderboard_entries and
+ * returns a human-readable transcript of exactly what happened, including
+ * raw HTTP status codes and response bodies. For diagnosing sync failures
+ * without needing browser DevTools.
+ */
+export async function diagnoseLeaderboardSync(): Promise<string> {
+  const lines: string[] = [];
+  lines.push(`URL: ${SUPABASE_URL}`);
+  lines.push(`Key configured: ${isGlobalLeaderboardEnabled() ? "yes" : "NO — missing env vars"}`);
+  if (!isGlobalLeaderboardEnabled()) return lines.join("\n");
+
+  const testName = `__diag_${Date.now()}`;
+  const testAvatar = { test: true, when: new Date().toISOString() };
+
+  try {
+    lines.push("\n--- Step 1: insert a test row ---");
+    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+      method: "POST",
+      headers: { ...supabaseHeaders(), Prefer: "return=representation" },
+      body: JSON.stringify({ device_id: testName, username: testName, avatar_config: testAvatar }),
+    });
+    const insertText = await insertRes.text();
+    lines.push(`Status: ${insertRes.status} ${insertRes.statusText}`);
+    lines.push(`Body: ${insertText.slice(0, 500)}`);
+
+    lines.push("\n--- Step 2: read it back ---");
+    const readRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/${TABLE}?username=eq.${testName}&select=username,avatar_config`,
+      { headers: supabaseHeaders() },
+    );
+    const readText = await readRes.text();
+    lines.push(`Status: ${readRes.status} ${readRes.statusText}`);
+    lines.push(`Body: ${readText.slice(0, 500)}`);
+
+    lines.push("\n--- Step 3: clean up test row ---");
+    const delRes = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?username=eq.${testName}`, {
+      method: "DELETE",
+      headers: supabaseHeaders(),
+    });
+    lines.push(`Status: ${delRes.status} ${delRes.statusText}`);
+  } catch (err) {
+    lines.push(`\nNETWORK ERROR (request never completed): ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  return lines.join("\n");
+}
+
 /** Fetch global leaderboard entries sorted by combined_best_score descending, deduplicated by username. */
 export async function fetchGlobalLeaderboard(): Promise<GlobalEntry[]> {
   if (!isGlobalLeaderboardEnabled()) return [];
