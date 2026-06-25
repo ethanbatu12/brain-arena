@@ -297,6 +297,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(updated);
         void pushToGlobalLeaderboard(updated);
+        void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
         return { ...prev, [currentUsername]: updated };
       });
     },
@@ -314,6 +315,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(updated);
         void pushToGlobalLeaderboard(updated);
+        void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
         return { ...prev, [currentUsername]: updated };
       });
     },
@@ -331,6 +333,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         if (newAchievements.length > 0) setPendingAchievements((p) => [...p, ...newAchievements]);
         void saveProfile(updated);
         void pushToGlobalLeaderboard(updated);
+        void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
         return { ...prev, [currentUsername]: updated };
       });
     },
@@ -345,6 +348,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         if (!current) return prev;
         const updated = { ...current, avatar };
         void saveProfile(updated);
+        void pushToGlobalLeaderboard(updated);
+        void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
         return { ...prev, [currentUsername]: updated };
       });
     },
