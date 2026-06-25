@@ -96,15 +96,22 @@ export function Profile({ profile, onBack, onEditAvatar, onSignOut }: ProfilePro
               Profile border:{" "}
               <span style={{ color: border.colors[0], fontWeight: 700 }}>{border.label}</span>
             </label>
-            <select
-              id="border-select"
-              value={profile.profileBorder}
-              onChange={(e) => setProfileBorder(e.target.value)}
-            >
-              {borders.map((b) => (
-                <option key={b.id} value={b.id} style={{ color: b.colors[0] }}>{b.label}</option>
-              ))}
-            </select>
+            <div className="profile__border-select-wrap">
+              <span
+                className="profile__border-dot"
+                aria-hidden
+                style={{ background: `linear-gradient(135deg, ${border.colors[0]}, ${border.colors[1]})` }}
+              />
+              <select
+                id="border-select"
+                value={profile.profileBorder}
+                onChange={(e) => setProfileBorder(e.target.value)}
+              >
+                {borders.map((b) => (
+                  <option key={b.id} value={b.id} style={{ color: b.colors[0] }}>{b.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
         {borders.length < BORDERS.length && (() => {
