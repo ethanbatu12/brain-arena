@@ -91,17 +91,19 @@ export function Profile({ profile, onBack, onEditAvatar, onSignOut }: ProfilePro
           </button>
         </div>
         {borders.length > 1 && (
-          <div className="profile__row">
-            <label htmlFor="border-select" className="profile__row-label">
-              Profile border:{" "}
-              <span style={{ color: border.colors[0], fontWeight: 700 }}>{border.label}</span>
-            </label>
-            <div className="profile__border-select-wrap">
-              <span
-                className="profile__border-dot"
-                aria-hidden
+          <>
+            {border.id !== "none" && (
+              <p
+                className="profile__border-badge"
                 style={{ background: `linear-gradient(135deg, ${border.colors[0]}, ${border.colors[1]})` }}
-              />
+              >
+                {border.label}
+              </p>
+            )}
+            <div className="profile__row">
+              <label htmlFor="border-select" className="profile__row-label">
+                Profile border
+              </label>
               <select
                 id="border-select"
                 value={profile.profileBorder}
@@ -112,7 +114,7 @@ export function Profile({ profile, onBack, onEditAvatar, onSignOut }: ProfilePro
                 ))}
               </select>
             </div>
-          </div>
+          </>
         )}
         {borders.length < BORDERS.length && (() => {
           const next = BORDERS.find((b) => !borders.includes(b));

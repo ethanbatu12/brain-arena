@@ -1946,18 +1946,16 @@ button {
   font-size: 13px;
 }
 
-.profile__border-select-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.profile__border-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  box-shadow: 0 0 0 1px var(--border);
+.profile__border-badge {
+  margin: 4px 0 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 14px;
+  color: #1a1a1a;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.35);
+  box-shadow: var(--shadow);
 }
 
 .profile__locked-hint {
