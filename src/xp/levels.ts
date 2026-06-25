@@ -61,7 +61,7 @@ export function titleForLevel(level: number): string {
 
 /** XP awarded for various platform-wide actions. */
 export const XP_AWARDS = {
-  GAME_COMPLETE: 25,
+  GAME_COMPLETE: 40,
   SCORE_OVER_1000: 25,
   NEW_PERSONAL_BEST: 50,
   ACHIEVEMENT_UNLOCKED: 100,
