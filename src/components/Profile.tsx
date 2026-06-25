@@ -29,6 +29,7 @@ interface ProfileProps {
   profile: PlayerProfile;
   onBack: () => void;
   onEditAvatar: () => void;
+  onViewLevels: () => void;
   onSignOut: () => void;
 }
 
@@ -36,7 +37,7 @@ function round(value: number): number {
   return Math.round(value);
 }
 
-export function Profile({ profile, onBack, onEditAvatar, onSignOut }: ProfileProps) {
+export function Profile({ profile, onBack, onEditAvatar, onViewLevels, onSignOut }: ProfileProps) {
   const { setSelectedTitle, setProfileBorder } = usePlayerProfile();
   const unlockedIds = new Set(profile.achievements.map((a) => a.id));
   const titles = unlockedTitles(profile.level);
@@ -59,7 +60,10 @@ export function Profile({ profile, onBack, onEditAvatar, onSignOut }: ProfilePro
 
       {/* ── Level & XP ──────────────────────────────────────────────── */}
       <section className="profile__section">
-        <h2 className="profile__section-title">Level & XP</h2>
+        <button className="profile__levels-link" onClick={onViewLevels} aria-label="View levels page">
+          <h2 className="profile__section-title">Level & XP</h2>
+          <span className="profile__levels-arrow">›</span>
+        </button>
         <XpBar xp={profile.xp} selectedTitle={profile.selectedTitle} />
         {titles.length > 1 && (
           <div className="profile__row">

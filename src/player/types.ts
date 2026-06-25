@@ -149,6 +149,10 @@ export interface PlayerProfile {
   level: number;
   /** Total lifetime XP earned across the platform. */
   xp: number;
+  /** XP earned on the current UTC day; resets to a fresh amount once the date rolls over. */
+  xpEarnedToday: { date: string; amount: number };
+  /** XP earned during the current tournament week (Monday-Sunday UTC); resets each new week. */
+  xpEarnedThisWeek: { weekStart: string; amount: number };
   /** The title currently displayed on the profile (must be one the player has unlocked). */
   selectedTitle: string;
   /** The profile border currently displayed (must be one the player has unlocked). */

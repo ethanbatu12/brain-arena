@@ -23,6 +23,7 @@ import { RatedPuzzles } from "./components/RatedPuzzles";
 import { SignIn } from "./components/SignIn";
 import { WeeklyTournament } from "./components/WeeklyTournament";
 import { TournamentHistoryPage } from "./components/TournamentHistoryPage";
+import { LevelsPage } from "./components/LevelsPage";
 import { PlayerProvider, usePlayerProfile } from "./player/PlayerContext";
 import type { GameId } from "./player/types";
 import { currentTournamentWeek } from "./tournament/schedule";
@@ -31,6 +32,7 @@ export type { GameId };
 type Screen =
   | "hub"
   | "profile"
+  | "levels"
   | "avatar-setup"
   | "avatar-edit"
   | "leaderboard"
@@ -129,12 +131,14 @@ function AppShell() {
           profile={profile}
           onBack={goHub}
           onEditAvatar={() => setScreen("avatar-edit")}
+          onViewLevels={() => setScreen("levels")}
           onSignOut={() => {
             signOut();
             goHub();
           }}
         />
       )}
+      {screen === "levels" && <LevelsPage profile={profile} onBack={() => setScreen("profile")} />}
       {screen === "avatar-setup" && (
         <AvatarEditor
           initialConfig={profile.avatarConfig}
