@@ -3,7 +3,8 @@ export type FaceShape =
   | "long" | "chubby" | "squareJaw" | "triangle";
 export type SkinTone =
   | "porcelain" | "light" | "tan" | "honey" | "brown" | "deep"
-  | "fair" | "almond" | "caramel" | "ebony";
+  | "fair" | "almond" | "caramel" | "ebony"
+  | "diamond" | "gold";
 
 export type HairStyle =
   | "bald" | "short" | "long" | "curly" | "ponytail" | "buzzcut" | "mohawk"

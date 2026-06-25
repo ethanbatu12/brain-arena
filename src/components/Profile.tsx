@@ -92,24 +92,30 @@ export function Profile({ profile, onBack, onEditAvatar, onSignOut }: ProfilePro
         </div>
         {borders.length > 1 && (
           <div className="profile__row">
-            <label htmlFor="border-select" className="profile__row-label">Profile border</label>
+            <label htmlFor="border-select" className="profile__row-label">
+              Profile border:{" "}
+              <span style={{ color: border.colors[0], fontWeight: 700 }}>{border.label}</span>
+            </label>
             <select
               id="border-select"
               value={profile.profileBorder}
               onChange={(e) => setProfileBorder(e.target.value)}
             >
               {borders.map((b) => (
-                <option key={b.id} value={b.id}>{b.label}</option>
+                <option key={b.id} value={b.id} style={{ color: b.colors[0] }}>{b.label}</option>
               ))}
             </select>
           </div>
         )}
-        {borders.length < BORDERS.length && (
-          <p className="profile__locked-hint">
-            🔒 Next border: {BORDERS.find((b) => !borders.includes(b))?.label} — Requires Level{" "}
-            {BORDERS.find((b) => !borders.includes(b))?.unlockLevel}
-          </p>
-        )}
+        {borders.length < BORDERS.length && (() => {
+          const next = BORDERS.find((b) => !borders.includes(b));
+          return next ? (
+            <p className="profile__locked-hint">
+              🔒 Next border: <span style={{ color: next.colors[0], fontWeight: 700 }}>{next.label}</span> — Requires
+              Level {next.unlockLevel}
+            </p>
+          ) : null;
+        })()}
       </section>
 
       {/* ── Daily Challenge Streak ───────────────────────────────────── */}

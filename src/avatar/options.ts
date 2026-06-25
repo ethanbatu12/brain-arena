@@ -56,6 +56,8 @@ export const SKIN_TONES: AvatarOption<SkinTone>[] = [
   { value: "brown", label: "Brown", unlockLevel: 1, swatch: "#9c6240" },
   { value: "deep", label: "Deep", unlockLevel: 1, swatch: "#6b4128" },
   { value: "ebony", label: "Ebony", unlockLevel: 1, swatch: "#4a2c1c" },
+  { value: "diamond", label: "Diamond", unlockLevel: 50, swatch: "#bdeefc" },
+  { value: "gold", label: "Gold", unlockLevel: 100, swatch: "#e9c46a" },
 ];
 
 export const HAIR_STYLES: AvatarOption<HairStyle>[] = [
