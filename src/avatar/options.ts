@@ -7,6 +7,7 @@ import type {
   EyebrowStyle,
   EyeShape,
   FaceShape,
+  FacialHairStyle,
   HairColor,
   HairLength,
   HairStyle,
@@ -38,15 +39,23 @@ export const FACE_SHAPES: AvatarOption<FaceShape>[] = [
   { value: "square", label: "Square", unlockLevel: 1 },
   { value: "heart", label: "Heart", unlockLevel: 1 },
   { value: "diamond", label: "Diamond", unlockLevel: 1 },
+  { value: "long", label: "Long", unlockLevel: 1 },
+  { value: "chubby", label: "Chubby", unlockLevel: 1 },
+  { value: "squareJaw", label: "Square Jaw", unlockLevel: 1 },
+  { value: "triangle", label: "Triangle", unlockLevel: 1 },
 ];
 
 export const SKIN_TONES: AvatarOption<SkinTone>[] = [
   { value: "porcelain", label: "Porcelain", unlockLevel: 1, swatch: "#fde8d8" },
+  { value: "fair", label: "Fair", unlockLevel: 1, swatch: "#f9ddc2" },
   { value: "light", label: "Light", unlockLevel: 1, swatch: "#f6d2ae" },
   { value: "tan", label: "Tan", unlockLevel: 1, swatch: "#e3b287" },
+  { value: "almond", label: "Almond", unlockLevel: 1, swatch: "#d39c6c" },
   { value: "honey", label: "Honey", unlockLevel: 1, swatch: "#c9925f" },
+  { value: "caramel", label: "Caramel", unlockLevel: 1, swatch: "#b07847" },
   { value: "brown", label: "Brown", unlockLevel: 1, swatch: "#9c6240" },
   { value: "deep", label: "Deep", unlockLevel: 1, swatch: "#6b4128" },
+  { value: "ebony", label: "Ebony", unlockLevel: 1, swatch: "#4a2c1c" },
 ];
 
 export const HAIR_STYLES: AvatarOption<HairStyle>[] = [
@@ -99,6 +108,8 @@ export const EYE_SHAPES: AvatarOption<EyeShape>[] = [
   { value: "sleepy", label: "Sleepy", unlockLevel: 1 },
   { value: "wide", label: "Wide", unlockLevel: 1 },
   { value: "narrow", label: "Narrow", unlockLevel: 1 },
+  { value: "hooded", label: "Hooded", unlockLevel: 1 },
+  { value: "cat", label: "Cat-Eye", unlockLevel: 1 },
 ];
 
 export const EYE_COLORS: AvatarOption<EyeColor>[] = [
@@ -116,6 +127,8 @@ export const EYEBROW_STYLES: AvatarOption<EyebrowStyle>[] = [
   { value: "arched", label: "Arched", unlockLevel: 1 },
   { value: "thick", label: "Thick", unlockLevel: 1 },
   { value: "thin", label: "Thin", unlockLevel: 1 },
+  { value: "bushy", label: "Bushy", unlockLevel: 1 },
+  { value: "soft", label: "Soft", unlockLevel: 1 },
 ];
 
 export const NOSE_STYLES: AvatarOption<NoseStyle>[] = [
@@ -133,6 +146,17 @@ export const MOUTH_STYLES: AvatarOption<MouthStyle>[] = [
   { value: "smirk", label: "Smirk", unlockLevel: 1 },
   { value: "openSmile", label: "Open Smile", unlockLevel: 1 },
   { value: "pursed", label: "Pursed", unlockLevel: 1 },
+  { value: "toothySmile", label: "Toothy Smile", unlockLevel: 1 },
+  { value: "smolder", label: "Smolder", unlockLevel: 1 },
+];
+
+export const FACIAL_HAIR_STYLES: AvatarOption<FacialHairStyle>[] = [
+  { value: "none", label: "None", unlockLevel: 1 },
+  { value: "stubble", label: "Stubble", unlockLevel: 1 },
+  { value: "mustache", label: "Mustache", unlockLevel: 1 },
+  { value: "goatee", label: "Goatee", unlockLevel: 1 },
+  { value: "soulPatch", label: "Soul Patch", unlockLevel: 1 },
+  { value: "fullBeard", label: "Full Beard", unlockLevel: 1 },
 ];
 
 export const CLOTHING_STYLES: AvatarOption<ClothingStyle>[] = [

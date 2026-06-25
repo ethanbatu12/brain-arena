@@ -8,6 +8,7 @@ import {
   EYE_COLORS,
   EYE_SHAPES,
   FACE_SHAPES,
+  FACIAL_HAIR_STYLES,
   HAIR_COLORS,
   HAIR_LENGTHS,
   HAIR_STYLES,
@@ -51,6 +52,8 @@ export function sanitizeAvatarConfig(raw: Partial<AvatarConfig> | null | undefin
     noseStyle: validValue(NOSE_STYLES, r.noseStyle, DEFAULT_AVATAR_CONFIG.noseStyle),
 
     mouthStyle: validValue(MOUTH_STYLES, r.mouthStyle, DEFAULT_AVATAR_CONFIG.mouthStyle),
+
+    facialHair: validValue(FACIAL_HAIR_STYLES, r.facialHair, DEFAULT_AVATAR_CONFIG.facialHair),
 
     clothingStyle: validValue(CLOTHING_STYLES, r.clothingStyle, DEFAULT_AVATAR_CONFIG.clothingStyle),
     clothingColor: validValue(CLOTHING_COLORS, r.clothingColor, DEFAULT_AVATAR_CONFIG.clothingColor),

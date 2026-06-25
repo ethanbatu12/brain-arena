@@ -18,6 +18,8 @@ export const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
 
   mouthStyle: "smile",
 
+  facialHair: "none",
+
   clothingStyle: "tshirt",
   clothingColor: "blue",
 

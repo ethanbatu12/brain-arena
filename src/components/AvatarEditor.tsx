@@ -9,6 +9,7 @@ import {
   EYE_COLORS,
   EYE_SHAPES,
   FACE_SHAPES,
+  FACIAL_HAIR_STYLES,
   HAIR_COLORS,
   HAIR_LENGTHS,
   HAIR_STYLES,
@@ -31,6 +32,7 @@ const CATEGORY_LABELS: Record<AvatarCategory, string> = {
   eyes: "Eyes",
   nose: "Nose",
   mouth: "Mouth",
+  facialHair: "Facial Hair",
   clothing: "Clothing",
   accessories: "Accessories",
   background: "Background",
@@ -58,7 +60,7 @@ export function AvatarEditor({ initialConfig, playerLevel = 1, xp, onSave, onCan
     <div className="avatar-editor">
       {xp !== undefined && <XpBar xp={xp} compact />}
       <div className="avatar-editor__preview">
-        <AvatarSvg config={config} size={160} />
+        <AvatarSvg config={config} size={240} />
       </div>
 
       <div className="avatar-editor__tabs" role="tablist">
@@ -107,6 +109,10 @@ export function AvatarEditor({ initialConfig, playerLevel = 1, xp, onSave, onCan
 
         {category === "mouth" && (
           <OptionRow label="Mouth style" options={MOUTH_STYLES} value={config.mouthStyle} level={playerLevel} onSelect={(v) => set("mouthStyle", v)} />
+        )}
+
+        {category === "facialHair" && (
+          <OptionRow label="Facial hair" options={FACIAL_HAIR_STYLES} value={config.facialHair} level={playerLevel} onSelect={(v) => set("facialHair", v)} />
         )}
 
         {category === "clothing" && (

@@ -8,6 +8,7 @@ import {
   EYE_COLORS,
   EYE_SHAPES,
   FACE_SHAPES,
+  FACIAL_HAIR_STYLES,
   HAIR_COLORS,
   HAIR_LENGTHS,
   HAIR_STYLES,
@@ -43,6 +44,8 @@ export function randomizeAvatar(playerLevel: number, rng: Rng): AvatarConfig {
     noseStyle: pick(unlockedValues(NOSE_STYLES, playerLevel), rng),
 
     mouthStyle: pick(unlockedValues(MOUTH_STYLES, playerLevel), rng),
+
+    facialHair: pick(unlockedValues(FACIAL_HAIR_STYLES, playerLevel), rng),
 
     clothingStyle: pick(unlockedValues(CLOTHING_STYLES, playerLevel), rng),
     clothingColor: pick(unlockedValues(CLOTHING_COLORS, playerLevel), rng),

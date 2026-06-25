@@ -90,15 +90,27 @@ function profileToEntry(profile: PlayerProfile): Record<string, unknown> {
 /** Push the current player's stats to the global leaderboard (upsert by device_id + username). */
 export async function pushToGlobalLeaderboard(profile: PlayerProfile): Promise<void> {
   if (!isGlobalLeaderboardEnabled()) return;
+  const body = JSON.stringify(profileToEntry(profile));
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
       method: "POST",
       headers: {
         ...supabaseHeaders(),
         Prefer: "resolution=merge-duplicates",
       },
-      body: JSON.stringify(profileToEntry(profile)),
+      body,
     });
+    // The merge-duplicates upsert can occasionally fail to resolve the
+    // conflict (e.g. transient RLS/policy quirks) — fall back to an explicit
+    // PATCH by username so a field like avatar_config never silently fails
+    // to update, mirroring the same retry pattern used for account sync.
+    if (!insertRes.ok) {
+      await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?username=eq.${encodeURIComponent(profile.username)}`, {
+        method: "PATCH",
+        headers: supabaseHeaders(),
+        body,
+      });
+    }
   } catch {
     // best-effort; never throw
   }

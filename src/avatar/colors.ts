@@ -33,3 +33,12 @@ export function darken(hex: string, amount: number): string {
   const b = Math.max(0, parseInt(n.slice(4, 6), 16) * (1 - amount));
   return `#${[r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")}`;
 }
+
+/** Lightens a hex color by a fraction (0-1) toward white, for highlights/sheen. */
+export function lighten(hex: string, amount: number): string {
+  const n = hex.replace("#", "");
+  const r = Math.min(255, parseInt(n.slice(0, 2), 16) + (255 - parseInt(n.slice(0, 2), 16)) * amount);
+  const g = Math.min(255, parseInt(n.slice(2, 4), 16) + (255 - parseInt(n.slice(2, 4), 16)) * amount);
+  const b = Math.min(255, parseInt(n.slice(4, 6), 16) + (255 - parseInt(n.slice(4, 6), 16)) * amount);
+  return `#${[r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")}`;
+}

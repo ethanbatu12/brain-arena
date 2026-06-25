@@ -1,5 +1,9 @@
-export type FaceShape = "round" | "oval" | "square" | "heart" | "diamond";
-export type SkinTone = "porcelain" | "light" | "tan" | "honey" | "brown" | "deep";
+export type FaceShape =
+  | "round" | "oval" | "square" | "heart" | "diamond"
+  | "long" | "chubby" | "squareJaw" | "triangle";
+export type SkinTone =
+  | "porcelain" | "light" | "tan" | "honey" | "brown" | "deep"
+  | "fair" | "almond" | "caramel" | "ebony";
 
 export type HairStyle =
   | "bald" | "short" | "long" | "curly" | "ponytail" | "buzzcut" | "mohawk"
@@ -10,13 +14,15 @@ export type HairColor =
   | "black" | "brown" | "blonde" | "red" | "gray" | "blue" | "pink" | "purple" | "white" | "green"
   | "gold" | "silver" | "neonRed" | "rainbow" | "galaxy";
 
-export type EyeShape = "round" | "almond" | "sleepy" | "wide" | "narrow";
+export type EyeShape = "round" | "almond" | "sleepy" | "wide" | "narrow" | "hooded" | "cat";
 export type EyeColor = "brown" | "blue" | "green" | "hazel" | "gray" | "amber" | "violet";
-export type EyebrowStyle = "straight" | "arched" | "thick" | "thin";
+export type EyebrowStyle = "straight" | "arched" | "thick" | "thin" | "bushy" | "soft";
 
 export type NoseStyle = "small" | "button" | "defined" | "wide" | "upturned";
 
-export type MouthStyle = "smile" | "bigSmile" | "neutral" | "smirk" | "openSmile" | "pursed";
+export type MouthStyle = "smile" | "bigSmile" | "neutral" | "smirk" | "openSmile" | "pursed" | "toothySmile" | "smolder";
+
+export type FacialHairStyle = "none" | "stubble" | "mustache" | "goatee" | "fullBeard" | "soulPatch";
 
 export type ClothingStyle =
   | "tshirt" | "hoodie" | "jacket" | "jersey"
@@ -72,6 +78,8 @@ export interface AvatarConfig {
 
   mouthStyle: MouthStyle;
 
+  facialHair: FacialHairStyle;
+
   clothingStyle: ClothingStyle;
   clothingColor: ClothingColor;
 
@@ -93,6 +101,7 @@ export const AVATAR_CATEGORIES = [
   "eyes",
   "nose",
   "mouth",
+  "facialHair",
   "clothing",
   "accessories",
   "background",

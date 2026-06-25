@@ -3,6 +3,7 @@ import {
   darken,
   eyeColorValue,
   hairColorValue,
+  lighten,
   pantsColorValue,
   shoeColorValue,
   skinToneColor,
@@ -47,10 +48,13 @@ const BG_GRADIENTS: Record<string, [string, string]> = {
  */
 export function AvatarSvg({ config, size = 96, className }: AvatarSvgProps) {
   const gradId = `avatar-bg-${config.background}`;
+  const skinGradId = `avatar-skin-${config.skinTone}`;
   const skin = skinToneColor(config.skinTone);
   const skinShadow = darken(skin, 0.12);
+  const skinHighlight = lighten(skin, 0.35);
   const hair = hairColorValue(config.hairColor);
   const hairShadow = darken(hair, 0.18);
+  const hairHighlight = lighten(hair, 0.3);
   const eye = eyeColorValue(config.eyeColor);
   const clothing = clothingColorValue(config.clothingColor);
   const clothingShadow = darken(clothing, 0.15);
@@ -77,6 +81,12 @@ export function AvatarSvg({ config, size = 96, className }: AvatarSvgProps) {
             <stop offset="100%" stopColor={BG_GRADIENTS[config.background][1]} />
           </linearGradient>
         )}
+        {/* soft directional sheen across the face, for a more dimensional/realistic look than a flat fill */}
+        <radialGradient id={skinGradId} cx="38%" cy="32%" r="75%">
+          <stop offset="0%" stopColor={skinHighlight} />
+          <stop offset="55%" stopColor={skin} />
+          <stop offset="100%" stopColor={skinShadow} />
+        </radialGradient>
       </defs>
 
       {/* background */}
@@ -122,15 +132,26 @@ export function AvatarSvg({ config, size = 96, className }: AvatarSvgProps) {
       <rect x="85" y="130" width="30" height="25" fill={skinShadow} />
 
       {/* head */}
-      {config.faceShape === "round" && <circle cx="100" cy="95" r="56" fill={skin} />}
-      {config.faceShape === "oval" && <ellipse cx="100" cy="95" rx="48" ry="62" fill={skin} />}
-      {config.faceShape === "square" && <rect x="48" y="38" width="104" height="112" rx="28" fill={skin} />}
+      {config.faceShape === "round" && <circle cx="100" cy="95" r="56" fill={`url(#${skinGradId})`} />}
+      {config.faceShape === "oval" && <ellipse cx="100" cy="95" rx="48" ry="62" fill={`url(#${skinGradId})`} />}
+      {config.faceShape === "long" && <ellipse cx="100" cy="98" rx="44" ry="68" fill={`url(#${skinGradId})`} />}
+      {config.faceShape === "chubby" && <circle cx="100" cy="98" r="60" fill={`url(#${skinGradId})`} />}
+      {config.faceShape === "square" && <rect x="48" y="38" width="104" height="112" rx="28" fill={`url(#${skinGradId})`} />}
+      {config.faceShape === "squareJaw" && <rect x="46" y="36" width="108" height="116" rx="16" fill={`url(#${skinGradId})`} />}
       {config.faceShape === "heart" && (
-        <path d="M100 36 C140 36 156 66 156 92 C156 128 124 156 100 158 C76 156 44 128 44 92 C44 66 60 36 100 36 Z" fill={skin} />
+        <path d="M100 36 C140 36 156 66 156 92 C156 128 124 156 100 158 C76 156 44 128 44 92 C44 66 60 36 100 36 Z" fill={`url(#${skinGradId})`} />
       )}
       {config.faceShape === "diamond" && (
-        <path d="M100 34 C128 50 148 80 148 100 C148 130 124 156 100 158 C76 156 52 130 52 100 C52 80 72 50 100 34 Z" fill={skin} />
+        <path d="M100 34 C128 50 148 80 148 100 C148 130 124 156 100 158 C76 156 52 130 52 100 C52 80 72 50 100 34 Z" fill={`url(#${skinGradId})`} />
       )}
+      {config.faceShape === "triangle" && (
+        <path d="M100 36 C130 36 150 60 150 86 C150 124 128 156 100 160 C72 156 50 124 50 86 C50 60 70 36 100 36 Z" fill={`url(#${skinGradId})`} />
+      )}
+
+      {/* soft chin/jaw shadow for depth */}
+      <ellipse cx="100" cy="140" rx="30" ry="10" fill={skinShadow} opacity="0.25" />
+      {/* subtle forehead highlight */}
+      <ellipse cx="84" cy="68" rx="18" ry="10" fill={skinHighlight} opacity="0.3" />
 
       {/* blush */}
       {config.blush && (
@@ -161,8 +182,11 @@ export function AvatarSvg({ config, size = 96, className }: AvatarSvgProps) {
       {/* mouth */}
       {renderMouth(config.mouthStyle)}
 
+      {/* facial hair (drawn after mouth so it sits naturally around it) */}
+      {renderFacialHair(config.facialHair, hair, hairShadow)}
+
       {/* hair front (drawn after face so bangs sit on top) */}
-      {renderHairFront(config.hairStyle, hair, hairShadow, hairLengthScale)}
+      {renderHairFront(config.hairStyle, hair, hairShadow, hairHighlight, hairLengthScale)}
 
       {/* accessories */}
       {renderAccessory(config.accessory)}
@@ -384,11 +408,27 @@ function renderEyebrows(style: AvatarConfig["eyebrowStyle"]) {
       </>
     );
   }
+  if (style === "bushy") {
+    return (
+      <g fill="#3a2a1f">
+        <path d="M66 80 Q80 70 94 79 Q80 76 67 84 Z" />
+        <path d="M106 79 Q120 70 134 80 Q133 84 120 76 Q108 80 106 79 Z" />
+      </g>
+    );
+  }
   if (style === "thin") {
     return (
       <>
         <rect x="70" y="80" width="20" height="2.5" rx="1.25" {...common} />
         <rect x="110" y="80" width="20" height="2.5" rx="1.25" {...common} />
+      </>
+    );
+  }
+  if (style === "soft") {
+    return (
+      <>
+        <path d="M70 81 Q80 77 90 81" stroke="#5a4636" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        <path d="M110 81 Q120 77 130 81" stroke="#5a4636" strokeWidth="2.5" fill="none" strokeLinecap="round" />
       </>
     );
   }
@@ -409,12 +449,43 @@ function renderEyebrows(style: AvatarConfig["eyebrowStyle"]) {
   );
 }
 
+/** A small offset white shine on the iris — the single cheapest trick for making flat-cartoon eyes read as more lifelike. */
+function eyeShine(cx: number, cy: number, r: number) {
+  return <circle cx={cx - r * 0.3} cy={cy - r * 0.3} r={Math.max(0.8, r * 0.35)} fill="#ffffff" opacity="0.85" />;
+}
+
 function renderEyes(shape: AvatarConfig["eyeShape"], eyeColor: string) {
   if (shape === "sleepy") {
     return (
       <>
         <path d="M70 95 Q80 90 90 95" stroke="#2a2a2a" strokeWidth="4" fill="none" strokeLinecap="round" />
         <path d="M110 95 Q120 90 130 95" stroke="#2a2a2a" strokeWidth="4" fill="none" strokeLinecap="round" />
+      </>
+    );
+  }
+  if (shape === "hooded") {
+    return (
+      <>
+        <path d="M68 92 Q80 84 92 92 L92 98 Q80 100 68 98 Z" fill="#ffffff" />
+        <path d="M67 90 Q80 80 93 90" stroke="#c79d6f" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.6" />
+        <circle cx="80" cy="95" r="3.6" fill={eyeColor} />
+        {eyeShine(80, 95, 3.6)}
+        <path d="M108 92 Q120 84 132 92 L132 98 Q120 100 108 98 Z" fill="#ffffff" />
+        <path d="M107 90 Q120 80 133 90" stroke="#c79d6f" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.6" />
+        <circle cx="120" cy="95" r="3.6" fill={eyeColor} />
+        {eyeShine(120, 95, 3.6)}
+      </>
+    );
+  }
+  if (shape === "cat") {
+    return (
+      <>
+        <path d="M68 97 Q80 86 94 95 Q82 99 68 97 Z" fill="#ffffff" />
+        <ellipse cx="83" cy="94" rx="3.2" ry="4.4" fill={eyeColor} />
+        {eyeShine(83, 94, 3)}
+        <path d="M106 95 Q120 86 132 97 Q118 99 106 95 Z" fill="#ffffff" />
+        <ellipse cx="117" cy="94" rx="3.2" ry="4.4" fill={eyeColor} />
+        {eyeShine(117, 94, 3)}
       </>
     );
   }
@@ -425,6 +496,8 @@ function renderEyes(shape: AvatarConfig["eyeShape"], eyeColor: string) {
         <ellipse cx="120" cy="96" rx="9" ry="3.5" fill="#ffffff" />
         <circle cx="80" cy="96" r="3" fill={eyeColor} />
         <circle cx="120" cy="96" r="3" fill={eyeColor} />
+        {eyeShine(80, 96, 3)}
+        {eyeShine(120, 96, 3)}
       </>
     );
   }
@@ -437,6 +510,8 @@ function renderEyes(shape: AvatarConfig["eyeShape"], eyeColor: string) {
         <circle cx="120" cy="96" r="5.5" fill={eyeColor} />
         <circle cx="80" cy="96" r="2" fill="#1a1a1a" />
         <circle cx="120" cy="96" r="2" fill="#1a1a1a" />
+        {eyeShine(80, 96, 5.5)}
+        {eyeShine(120, 96, 5.5)}
       </>
     );
   }
@@ -449,6 +524,8 @@ function renderEyes(shape: AvatarConfig["eyeShape"], eyeColor: string) {
         <circle cx="121" cy="96" r="4" fill={eyeColor} />
         <circle cx="81" cy="96" r="1.6" fill="#1a1a1a" />
         <circle cx="121" cy="96" r="1.6" fill="#1a1a1a" />
+        {eyeShine(81, 96, 4)}
+        {eyeShine(121, 96, 4)}
       </>
     );
   }
@@ -461,6 +538,8 @@ function renderEyes(shape: AvatarConfig["eyeShape"], eyeColor: string) {
       <circle cx="120" cy="96" r="4.5" fill={eyeColor} />
       <circle cx="80" cy="96" r="1.8" fill="#1a1a1a" />
       <circle cx="120" cy="96" r="1.8" fill="#1a1a1a" />
+      {eyeShine(80, 96, 4.5)}
+      {eyeShine(120, 96, 4.5)}
     </>
   );
 }
@@ -478,45 +557,145 @@ function renderMouth(style: AvatarConfig["mouthStyle"]) {
   if (style === "bigSmile") return <path d="M78 122 Q100 142 122 122 Q100 132 78 122" fill="#7a3b3b" />;
   if (style === "neutral") return <rect x="86" y="124" width="28" height="3" rx="1.5" fill="#7a3b3b" />;
   if (style === "smirk") return <path d="M85 124 Q105 130 118 120" stroke="#7a3b3b" strokeWidth="4" fill="none" strokeLinecap="round" />;
+  if (style === "smolder") {
+    return (
+      <>
+        <path d="M84 123 Q105 128 116 119" stroke="#7a3b3b" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+        <path d="M88 124 Q100 127 110 122" fill="#5a2a2a" opacity="0.4" />
+      </>
+    );
+  }
   if (style === "openSmile") return <ellipse cx="100" cy="126" rx="16" ry="10" fill="#7a3b3b" />;
   if (style === "pursed") return <ellipse cx="100" cy="124" rx="6" ry="4" fill="#7a3b3b" />;
+  if (style === "toothySmile") {
+    return (
+      <>
+        <path d="M78 119 Q100 134 122 119 Q121 131 100 133 Q79 131 78 119 Z" fill="#7a3b3b" />
+        <path d="M82 121 Q100 130 118 121 L116 126 Q100 132 84 126 Z" fill="#ffffff" />
+      </>
+    );
+  }
   // smile
   return <path d="M82 120 Q100 134 118 120" stroke="#7a3b3b" strokeWidth="4" fill="none" strokeLinecap="round" />;
 }
 
-function renderHairFront(style: AvatarConfig["hairStyle"], hair: string, hairShadow: string, lengthScale: number) {
+function renderHairFront(
+  style: AvatarConfig["hairStyle"],
+  hair: string,
+  hairShadow: string,
+  hairHighlight: string,
+  lengthScale: number,
+) {
   if (style === "bald") return null;
-  if (style === "buzzcut") return <path d="M48 70 Q100 28 152 70 L152 55 Q100 18 48 55 Z" fill={hair} />;
-  if (style === "mohawk") {
+  // a single soft highlight streak, layered on top of the base shape, used by most styles for a less-flat look
+  const sheen = <path d="M58 48 Q90 28 122 38 Q98 36 70 54 Z" fill={hairHighlight} opacity="0.35" />;
+  if (style === "buzzcut") {
+    return (
+      <>
+        <path d="M48 70 Q100 28 152 70 L152 55 Q100 18 48 55 Z" fill={hair} />
+        <path d="M52 56 Q100 24 148 56" stroke={hairHighlight} strokeWidth="3" fill="none" opacity="0.4" />
+      </>
+    );
+  }
+  if (style === "mohawk" || style === "lightningHair") {
     return (
       <>
         <path d="M48 60 Q100 30 152 60 L152 48 Q100 22 48 48 Z" fill={hairShadow} opacity="0.4" />
         <rect x="92" y="14" width="16" height={48 * lengthScale} rx="6" fill={hair} />
+        <rect x="94" y="14" width="5" height={48 * lengthScale} rx="2.5" fill={hairHighlight} opacity="0.5" />
+        {style === "lightningHair" && (
+          <path d="M96 16 L88 40 L98 40 L90 64" stroke="#fde047" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.85" />
+        )}
       </>
     );
   }
-  if (style === "curly") {
+  if (style === "curly" || style === "curlyFade") {
     return (
       <g fill={hair}>
         {[[60, 55], [80, 42], [100, 38], [120, 42], [140, 55], [70, 65], [130, 65]].map(([cx, cy], i) => (
           <circle key={i} cx={cx} cy={cy} r="14" />
         ))}
+        {[[80, 38], [120, 38]].map(([cx, cy], i) => (
+          <circle key={`h${i}`} cx={cx} cy={cy} r="5" fill={hairHighlight} opacity="0.4" />
+        ))}
+        {style === "curlyFade" && <rect x="44" y="58" width="112" height="14" rx="4" fill={hairShadow} opacity="0.5" />}
       </g>
     );
   }
-  if (style === "afro") return <circle cx="100" cy="58" r="52" fill={hair} />;
-  if (style === "spiky") {
+  if (style === "afro") {
+    return (
+      <>
+        <circle cx="100" cy="58" r="52" fill={hair} />
+        <circle cx="78" cy="36" r="14" fill={hairHighlight} opacity="0.3" />
+      </>
+    );
+  }
+  if (style === "spiky" || style === "spikyPro") {
     return (
       <g fill={hair}>
         {[50, 70, 90, 110, 130, 150].map((x, i) => (
           <path key={x} d={`M${x - 8} 55 L${x} ${15 + (i % 2) * 10} L${x + 8} 55 Z`} />
         ))}
+        {[50, 90, 130].map((x, i) => (
+          <path key={`h${x}`} d={`M${x - 2} 50 L${x} ${22 + (i % 2) * 10} L${x + 2} 50 Z`} fill={hairHighlight} opacity="0.5" />
+        ))}
       </g>
     );
   }
-  if (style === "bun") return <path d="M44 70 Q100 18 156 70 L156 50 Q100 6 44 50 Z" fill={hair} />;
-  // short / long / ponytail / dreadlocks / bangs front
-  return <path d="M44 70 Q100 20 156 70 L156 50 Q100 8 44 50 Z" fill={hair} />;
+  if (style === "bun" || style === "samuraiBun") {
+    return (
+      <>
+        <path d="M44 70 Q100 18 156 70 L156 50 Q100 6 44 50 Z" fill={hair} />
+        {sheen}
+        {style === "samuraiBun" && <path d="M70 24 L100 8 L130 24" stroke={hairShadow} strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.5" />}
+      </>
+    );
+  }
+  // short / long / longWavy / ponytail / dreadlocks / bangs front
+  return (
+    <>
+      <path d="M44 70 Q100 20 156 70 L156 50 Q100 8 44 50 Z" fill={hair} />
+      {sheen}
+      {style === "longWavy" && (
+        <path d="M44 56 Q70 70 56 90 M156 56 Q130 70 144 90" stroke={hairShadow} strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.4" />
+      )}
+    </>
+  );
+}
+
+function renderFacialHair(style: AvatarConfig["facialHair"], hair: string, hairShadow: string) {
+  if (style === "none") return null;
+  if (style === "stubble") {
+    return (
+      <g fill={hairShadow} opacity="0.35">
+        <ellipse cx="100" cy="128" rx="24" ry="20" />
+      </g>
+    );
+  }
+  if (style === "mustache") {
+    return <path d="M84 113 Q100 119 116 113 Q112 117 100 117 Q88 117 84 113 Z" fill={hair} />;
+  }
+  if (style === "goatee") {
+    return (
+      <>
+        <path d="M84 113 Q100 119 116 113 Q112 117 100 117 Q88 117 84 113 Z" fill={hair} />
+        <path d="M90 122 Q100 142 110 122 Q108 134 100 136 Q92 134 90 122 Z" fill={hair} />
+      </>
+    );
+  }
+  if (style === "soulPatch") {
+    return <rect x="96" y="129" width="8" height="9" rx="3" fill={hair} />;
+  }
+  if (style === "fullBeard") {
+    return (
+      <path
+        d="M50 100 Q48 132 70 150 Q86 160 100 160 Q114 160 130 150 Q152 132 150 100 L150 110 Q140 140 116 150 Q108 153 100 153 Q92 153 84 150 Q60 140 50 110 Z"
+        fill={hair}
+        opacity="0.95"
+      />
+    );
+  }
+  return null;
 }
 
 function renderAccessory(accessory: AvatarConfig["accessory"]) {
