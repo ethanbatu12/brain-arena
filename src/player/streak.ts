@@ -9,6 +9,18 @@ export function getToday(): string {
 }
 
 /**
+ * Adds one day to a "YYYY-MM-DD" date string, staying entirely in UTC.
+ * `new Date(dateStr)` parses a date-only string as UTC midnight, but
+ * `.setDate()`/`.getDate()` operate in the local timezone — mixing the two
+ * silently shifts the result by a day for any timezone behind/ahead of UTC.
+ * Using Date.UTC for both the parse and the increment avoids that entirely.
+ */
+function addOneDayUtc(dateStr: string): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
+}
+
+/**
  * Returns updated streak after playing on `today`.
  * Idempotent: calling twice on the same date returns the same streak.
  */
@@ -20,10 +32,7 @@ export function updateStreak(streak: StreakData, today: string): StreakData {
   if (prev === null) {
     newCurrent = 1;
   } else {
-    const d = new Date(prev);
-    d.setDate(d.getDate() + 1);
-    const nextDay = d.toISOString().slice(0, 10);
-    newCurrent = nextDay === today ? streak.currentStreak + 1 : 1;
+    newCurrent = addOneDayUtc(prev) === today ? streak.currentStreak + 1 : 1;
   }
 
   return {

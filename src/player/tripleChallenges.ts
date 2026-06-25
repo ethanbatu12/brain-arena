@@ -96,10 +96,15 @@ export function generateDailyChallenges(date: string): TripleChallengeItem[] {
   }));
 }
 
+/**
+ * Adds one day to a "YYYY-MM-DD" string, staying entirely in UTC — mixing
+ * `new Date(dateStr)` (parsed as UTC midnight) with local-timezone
+ * `setDate()`/`getDate()` silently shifts the result by a day depending on
+ * the player's timezone offset.
+ */
 function nextDay(date: string): string {
-  const d = new Date(date);
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0, 10);
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
 }
 
 /**

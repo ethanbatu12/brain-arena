@@ -9,6 +9,8 @@ import {
   type TripleChallengeState,
 } from "./tripleChallenges";
 
+declare const process: { env: Record<string, string | undefined> };
+
 describe("generateDailyChallenges", () => {
   it("always generates exactly 3 challenges", () => {
     expect(generateDailyChallenges("2026-06-24")).toHaveLength(3);
@@ -82,6 +84,25 @@ describe("ensureTodaysChallenges", () => {
     day2 = { ...day2, challenges: day2.challenges.map((c) => ({ ...c, completed: true })) };
     const result = ensureTodaysChallenges(day2, streak, "2026-06-24");
     expect(result.streak.currentStreak).toBe(2);
+  });
+
+  it("extends the streak correctly regardless of the host machine's local timezone", () => {
+    // Regression test for the same UTC/local-date mixing bug as streak.ts —
+    // nextDay() must treat "2026-06-22" -> "2026-06-23" as consecutive no
+    // matter what timezone the server/browser is running in.
+    const originalTz = process.env.TZ;
+    try {
+      for (const tz of ["America/Los_Angeles", "America/New_York", "UTC", "Asia/Tokyo"]) {
+        process.env.TZ = tz;
+        let streak = emptyChallengeStreak();
+        let day1 = ensureTodaysChallenges(emptyTripleChallengeState(), streak, "2026-06-22").state;
+        day1 = { ...day1, challenges: day1.challenges.map((c) => ({ ...c, completed: true })) };
+        ({ streak } = ensureTodaysChallenges(day1, streak, "2026-06-23"));
+        expect(streak.currentStreak, `timezone ${tz}`).toBe(1);
+      }
+    } finally {
+      process.env.TZ = originalTz;
+    }
   });
 
   it("resets the streak to 0 if yesterday's set was not fully completed", () => {

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { emptyStreak, updateStreak } from "./streak";
 
+declare const process: { env: Record<string, string | undefined> };
+
 describe("emptyStreak", () => {
   it("returns zeroed streak with no last-played date", () => {
     const s = emptyStreak();
@@ -70,5 +72,26 @@ describe("updateStreak", () => {
     let s = updateStreak(emptyStreak(), "2024-12-31");
     s = updateStreak(s, "2025-01-01");
     expect(s.currentStreak).toBe(2);
+  });
+
+  it("extends the streak correctly regardless of the host machine's local timezone", () => {
+    // Regression test: `new Date(dateStr)` parses a date-only string as UTC
+    // midnight, but `.setDate()`/`.getDate()` read/write in local time. For
+    // any timezone behind UTC, that mismatch could silently treat a real
+    // "next day" as a gap, resetting the streak back to 1 instead of
+    // incrementing it. Run across a spread of offsets to catch that.
+    const originalTz = process.env.TZ;
+    try {
+      for (const tz of ["America/Los_Angeles", "America/New_York", "UTC", "Pacific/Kiritimati", "Asia/Tokyo"]) {
+        process.env.TZ = tz;
+        let s = updateStreak(emptyStreak(), "2025-03-01");
+        s = updateStreak(s, "2025-03-02");
+        s = updateStreak(s, "2025-03-03");
+        expect(s.currentStreak, `timezone ${tz}`).toBe(3);
+        expect(s.longestStreak, `timezone ${tz}`).toBe(3);
+      }
+    } finally {
+      process.env.TZ = originalTz;
+    }
   });
 });
