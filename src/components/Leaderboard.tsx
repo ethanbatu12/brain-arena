@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import { GAMES } from "../games";
-import {
-  fetchGlobalLeaderboard,
-  isGlobalLeaderboardEnabled,
-  type GlobalEntry,
-} from "../leaderboard/globalLeaderboard";
+import { isGlobalLeaderboardEnabled } from "../leaderboard/globalLeaderboard";
 import { ratingTier } from "../pattern/ratedPatternReducer";
-import { averageScore } from "../player/storage";
+import { fetchAllCloudProfiles, fetchBannedUsernames } from "../player/cloudSync";
+import { averageScore, normalizeProfile } from "../player/storage";
 import type { GameId, PlayerProfile } from "../player/types";
-import { DEFAULT_AVATAR_CONFIG } from "../avatar/defaults";
 import { sanitizeAvatarConfig } from "../avatar/serialize";
 import type { AvatarConfig } from "../avatar/types";
 import { AvatarSvg } from "./AvatarSvg";
@@ -92,45 +88,6 @@ function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): 
   };
 }
 
-function globalEntryToRow(e: GlobalEntry, key: SortKey, currentUsername: string): Row {
-  let value: number;
-  let label: string;
-  switch (key) {
-    case "score":               value = e.combined_best_score; label = String(value); break;
-    case "pattern-rating":      value = e.pattern_rating; label = `${value} (${ratingTier(value)})`; break;
-    case "chess-rating":        value = e.chess_rating; label = String(value); break;
-    case "chess-puzzle-rating": value = e.chess_peak_rating; label = String(value); break;
-    case "games-played":        value = e.total_games_played; label = String(value); break;
-    case "streak":              value = e.longest_streak; label = `${value} days`; break;
-    case "challenge-runs":      value = e.challenge_runs; label = String(value); break;
-    case "memory":              value = e.memory_best; label = String(value); break;
-    case "math":                value = e.math_best; label = String(value); break;
-    case "logic":               value = e.logic_best; label = String(value); break;
-    case "balloon":             value = e.balloon_best; label = String(value); break;
-    case "pattern":             value = e.pattern_best; label = String(value); break;
-    case "reaction":            value = e.reaction_best ?? 0; label = String(value); break;
-    case "trivia":              value = e.trivia_best ?? 0; label = String(value); break;
-    case "direction":           value = e.direction_best ?? 0; label = String(value); break;
-    case "memory-avg":          value = e.memory_avg ?? 0; label = value === 0 ? "—" : String(value); break;
-    case "math-avg":            value = e.math_avg ?? 0; label = value === 0 ? "—" : String(value); break;
-    case "logic-avg":           value = e.logic_avg ?? 0; label = value === 0 ? "—" : String(value); break;
-    case "balloon-avg":         value = e.balloon_avg ?? 0; label = value === 0 ? "—" : String(value); break;
-    case "pattern-avg":         value = e.pattern_avg ?? 0; label = value === 0 ? "—" : String(value); break;
-    case "reaction-avg":        value = e.reaction_avg ?? 0; label = value === 0 ? "—" : String(value); break;
-    case "trivia-avg":          value = e.trivia_avg ?? 0; label = value === 0 ? "—" : String(value); break;
-    case "direction-avg":       value = e.direction_avg ?? 0; label = value === 0 ? "—" : String(value); break;
-    default:                    value = 0; label = "0";
-  }
-  return {
-    username: e.username,
-    avatar: e.avatar ?? "🧠",
-    avatarConfig: e.avatar_config ? sanitizeAvatarConfig(e.avatar_config) : DEFAULT_AVATAR_CONFIG,
-    value,
-    label,
-    isCurrentUser: e.username === currentUsername,
-  };
-}
-
 interface TabGroup {
   heading: string;
   tabs: { key: SortKey; label: string }[];
@@ -167,7 +124,7 @@ const TAB_GROUPS: TabGroup[] = [
 export function Leaderboard({ profiles, currentUsername, onBack }: LeaderboardProps) {
   const [activeKey, setActiveKey] = useState<SortKey>("score");
   const [scope, setScope] = useState<Scope>("local");
-  const [globalEntries, setGlobalEntries] = useState<GlobalEntry[]>([]);
+  const [globalProfiles, setGlobalProfiles] = useState<PlayerProfile[]>([]);
   const [globalLoading, setGlobalLoading] = useState(false);
   const [globalError, setGlobalError] = useState(false);
 
@@ -175,27 +132,35 @@ export function Leaderboard({ profiles, currentUsername, onBack }: LeaderboardPr
 
   useEffect(() => {
     if (scope !== "global" || !globalEnabled) return;
+    let cancelled = false;
     setGlobalLoading(true);
     setGlobalError(false);
-    fetchGlobalLeaderboard()
-      .then((entries) => {
-        setGlobalEntries(entries);
+    (async () => {
+      try {
+        // Every registered account in user_profiles is the single source of
+        // truth for who appears on the global leaderboard — no separate
+        // sync step that can drift or silently fail.
+        const [accounts, banned] = await Promise.all([fetchAllCloudProfiles(), fetchBannedUsernames()]);
+        if (cancelled) return;
+        const normalized = accounts
+          .filter((a) => !banned.has(a.username))
+          .map((a) => normalizeProfile({ ...a.profile_data, username: a.username }));
+        setGlobalProfiles(normalized);
         setGlobalLoading(false);
-      })
-      .catch(() => {
+      } catch {
+        if (cancelled) return;
         setGlobalError(true);
         setGlobalLoading(false);
-      });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [scope, globalEnabled]);
 
-  const rows: Row[] =
-    scope === "global"
-      ? globalEntries
-          .map((e) => globalEntryToRow(e, activeKey, currentUsername))
-          .sort((a, b) => b.value - a.value)
-      : profiles
-          .map((p) => profileToRow(p, activeKey, currentUsername))
-          .sort((a, b) => b.value - a.value);
+  const rows: Row[] = (scope === "global" ? globalProfiles : profiles)
+    .map((p) => profileToRow(p, activeKey, currentUsername))
+    .sort((a, b) => b.value - a.value);
 
   return (
     <div className="app__shell">

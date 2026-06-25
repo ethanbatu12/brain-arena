@@ -75,6 +75,22 @@ export async function pushCloudProfile(
   }
 }
 
+/**
+ * Fetch every registered account's raw profile data from Supabase. This is
+ * the single source of truth for the global leaderboard — every account
+ * that exists here shows up on the leaderboard, with no separate sync step
+ * that could drift or silently fail.
+ */
+export async function fetchAllCloudProfiles(): Promise<{ username: string; profile_data: Record<string, unknown> }[]> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=username,profile_data`, { headers: headers() });
+    if (!res.ok) return [];
+    return await res.json() as { username: string; profile_data: Record<string, unknown> }[];
+  } catch {
+    return [];
+  }
+}
+
 /** Check if a username is already taken in Supabase. */
 export async function isUsernameTaken(username: string): Promise<boolean> {
   const profile = await fetchCloudProfile(username);
@@ -105,6 +121,21 @@ export async function isUserBanned(username: string): Promise<boolean> {
     return new Date(expiresAt).getTime() > Date.now();
   } catch {
     return true;
+  }
+}
+
+/** Fetch the set of currently-banned usernames (expired temporary bans excluded). */
+export async function fetchBannedUsernames(): Promise<Set<string>> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/banned_users?select=username,expires_at`, { headers: headers() });
+    if (!res.ok) return new Set();
+    const rows = await res.json() as { username: string; expires_at: string | null }[];
+    const now = Date.now();
+    return new Set(
+      rows.filter((r) => !r.expires_at || new Date(r.expires_at).getTime() > now).map((r) => r.username),
+    );
+  } catch {
+    return new Set();
   }
 }
 
