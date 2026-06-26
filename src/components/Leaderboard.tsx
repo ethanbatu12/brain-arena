@@ -7,6 +7,7 @@ import { averageScore, normalizeProfile } from "../player/storage";
 import type { GameId, PlayerProfile } from "../player/types";
 import { sanitizeAvatarConfig } from "../avatar/serialize";
 import type { AvatarConfig } from "../avatar/types";
+import { getBorderDef } from "../player/borders";
 import { titleColors, titleForLevel } from "../xp/levels";
 import { AvatarSvg } from "./AvatarSvg";
 
@@ -40,6 +41,7 @@ interface Row {
   avatarConfig: AvatarConfig;
   level: number;
   title: string;
+  borderColor: string | null;
   value: number;
   label: string;
   isCurrentUser: boolean;
@@ -83,12 +85,14 @@ function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): 
       default:               value = 0; label = "0";
     }
   }
+  const border = getBorderDef(p.profileBorder);
   return {
     username: p.username,
     avatar: p.avatar ?? "🧠",
     avatarConfig: sanitizeAvatarConfig(p.avatarConfig),
     level: p.level,
     title: p.selectedTitle || titleForLevel(p.level),
+    borderColor: border.id === "none" ? null : border.colors[0],
     value,
     label,
     isCurrentUser: p.username === currentUsername,
@@ -263,7 +267,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key`}</pre>
               </span>
               <span className="leaderboard__name">
                 <span className="leaderboard__name-row">
-                  {row.username}
+                  <span style={row.borderColor ? { color: row.borderColor } : undefined}>{row.username}</span>
                   {row.isCurrentUser && <span className="leaderboard__you-tag"> (you)</span>}
                   {activeKey !== "level" && <span className="leaderboard__level-badge">Lv {row.level}</span>}
                 </span>
