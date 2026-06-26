@@ -48,6 +48,28 @@ export const TITLES: TitleDef[] = [
   { level: 100, title: "Legend" },
 ];
 
+/**
+ * A color pair (for a gradient/text-fill) per title, escalating in
+ * prestige the same way profile borders do — Competitor (lvl 10) reads as
+ * bronze, Strategist (20) silver, Brain Trainer (35) gold, Master Mind (50)
+ * diamond, Grandmaster (75) a master purple, Legend (100) a flashy gold.
+ */
+const TITLE_COLORS: Record<string, [string, string]> = {
+  Rookie: ["#9ca3af", "#6b7280"],
+  Challenger: ["#4ade80", "#16a34a"],
+  Competitor: ["#cd7f32", "#8a5524"],
+  Strategist: ["#d4d4d8", "#9ca3af"],
+  "Brain Trainer": ["#fbbf24", "#b45309"],
+  "Master Mind": ["#a5f3fc", "#0891b2"],
+  Grandmaster: ["#c4b5fd", "#6d28d9"],
+  Legend: ["#fde68a", "#dc2626"],
+};
+
+/** The [start, end] gradient colors for a title's display — falls back to the Rookie gray for unknown titles. */
+export function titleColors(title: string): [string, string] {
+  return TITLE_COLORS[title] ?? TITLE_COLORS.Rookie;
+}
+
 /** Every title the player has unlocked at this level, in unlock order. */
 export function unlockedTitles(level: number): string[] {
   return TITLES.filter((t) => t.level <= level).map((t) => t.title);

@@ -9,11 +9,13 @@ export type SkinTone =
 export type HairStyle =
   | "bald" | "short" | "long" | "curly" | "ponytail" | "buzzcut" | "mohawk"
   | "afro" | "bun" | "bangs" | "dreadlocks" | "spiky"
-  | "spikyPro" | "longWavy" | "samuraiBun" | "curlyFade" | "lightningHair";
+  | "spikyPro" | "longWavy" | "samuraiBun" | "curlyFade" | "lightningHair"
+  | "frostedTips" | "platinumWaves" | "crystalHair";
 export type HairLength = "short" | "medium" | "long";
 export type HairColor =
   | "black" | "brown" | "blonde" | "red" | "gray" | "blue" | "pink" | "purple" | "white" | "green"
-  | "gold" | "silver" | "neonRed" | "rainbow" | "galaxy";
+  | "gold" | "silver" | "neonRed" | "rainbow" | "galaxy"
+  | "iceBlue" | "obsidian";
 
 export type EyeShape = "round" | "almond" | "sleepy" | "wide" | "narrow" | "hooded" | "cat";
 export type EyeColor = "brown" | "blue" | "green" | "hazel" | "gray" | "amber" | "violet";
@@ -30,18 +32,22 @@ export type ClothingStyle =
   | "tracksuit" | "varsity" | "polo" | "tank" | "graphicTee" | "oversizedHoodie"
   | "brainLabHoodie"
   | "sportsHoodie" | "trainingJacket" | "championHoodie" | "eliteJersey" | "grandmasterRobe"
+  | "trackJacket" | "bomberJacket" | "tuxedo" | "winterJacket"
   // Weekly Tournament exclusives — only ever earned by placing top 3, never unlocked by leveling.
   | "tournamentVarsity" | "diamondHoodie" | "lightningJacket" | "goldChampionJacket" | "galaxyChampionHoodie";
 export type ClothingColor = "red" | "blue" | "green" | "yellow" | "purple" | "black" | "white" | "orange";
 
-export type PantsStyle = "jeans" | "shorts" | "joggers" | "trackPants" | "cargo" | "cargoElite" | "eliteJoggers";
+export type PantsStyle = "jeans" | "shorts" | "joggers" | "trackPants" | "cargo" | "cargoElite" | "eliteJoggers" | "suitPants";
 
-export type ShoeStyle = "sneakers" | "highTops" | "boots" | "sandals" | "basketballShoes" | "runningShoes" | "goldenSneakers";
+export type ShoeStyle =
+  | "sneakers" | "highTops" | "boots" | "sandals" | "basketballShoes" | "runningShoes" | "goldenSneakers"
+  | "designerSneakers" | "skateShoes";
 
 export type AccessoryStyle =
   | "none" | "glasses" | "sunglasses" | "hat" | "headband" | "beanie"
   | "cap" | "snapback" | "bucketHat" | "crown"
   | "headphones" | "sportsHeadband" | "goldenCrown" | "diamondCrown"
+  | "smartWatch" | "luxuryWatch" | "silverChain" | "prestigeChain"
   // Weekly Tournament exclusives — only ever earned by placing top 3, never unlocked by leveling.
   | "goldChain" | "diamondChain" | "championMedal" | "platinumNecklace"
   | "sportWatch" | "goldWatch" | "diamondWatch" | "championWatch"
@@ -65,7 +71,11 @@ export type BackgroundStyle =
   | "chess-board"
   | "neon-arena"
   | "galaxy"
-  | "golden-trophy-room";
+  | "golden-trophy-room"
+  | "stadium"
+  | "space-station"
+  | "esports-stage"
+  | "luxury-penthouse";
 
 export interface AvatarConfig {
   faceShape: FaceShape;

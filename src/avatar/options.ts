@@ -87,6 +87,9 @@ export const HAIR_STYLES: AvatarOption<HairStyle>[] = [
   { value: "samuraiBun", label: "Samurai Bun", unlockLevel: 20 },
   { value: "curlyFade", label: "Curly Fade", unlockLevel: 20 },
   { value: "lightningHair", label: "Lightning Hair", unlockLevel: 35 },
+  { value: "frostedTips", label: "Frosted Tips", unlockLevel: 55 },
+  { value: "platinumWaves", label: "Platinum Waves", unlockLevel: 75 },
+  { value: "crystalHair", label: "Crystal Hair", unlockLevel: 90 },
 ];
 
 export const HAIR_LENGTHS: AvatarOption<HairLength>[] = [
@@ -111,6 +114,8 @@ export const HAIR_COLORS: AvatarOption<HairColor>[] = [
   { value: "neonRed", label: "Neon Red", unlockLevel: 15, swatch: "#ff1744" },
   { value: "rainbow", label: "Rainbow", unlockLevel: 30, swatch: "#f472b6" },
   { value: "galaxy", label: "Galaxy", unlockLevel: 30, swatch: "#6d28d9" },
+  { value: "iceBlue", label: "Ice Blue", unlockLevel: 60, swatch: "#bae6fd" },
+  { value: "obsidian", label: "Obsidian", unlockLevel: 85, swatch: "#1c1917" },
 ];
 
 export const EYE_SHAPES: AvatarOption<EyeShape>[] = [
@@ -187,6 +192,10 @@ export const CLOTHING_STYLES: AvatarOption<ClothingStyle>[] = [
   { value: "championHoodie", label: "Champion Hoodie", unlockLevel: 25 },
   { value: "eliteJersey", label: "Elite Jersey", unlockLevel: 25 },
   { value: "grandmasterRobe", label: "Grandmaster Robe", unlockLevel: 40 },
+  { value: "trackJacket", label: "Track Jacket", unlockLevel: 60 },
+  { value: "bomberJacket", label: "Bomber Jacket", unlockLevel: 70 },
+  { value: "tuxedo", label: "Tuxedo", unlockLevel: 80 },
+  { value: "winterJacket", label: "Winter Jacket", unlockLevel: 95 },
   { value: "tournamentVarsity", label: "Champion Varsity Jacket", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
   { value: "diamondHoodie", label: "Diamond Hoodie", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
   { value: "lightningJacket", label: "Lightning Jacket", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
@@ -202,6 +211,7 @@ export const PANTS_STYLES: AvatarOption<PantsStyle>[] = [
   { value: "trackPants", label: "Track Pants", unlockLevel: 5 },
   { value: "cargoElite", label: "Tactical Cargo Pants", unlockLevel: 15 },
   { value: "eliteJoggers", label: "Elite Joggers", unlockLevel: 25 },
+  { value: "suitPants", label: "Suit Pants", unlockLevel: 80 },
 ];
 
 export const SHOE_STYLES: AvatarOption<ShoeStyle>[] = [
@@ -212,6 +222,8 @@ export const SHOE_STYLES: AvatarOption<ShoeStyle>[] = [
   { value: "basketballShoes", label: "Basketball Shoes", unlockLevel: 10 },
   { value: "runningShoes", label: "Running Shoes", unlockLevel: 20 },
   { value: "goldenSneakers", label: "Golden Sneakers", unlockLevel: 35 },
+  { value: "designerSneakers", label: "Designer Sneakers", unlockLevel: 65 },
+  { value: "skateShoes", label: "Skate Shoes", unlockLevel: 85 },
 ];
 
 export const CLOTHING_COLORS: AvatarOption<ClothingColor>[] = [
@@ -240,6 +252,10 @@ export const ACCESSORIES: AvatarOption<AccessoryStyle>[] = [
   { value: "sportsHeadband", label: "Sports Headband", unlockLevel: 20 },
   { value: "goldenCrown", label: "Golden Crown", unlockLevel: 30 },
   { value: "diamondCrown", label: "Diamond Crown", unlockLevel: 50 },
+  { value: "silverChain", label: "Silver Chain", unlockLevel: 65 },
+  { value: "smartWatch", label: "Smart Watch", unlockLevel: 65 },
+  { value: "luxuryWatch", label: "Luxury Watch", unlockLevel: 90 },
+  { value: "prestigeChain", label: "Prestige Chain", unlockLevel: 95 },
   { value: "goldChain", label: "Gold Chain", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
   { value: "diamondChain", label: "Diamond Chain", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
   { value: "championMedal", label: "Champion Medal", unlockLevel: EXCLUSIVE_UNLOCK_LEVEL, exclusive: true },
@@ -273,4 +289,8 @@ export const BACKGROUNDS: AvatarOption<BackgroundStyle>[] = [
   { value: "neon-arena", label: "Neon Arena", unlockLevel: 35 },
   { value: "galaxy", label: "Galaxy", unlockLevel: 50 },
   { value: "golden-trophy-room", label: "Golden Trophy Room", unlockLevel: 50 },
+  { value: "stadium", label: "Stadium", unlockLevel: 55 },
+  { value: "space-station", label: "Space Station", unlockLevel: 70 },
+  { value: "esports-stage", label: "Esports Stage", unlockLevel: 80 },
+  { value: "luxury-penthouse", label: "Luxury Penthouse", unlockLevel: 95 },
 ];

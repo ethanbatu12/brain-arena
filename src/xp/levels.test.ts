@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { levelForTotalXp, titleForLevel, totalXpForLevel, unlockedTitles, xpForNextLevel } from "./levels";
+import { levelForTotalXp, titleColors, titleForLevel, totalXpForLevel, unlockedTitles, xpForNextLevel } from "./levels";
 
 describe("xpForNextLevel", () => {
   it("matches the level * 10 formula", () => {
@@ -81,5 +81,17 @@ describe("titles", () => {
 
   it("accumulates every unlocked title in order, not just the latest", () => {
     expect(unlockedTitles(20)).toEqual(["Rookie", "Challenger", "Competitor", "Strategist"]);
+  });
+});
+
+describe("titleColors", () => {
+  it("gives every title its own distinct color pair", () => {
+    const pairs = ["Rookie", "Challenger", "Competitor", "Strategist", "Brain Trainer", "Master Mind", "Grandmaster", "Legend"]
+      .map((t) => titleColors(t).join(","));
+    expect(new Set(pairs).size).toBe(pairs.length);
+  });
+
+  it("falls back to the Rookie color for an unrecognized title", () => {
+    expect(titleColors("Not A Real Title")).toEqual(titleColors("Rookie"));
   });
 });

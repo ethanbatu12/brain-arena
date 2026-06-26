@@ -7,6 +7,7 @@ import { averageScore, normalizeProfile } from "../player/storage";
 import type { GameId, PlayerProfile } from "../player/types";
 import { sanitizeAvatarConfig } from "../avatar/serialize";
 import type { AvatarConfig } from "../avatar/types";
+import { titleColors, titleForLevel } from "../xp/levels";
 import { AvatarSvg } from "./AvatarSvg";
 
 type AvgKey =
@@ -38,6 +39,7 @@ interface Row {
   avatar: string;
   avatarConfig: AvatarConfig;
   level: number;
+  title: string;
   value: number;
   label: string;
   isCurrentUser: boolean;
@@ -86,6 +88,7 @@ function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): 
     avatar: p.avatar ?? "🧠",
     avatarConfig: sanitizeAvatarConfig(p.avatarConfig),
     level: p.level,
+    title: p.selectedTitle || titleForLevel(p.level),
     value,
     label,
     isCurrentUser: p.username === currentUsername,
@@ -259,9 +262,14 @@ VITE_SUPABASE_ANON_KEY=your-anon-key`}</pre>
                 <AvatarSvg config={row.avatarConfig} size={32} />
               </span>
               <span className="leaderboard__name">
-                {row.username}
-                {row.isCurrentUser && <span className="leaderboard__you-tag"> (you)</span>}
-                {activeKey !== "level" && <span className="leaderboard__level-badge">Lv {row.level}</span>}
+                <span className="leaderboard__name-row">
+                  {row.username}
+                  {row.isCurrentUser && <span className="leaderboard__you-tag"> (you)</span>}
+                  {activeKey !== "level" && <span className="leaderboard__level-badge">Lv {row.level}</span>}
+                </span>
+                <span className="leaderboard__title" style={{ color: titleColors(row.title)[0] }}>
+                  {row.title}
+                </span>
               </span>
               <span className="leaderboard__value">{row.label}</span>
             </div>

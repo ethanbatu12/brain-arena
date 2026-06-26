@@ -38,6 +38,10 @@ const BG_GRADIENTS: Record<string, [string, string]> = {
   "neon-arena": ["#0f172a", "#22d3ee"],
   galaxy: ["#1e1b4b", "#7e22ce"],
   "golden-trophy-room": ["#78350f", "#fbbf24"],
+  stadium: ["#14532d", "#166534"],
+  "space-station": ["#0c0a1f", "#312e81"],
+  "esports-stage": ["#1e1b4b", "#db2777"],
+  "luxury-penthouse": ["#1c1917", "#d4af37"],
 };
 
 /**
@@ -730,8 +734,15 @@ function renderAccessory(accessory: AvatarConfig["accessory"]) {
       </g>
     );
   }
-  if (accessory === "goldChain" || accessory === "diamondChain" || accessory === "platinumNecklace") {
-    const linkColor = accessory === "diamondChain" ? "#bdeefc" : accessory === "platinumNecklace" ? "#e5e7eb" : "#d4af37";
+  if (
+    accessory === "goldChain" || accessory === "diamondChain" || accessory === "platinumNecklace" ||
+    accessory === "silverChain" || accessory === "prestigeChain"
+  ) {
+    const linkColor =
+      accessory === "diamondChain" ? "#bdeefc"
+      : accessory === "platinumNecklace" || accessory === "silverChain" ? "#e5e7eb"
+      : accessory === "prestigeChain" ? "#a78bfa"
+      : "#d4af37";
     return (
       <>
         <path d="M78 150 Q100 165 122 150" stroke={linkColor} strokeWidth="5" fill="none" strokeLinecap="round" />
@@ -748,8 +759,15 @@ function renderAccessory(accessory: AvatarConfig["accessory"]) {
       </>
     );
   }
-  if (accessory === "sportWatch" || accessory === "goldWatch" || accessory === "diamondWatch" || accessory === "championWatch") {
-    const band = accessory === "goldWatch" || accessory === "championWatch" ? "#d4af37" : accessory === "diamondWatch" ? "#bdeefc" : "#2a2a2a";
+  if (
+    accessory === "sportWatch" || accessory === "goldWatch" || accessory === "diamondWatch" || accessory === "championWatch" ||
+    accessory === "smartWatch" || accessory === "luxuryWatch"
+  ) {
+    const band =
+      accessory === "goldWatch" || accessory === "championWatch" || accessory === "luxuryWatch" ? "#d4af37"
+      : accessory === "diamondWatch" ? "#bdeefc"
+      : accessory === "smartWatch" ? "#475569"
+      : "#2a2a2a";
     // sits on the wrist of the lowered right arm
     return <rect x="146" y="226" width="20" height="10" rx="3" fill={band} stroke={darken(band, 0.3)} strokeWidth="1" />;
   }

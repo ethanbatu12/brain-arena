@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { DEFAULT_AVATAR_CONFIG } from "../avatar/defaults";
 import {
   ACCESSORIES,
@@ -26,6 +26,9 @@ import { isAvailable } from "../avatar/unlocks";
 import { AVATAR_CATEGORIES, type AvatarCategory, type AvatarConfig } from "../avatar/types";
 import { AvatarSvg } from "./AvatarSvg";
 import { XpBar } from "./XpBar";
+
+// Three.js is a large dependency — only loaded once a player actually opens the 3D preview.
+const Avatar3D = lazy(() => import("./Avatar3D").then((m) => ({ default: m.Avatar3D })));
 
 const CATEGORY_LABELS: Record<AvatarCategory, string> = {
   face: "Face",
@@ -58,6 +61,7 @@ export function AvatarEditor({
 }: AvatarEditorProps) {
   const [config, setConfig] = useState<AvatarConfig>(initialConfig);
   const [category, setCategory] = useState<AvatarCategory>("face");
+  const [previewMode, setPreviewMode] = useState<"2d" | "3d">("2d");
 
   const set = <K extends keyof AvatarConfig>(key: K, value: AvatarConfig[K]) =>
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -68,8 +72,37 @@ export function AvatarEditor({
   return (
     <div className="avatar-editor">
       {xp !== undefined && <XpBar xp={xp} compact />}
+      <div className="avatar-editor__preview-toggle" role="tablist" aria-label="Preview mode">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={previewMode === "2d"}
+          className={`avatar-editor__preview-tab${previewMode === "2d" ? " avatar-editor__preview-tab--active" : ""}`}
+          onClick={() => setPreviewMode("2d")}
+        >
+          Flat preview
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={previewMode === "3d"}
+          className={`avatar-editor__preview-tab${previewMode === "3d" ? " avatar-editor__preview-tab--active" : ""}`}
+          onClick={() => setPreviewMode("3d")}
+        >
+          🌀 Rotate in 3D
+        </button>
+      </div>
       <div className="avatar-editor__preview">
-        <AvatarSvg config={config} size={240} />
+        {previewMode === "3d" ? (
+          <>
+            <Suspense fallback={<div style={{ height: 320 }} />}>
+              <Avatar3D config={config} />
+            </Suspense>
+            <p className="avatar-editor__preview-hint">Drag to rotate · Scroll or pinch to zoom</p>
+          </>
+        ) : (
+          <AvatarSvg config={config} size={240} />
+        )}
       </div>
 
       <div className="avatar-editor__tabs" role="tablist">
