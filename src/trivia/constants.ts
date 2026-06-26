@@ -1,7 +1,7 @@
 /** Tuning knobs for Mixed Trivia. */
 export const TRIVIA_GAME_MS = 60_000; // 60-second sprint, same as the other games
 
-export const POINTS_PER_CORRECT = 75;
+export const POINTS_PER_CORRECT = 85;
 export const BONUS_EVERY_CORRECT = 5; // every Nth correct answer earns a bonus
 export const BONUS_POINTS = 25;
 

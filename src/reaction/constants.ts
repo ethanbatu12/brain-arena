@@ -1,5 +1,5 @@
 /** Tuning knobs for Reaction Grid. */
-export const REACTION_GAME_MS = 60_000; // 60-second sprint, same as the other games
+export const REACTION_GAME_MS = 30_000; // 30-second sprint
 
 export const POINTS_PER_DOT = 25;
 export const BONUS_EVERY_HITS = 10; // every Nth successful tap earns a bonus

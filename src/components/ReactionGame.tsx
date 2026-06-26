@@ -79,7 +79,7 @@ export function ReactionGame({ onExit, mode = "solo", onRoundComplete }: Reactio
               <li>Miss a dot and it's gone — no penalty, just keep tapping</li>
             </ul>
             <button className="btn btn--primary" onClick={start}>
-              Start · 60 seconds
+              Start · 30 seconds
             </button>
             {best > 0 && <p className="overlay__best">Best score {best.toLocaleString()}</p>}
           </Overlay>

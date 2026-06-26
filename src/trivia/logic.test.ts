@@ -18,7 +18,7 @@ describe("scoring", () => {
     let total = 0;
     for (let i = 1; i <= 5; i++) total += scoreForCorrect(i);
     expect(total).toBe(5 * POINTS_PER_CORRECT + BONUS_POINTS);
-    expect(total).toBe(400);
+    expect(total).toBe(450);
   });
 });
 
