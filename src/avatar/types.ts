@@ -106,7 +106,8 @@ export interface AvatarConfig {
   shoeStyle: ShoeStyle;
   shoeColor: ClothingColor;
 
-  accessory: AccessoryStyle;
+  /** Multiple can be worn at once — how many slots are available scales with player level (3 / 5 at lvl 50 / 7 at lvl 100). */
+  accessories: AccessoryStyle[];
 
   background: BackgroundStyle;
 }

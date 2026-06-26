@@ -17,9 +17,35 @@ describe("sanitizeAvatarConfig", () => {
       ...DEFAULT_AVATAR_CONFIG,
       faceShape: "square" as const,
       hairColor: "blue" as const,
-      accessory: "glasses" as const,
+      accessories: ["glasses", "headband"] as ("glasses" | "headband")[],
     };
     expect(sanitizeAvatarConfig(custom)).toEqual(custom);
+  });
+
+  it("supports wearing multiple accessories at once", () => {
+    const result = sanitizeAvatarConfig({ accessories: ["glasses", "headband", "crown"] });
+    expect(result.accessories).toEqual(["glasses", "headband", "crown"]);
+  });
+
+  it("migrates an old single-string accessory value into a one-item array", () => {
+    const result = sanitizeAvatarConfig({ accessory: "glasses" } as never);
+    expect(result.accessories).toEqual(["glasses"]);
+  });
+
+  it("treats a legacy 'none' value as wearing nothing", () => {
+    const result = sanitizeAvatarConfig({ accessory: "none" } as never);
+    expect(result.accessories).toEqual([]);
+  });
+
+  it("drops unrecognized accessory values and de-duplicates", () => {
+    const result = sanitizeAvatarConfig({ accessories: ["glasses", "glasses", "not-a-real-thing"] as never });
+    expect(result.accessories).toEqual(["glasses"]);
+  });
+
+  it("caps accessories at the absolute maximum, even if more were stored", () => {
+    const tooMany = ["glasses", "headband", "cap", "snapback", "bucketHat", "hat", "beanie", "crown"];
+    const result = sanitizeAvatarConfig({ accessories: tooMany as never });
+    expect(result.accessories).toHaveLength(7);
   });
 
   it("falls back to the default for any single invalid/corrupted field, keeping the rest", () => {

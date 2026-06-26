@@ -29,7 +29,7 @@ export const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
   shoeStyle: "sneakers",
   shoeColor: "white",
 
-  accessory: "none",
+  accessories: [],
 
   background: "solid-sky",
 };

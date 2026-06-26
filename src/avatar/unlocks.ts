@@ -41,3 +41,13 @@ export function isAvailable<T extends string>(
   if (option.exclusive) return ownedExclusives.has(option.value);
   return isUnlocked(option, playerLevel);
 }
+
+/** The absolute most accessory slots any player can ever have, regardless of level. */
+export const MAX_ACCESSORY_SLOTS = 7;
+
+/** How many accessories a player can wear at once: 3 by default, 5 at level 50+, 7 at level 100+. */
+export function accessorySlotsForLevel(playerLevel: number): number {
+  if (playerLevel >= 100) return 7;
+  if (playerLevel >= 50) return 5;
+  return 3;
+}

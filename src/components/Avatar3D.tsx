@@ -287,8 +287,8 @@ function CharacterRig({ config }: { config: AvatarConfig }) {
         {/* hair */}
         <HairMesh shape={hairShape} color={hair} lengthScale={hairLengthScale} />
 
-        {/* accessory */}
-        <AccessoryMesh accessory={config.accessory} />
+        {/* accessories — multiple can be worn at once */}
+        {config.accessories.map((a, i) => <AccessoryMesh key={a + i} accessory={a} />)}
       </group>
     </group>
   );
@@ -395,7 +395,7 @@ function HairMesh({ shape, color, lengthScale }: { shape: HairShape; color: stri
   );
 }
 
-function AccessoryMesh({ accessory }: { accessory: AvatarConfig["accessory"] }) {
+function AccessoryMesh({ accessory }: { accessory: AvatarConfig["accessories"][number] }) {
   if (accessory === "none") return null;
   if (accessory === "glasses" || accessory === "sunglasses" || accessory === "championGlasses") {
     const lensColor = accessory === "sunglasses" ? "#2a2a2a" : "#bae6fd";

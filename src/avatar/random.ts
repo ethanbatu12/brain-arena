@@ -18,11 +18,22 @@ import {
   SHOE_STYLES,
   SKIN_TONES,
 } from "./options";
-import { unlockedValues } from "./unlocks";
-import type { AvatarConfig } from "./types";
+import { accessorySlotsForLevel, unlockedValues } from "./unlocks";
+import type { AccessoryStyle, AvatarConfig } from "./types";
 
 function pick<T>(items: T[], rng: Rng): T {
   return items[Math.floor(rng() * items.length)];
+}
+
+/** Picks a random subset (no duplicates) of up to `max` items, between 0 and max of them. */
+function pickSubset<T>(items: T[], max: number, rng: Rng): T[] {
+  const pool = [...items];
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  const count = Math.min(pool.length, Math.floor(rng() * (max + 1)));
+  return pool.slice(0, count);
 }
 
 /** Generates a random avatar using only options unlocked at the given player level. */
@@ -56,7 +67,11 @@ export function randomizeAvatar(playerLevel: number, rng: Rng): AvatarConfig {
     shoeStyle: pick(unlockedValues(SHOE_STYLES, playerLevel), rng),
     shoeColor: pick(unlockedValues(CLOTHING_COLORS, playerLevel), rng),
 
-    accessory: pick(unlockedValues(ACCESSORIES, playerLevel), rng),
+    accessories: pickSubset<AccessoryStyle>(
+      unlockedValues(ACCESSORIES, playerLevel).filter((v) => v !== "none"),
+      accessorySlotsForLevel(playerLevel),
+      rng,
+    ),
 
     background: pick(unlockedValues(BACKGROUNDS, playerLevel), rng),
   };

@@ -22,7 +22,7 @@ import {
 } from "../avatar/options";
 import { mulberry32 } from "../game/rng";
 import { randomizeAvatar } from "../avatar/random";
-import { isAvailable } from "../avatar/unlocks";
+import { accessorySlotsForLevel, isAvailable } from "../avatar/unlocks";
 import { AVATAR_CATEGORIES, type AvatarCategory, type AvatarConfig } from "../avatar/types";
 import { AvatarSvg } from "./AvatarSvg";
 import { XpBar } from "./XpBar";
@@ -169,7 +169,14 @@ export function AvatarEditor({
         )}
 
         {category === "accessories" && (
-          <OptionRow label="Accessory" options={ACCESSORIES} value={config.accessory} level={playerLevel} ownedExclusives={ownedExclusives} onSelect={(v) => set("accessory", v)} />
+          <AccessoryMultiRow
+            options={ACCESSORIES}
+            value={config.accessories}
+            level={playerLevel}
+            maxSlots={accessorySlotsForLevel(playerLevel)}
+            ownedExclusives={ownedExclusives}
+            onChange={(v) => set("accessories", v)}
+          />
         )}
 
         {category === "background" && (
@@ -234,6 +241,70 @@ function OptionRow<T extends string>({
             </button>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function AccessoryMultiRow<T extends string>({
+  options,
+  value,
+  level,
+  maxSlots,
+  ownedExclusives = new Set(),
+  onChange,
+}: {
+  options: AvatarOption<T>[];
+  value: T[];
+  level: number;
+  maxSlots: number;
+  ownedExclusives?: ReadonlySet<string>;
+  onChange: (value: T[]) => void;
+}) {
+  const atCap = value.length >= maxSlots;
+
+  const toggle = (v: T) => {
+    if (value.includes(v)) {
+      onChange(value.filter((x) => x !== v));
+    } else if (!atCap) {
+      onChange([...value, v]);
+    }
+  };
+
+  return (
+    <div className="avatar-editor__row">
+      <p className="avatar-editor__row-label">
+        Accessories <span className="avatar-editor__slot-count">{value.length} / {maxSlots} worn</span>
+      </p>
+      <div className="avatar-editor__swatches">
+        {options
+          .filter((opt) => opt.value !== "none")
+          .map((opt) => {
+            const selected = value.includes(opt.value);
+            const unlocked = isAvailable(opt, level, ownedExclusives);
+            const locked = !unlocked || (!selected && atCap);
+            const lockMsg = !unlocked
+              ? opt.exclusive
+                ? "Earn this in a Weekly Tournament top 3"
+                : `Unlocks at level ${opt.unlockLevel}`
+              : atCap
+                ? `You're wearing the max of ${maxSlots} accessories — remove one first`
+                : opt.label;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                className={`avatar-editor__option${selected ? " avatar-editor__option--active" : ""}${opt.exclusive ? " avatar-editor__option--exclusive" : ""}`}
+                disabled={locked && !selected}
+                title={locked ? lockMsg : opt.label}
+                onClick={() => toggle(opt.value)}
+              >
+                {opt.label}
+                {!unlocked && <span className="avatar-editor__lock">🔒</span>}
+                {unlocked && opt.exclusive && <span className="avatar-editor__exclusive-tag">🏆</span>}
+              </button>
+            );
+          })}
       </div>
     </div>
   );

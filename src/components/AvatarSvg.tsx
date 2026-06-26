@@ -192,8 +192,8 @@ export function AvatarSvg({ config, size = 96, className }: AvatarSvgProps) {
       {/* hair front (drawn after face so bangs sit on top) */}
       {renderHairFront(config.hairStyle, hair, hairShadow, hairHighlight, hairLengthScale)}
 
-      {/* accessories */}
-      {renderAccessory(config.accessory)}
+      {/* accessories — multiple can be worn at once */}
+      {config.accessories.map((a, i) => <g key={a + i}>{renderAccessory(a)}</g>)}
     </svg>
   );
 }
@@ -723,7 +723,7 @@ function renderFacialHair(style: AvatarConfig["facialHair"], hair: string, hairS
   return null;
 }
 
-function renderAccessory(accessory: AvatarConfig["accessory"]) {
+function renderAccessory(accessory: AvatarConfig["accessories"][number]) {
   if (accessory === "glasses" || accessory === "sunglasses" || accessory === "championGlasses") {
     const lens = accessory === "sunglasses" ? "#2a2a2a" : accessory === "championGlasses" ? "#fbbf24" : "none";
     return (

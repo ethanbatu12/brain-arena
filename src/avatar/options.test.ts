@@ -85,7 +85,7 @@ describe("avatar option catalogs", () => {
     expect(CLOTHING_COLORS.find((o) => o.value === DEFAULT_AVATAR_CONFIG.pantsColor)?.unlockLevel).toBe(1);
     expect(SHOE_STYLES.find((o) => o.value === DEFAULT_AVATAR_CONFIG.shoeStyle)?.unlockLevel).toBe(1);
     expect(CLOTHING_COLORS.find((o) => o.value === DEFAULT_AVATAR_CONFIG.shoeColor)?.unlockLevel).toBe(1);
-    expect(ACCESSORIES.find((o) => o.value === DEFAULT_AVATAR_CONFIG.accessory)?.unlockLevel).toBe(1);
+    expect(DEFAULT_AVATAR_CONFIG.accessories.every((a) => ACCESSORIES.find((o) => o.value === a)?.unlockLevel === 1)).toBe(true);
     expect(BACKGROUNDS.find((o) => o.value === DEFAULT_AVATAR_CONFIG.background)?.unlockLevel).toBe(1);
   });
 });

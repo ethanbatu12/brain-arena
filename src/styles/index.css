@@ -2078,6 +2078,12 @@ button {
   color: var(--text-mute);
 }
 
+.avatar-editor__slot-count {
+  font-family: var(--mono);
+  color: var(--accent);
+  letter-spacing: 0;
+}
+
 .avatar-editor__swatches {
   display: flex;
   flex-wrap: wrap;

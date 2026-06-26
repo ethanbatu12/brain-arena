@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAvailable, isUnlocked, partitionByUnlock, unlockedValues } from "./unlocks";
+import { accessorySlotsForLevel, isAvailable, isUnlocked, partitionByUnlock, unlockedValues } from "./unlocks";
 import type { AvatarOption } from "./options";
 
 const OPTIONS: AvatarOption<string>[] = [
@@ -68,5 +68,22 @@ describe("isAvailable", () => {
 
   it("owning a different exclusive item doesn't unlock this one", () => {
     expect(isAvailable(EXCLUSIVE_OPTION, 1, new Set(["some-other-item"]))).toBe(false);
+  });
+});
+
+describe("accessorySlotsForLevel", () => {
+  it("starts at 3 slots", () => {
+    expect(accessorySlotsForLevel(1)).toBe(3);
+    expect(accessorySlotsForLevel(49)).toBe(3);
+  });
+
+  it("expands to 5 slots at level 50", () => {
+    expect(accessorySlotsForLevel(50)).toBe(5);
+    expect(accessorySlotsForLevel(99)).toBe(5);
+  });
+
+  it("expands to 7 slots at level 100", () => {
+    expect(accessorySlotsForLevel(100)).toBe(7);
+    expect(accessorySlotsForLevel(500)).toBe(7);
   });
 });

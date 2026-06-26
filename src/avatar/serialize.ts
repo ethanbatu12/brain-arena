@@ -19,11 +19,28 @@ import {
   SKIN_TONES,
   type AvatarOption,
 } from "./options";
-import type { AvatarConfig } from "./types";
+import { MAX_ACCESSORY_SLOTS } from "./unlocks";
+import type { AccessoryStyle, AvatarConfig } from "./types";
 
 function validValue<T extends string>(options: AvatarOption<T>[], value: unknown, fallback: T): T {
   if (typeof value === "string" && options.some((o) => o.value === value)) return value as T;
   return fallback;
+}
+
+/**
+ * Validates a list of accessory values: drops unrecognized entries, drops
+ * "none" (an empty array already means "wearing nothing"), de-duplicates,
+ * and caps at the absolute max any player can ever have — the actual
+ * level-based slot limit (3/5/7) is enforced by the editor UI, not here.
+ * Also accepts a legacy single string value, from saves made before
+ * multiple accessories were supported.
+ */
+function validAccessories(raw: unknown): AccessoryStyle[] {
+  const candidates: unknown[] = Array.isArray(raw) ? raw : typeof raw === "string" ? [raw] : [];
+  const valid = candidates.filter(
+    (v): v is AccessoryStyle => typeof v === "string" && v !== "none" && ACCESSORIES.some((o) => o.value === v),
+  );
+  return Array.from(new Set(valid)).slice(0, MAX_ACCESSORY_SLOTS);
 }
 
 /**
@@ -64,7 +81,7 @@ export function sanitizeAvatarConfig(raw: Partial<AvatarConfig> | null | undefin
     shoeStyle: validValue(SHOE_STYLES, r.shoeStyle, DEFAULT_AVATAR_CONFIG.shoeStyle),
     shoeColor: validValue(CLOTHING_COLORS, r.shoeColor, DEFAULT_AVATAR_CONFIG.shoeColor),
 
-    accessory: validValue(ACCESSORIES, r.accessory, DEFAULT_AVATAR_CONFIG.accessory),
+    accessories: validAccessories((r as Partial<AvatarConfig> & { accessory?: unknown }).accessories ?? (r as { accessory?: unknown }).accessory),
 
     background: validValue(BACKGROUNDS, r.background, DEFAULT_AVATAR_CONFIG.background),
   };

@@ -35,7 +35,17 @@ describe("randomizeAvatar", () => {
     for (let i = 0; i < 200; i++) {
       const config = randomizeAvatar(1, rng);
       expect(lockedHairColors.has(config.hairColor)).toBe(false);
-      expect(lockedAccessories.has(config.accessory)).toBe(false);
+      expect(config.accessories.some((a) => lockedAccessories.has(a))).toBe(false);
+    }
+  });
+
+  it("never exceeds the accessory slot count for the given player level", () => {
+    const rng = mulberry32(13);
+    for (let i = 0; i < 200; i++) {
+      expect(randomizeAvatar(1, rng).accessories.length).toBeLessThanOrEqual(3);
+    }
+    for (let i = 0; i < 200; i++) {
+      expect(randomizeAvatar(100, rng).accessories.length).toBeLessThanOrEqual(7);
     }
   });
 
@@ -43,7 +53,7 @@ describe("randomizeAvatar", () => {
     const rng = mulberry32(3);
     const seen = new Set<string>();
     for (let i = 0; i < 300; i++) {
-      seen.add(randomizeAvatar(99, rng).accessory);
+      for (const a of randomizeAvatar(99, rng).accessories) seen.add(a);
     }
     expect(seen.has("beanie")).toBe(true);
   });
@@ -72,14 +82,15 @@ describe("randomizeAvatar", () => {
       mouthStyle: new Set(MOUTH_STYLES.map((o) => o.value)),
       clothingStyle: new Set(CLOTHING_STYLES.map((o) => o.value)),
       clothingColor: new Set(CLOTHING_COLORS.map((o) => o.value)),
-      accessory: new Set(ACCESSORIES.map((o) => o.value)),
       background: new Set(BACKGROUNDS.map((o) => o.value)),
     };
+    const validAccessories = new Set(ACCESSORIES.map((o) => o.value));
     for (let i = 0; i < 50; i++) {
       const config = randomizeAvatar(99, rng);
       for (const [key, set] of Object.entries(validSets) as [string, Set<string>][]) {
         expect(set.has(config[key as keyof typeof config] as string)).toBe(true);
       }
+      for (const a of config.accessories) expect(validAccessories.has(a)).toBe(true);
     }
   });
 });
