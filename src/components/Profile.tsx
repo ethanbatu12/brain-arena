@@ -16,6 +16,8 @@ import { usePlayerProfile } from "../player/PlayerContext";
 import { unlockedTitles } from "../xp/levels";
 import { BORDERS, getBorderDef, unlockedBorders } from "../player/borders";
 import { isBadgeActive } from "../tournament/claim";
+import { getPetDef } from "../pets/catalog";
+import { PET_EMOJI } from "../pets/rarity";
 
 function formatTime(ms: number): string {
   if (ms === 0) return "—";
@@ -90,6 +92,11 @@ export function Profile({ profile, onBack, onEditAvatar, onViewLevels, onSignOut
             style={{ boxShadow: border.id === "none" ? undefined : `0 0 0 5px ${border.colors[0]}, 0 0 0 8px ${border.colors[1]}` }}
           >
             <AvatarSvg config={profile.avatarConfig} size={120} />
+            {profile.equippedPet && getPetDef(profile.equippedPet) && (
+              <span className="pet-badge" title={getPetDef(profile.equippedPet)!.name} style={{ fontSize: "1.6rem" }}>
+                {PET_EMOJI[getPetDef(profile.equippedPet)!.species]}
+              </span>
+            )}
           </div>
           <button className="btn btn--primary" onClick={onEditAvatar}>
             Edit Avatar
@@ -244,6 +251,10 @@ export function Profile({ profile, onBack, onEditAvatar, onViewLevels, onSignOut
             <div className="stat">
               <span className="stat__value">{profile.username}</span>
               <span className="stat__label">Username</span>
+            </div>
+            <div className="stat">
+              <span className="stat__value">🪙 {profile.coins.toLocaleString()}</span>
+              <span className="stat__label">Coins</span>
             </div>
           </div>
         </div>

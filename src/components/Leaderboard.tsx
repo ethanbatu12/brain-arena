@@ -25,7 +25,8 @@ type SortKey =
   | "chess-puzzle-rating"
   | "games-played"
   | "streak"
-  | "challenge-runs";
+  | "challenge-runs"
+  | "pets";
 
 type Scope = "local" | "global";
 
@@ -82,6 +83,7 @@ function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): 
       case "games-played":   value = p.totalGamesPlayed; label = String(value); break;
       case "streak":         value = p.streak.longestStreak; label = `${value} days`; break;
       case "challenge-runs": value = p.challengeRunsCompleted; label = String(value); break;
+      case "pets":           value = p.ownedPets.length; label = `${value} pet${value === 1 ? "" : "s"}`; break;
       default:               value = 0; label = "0";
     }
   }
@@ -113,6 +115,7 @@ const TAB_GROUPS: TabGroup[] = [
       { key: "challenge-runs", label: "Challenge Runs" },
       { key: "games-played",   label: "Games Played" },
       { key: "streak",         label: "Longest Streak" },
+      { key: "pets",           label: "Most Pets" },
     ],
   },
   {
@@ -267,7 +270,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key`}</pre>
               </span>
               <span className="leaderboard__name">
                 <span className="leaderboard__name-row">
-                  <span style={row.borderColor ? { color: row.borderColor } : undefined}>{row.username}</span>
+                  <span style={{ color: row.borderColor ?? "#000000" }}>{row.username}</span>
                   {row.isCurrentUser && <span className="leaderboard__you-tag"> (you)</span>}
                   {activeKey !== "level" && <span className="leaderboard__level-badge">Lv {row.level}</span>}
                 </span>

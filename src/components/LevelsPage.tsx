@@ -50,6 +50,7 @@ export function LevelsPage({ profile, onBack }: LevelsPageProps) {
         </div>
 
         <div className="levels__hero-stats">
+          <Stat label="Coins" value={`🪙 ${profile.coins.toLocaleString()}`} />
           <Stat label="Total lifetime XP" value={profile.xp.toLocaleString()} />
           <Stat label="XP earned today" value={profile.xpEarnedToday.amount.toLocaleString()} />
           <Stat label="XP earned this week" value={profile.xpEarnedThisWeek.amount.toLocaleString()} />

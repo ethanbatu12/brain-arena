@@ -34,6 +34,9 @@ import { ensureTournamentFinalized } from "../tournament/finalize";
 import { currentTournamentWeek } from "../tournament/schedule";
 import { isPlausibleScore } from "../tournament/scoring";
 import { sanitizeBorder } from "./borders";
+import { awardCoins } from "../coins/award";
+import { canPurchase } from "../pets/collection";
+import { getPetDef } from "../pets/catalog";
 
 /** Apply streak update, daily-challenge tracking, and achievement check to an already-updated profile. */
 function applyPostGameEffects(profile: PlayerProfile, events: TripleChallengeEvent[] = []): {
@@ -47,7 +50,7 @@ function applyPostGameEffects(profile: PlayerProfile, events: TripleChallengeEve
   working = { ...working, tripleChallenges: rollover.state, challengeStreak: rollover.streak };
 
   for (const event of events) {
-    const { state, xpGained, newlyCompleted } = applyChallengeEvent(working.tripleChallenges, event);
+    const { state, xpGained, coinsGained, newlyCompleted } = applyChallengeEvent(working.tripleChallenges, event);
     working = { ...working, tripleChallenges: state };
     if (newlyCompleted.length > 0) {
       working = {
@@ -59,6 +62,7 @@ function applyPostGameEffects(profile: PlayerProfile, events: TripleChallengeEve
       };
     }
     if (xpGained > 0) working = awardXp(working, xpGained);
+    if (coinsGained > 0) working = awardCoins(working, coinsGained);
   }
 
   const newIds = checkAchievements(working);
@@ -91,6 +95,8 @@ interface PlayerContextValue {
   setAvatarConfig: (avatarConfig: AvatarConfig) => void;
   setSelectedTitle: (title: string) => void;
   setProfileBorder: (borderId: string) => void;
+  buyPet: (petId: string) => { ok: true } | { ok: false; error: "already-owned" | "not-enough-coins" | "unknown-pet" };
+  equipPet: (petId: string | null) => void;
   existingUsernames: string[];
 }
 
@@ -426,6 +432,42 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   );
 
   const profile = currentUsername ? profiles[currentUsername] ?? null : null;
+
+  const buyPet = useCallback(
+    (petId: string) => {
+      if (!profile) return { ok: false as const, error: "unknown-pet" as const };
+      const result = canPurchase(petId, profile.coins, profile.ownedPets);
+      if (!result.ok) return result;
+      const pet = getPetDef(petId);
+      if (!pet) return { ok: false as const, error: "unknown-pet" as const };
+      const updated: PlayerProfile = {
+        ...profile,
+        coins: profile.coins - pet.price,
+        ownedPets: [...profile.ownedPets, petId],
+      };
+      void saveProfile(updated);
+      void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
+      setProfiles((prev) => ({ ...prev, [updated.username]: updated }));
+      return { ok: true as const };
+    },
+    [profile],
+  );
+
+  const equipPet = useCallback(
+    (petId: string | null) => {
+      setProfiles((prev) => {
+        if (!currentUsername) return prev;
+        const current = prev[currentUsername];
+        if (!current) return prev;
+        if (petId !== null && !current.ownedPets.includes(petId)) return prev;
+        const updated = { ...current, equippedPet: petId };
+        void saveProfile(updated);
+        void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
+        return { ...prev, [currentUsername]: updated };
+      });
+    },
+    [currentUsername],
+  );
   const allProfiles = useMemo(() => Object.values(profiles), [profiles]);
   const existingUsernames = useMemo(() => Object.keys(profiles), [profiles]);
 
@@ -490,6 +532,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setAvatarConfig,
     setSelectedTitle,
     setProfileBorder,
+    buyPet,
+    equipPet,
     existingUsernames,
   };
 

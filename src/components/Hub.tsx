@@ -6,6 +6,8 @@ import { AvatarSvg } from "./AvatarSvg";
 import { XpBar } from "./XpBar";
 import { DailyChallengesWidget } from "./DailyChallengesWidget";
 import { WeeklyTournamentCard } from "./WeeklyTournamentCard";
+import { getPetDef } from "../pets/catalog";
+import { PET_EMOJI } from "../pets/rarity";
 
 interface HubProps {
   profile: PlayerProfile;
@@ -15,10 +17,21 @@ interface HubProps {
   onDb: () => void;
   onLeaderboard: () => void;
   onTournament: () => void;
+  onPetShop: () => void;
   onSignOut: () => void;
 }
 
-export function Hub({ profile, onPick, onChess, onProfile, onDb, onLeaderboard, onTournament, onSignOut }: HubProps) {
+export function Hub({
+  profile,
+  onPick,
+  onChess,
+  onProfile,
+  onDb,
+  onLeaderboard,
+  onTournament,
+  onPetShop,
+  onSignOut,
+}: HubProps) {
   const today = getToday();
   const dailyGameId = getDailyGameId(today);
   const dailyGameMeta = GAMES.find((g) => g.id === dailyGameId)!;
@@ -35,6 +48,9 @@ export function Hub({ profile, onPick, onChess, onProfile, onDb, onLeaderboard, 
           </h1>
         </div>
         <div className="home__player-actions">
+          <span className="home__coins-badge" title="Coins">
+            🪙 {profile.coins}
+          </span>
           <button className="btn btn--ghost" onClick={onProfile}>
             Profile
           </button>
@@ -43,6 +59,9 @@ export function Hub({ profile, onPick, onChess, onProfile, onDb, onLeaderboard, 
           </button>
           <button className="btn btn--ghost" onClick={onTournament}>
             Tournament
+          </button>
+          <button className="btn btn--ghost" onClick={onPetShop}>
+            Pet Shop
           </button>
           <button className="btn btn--ghost" onClick={onDb}>
             Database
@@ -57,6 +76,11 @@ export function Hub({ profile, onPick, onChess, onProfile, onDb, onLeaderboard, 
       <div className="home__player">
         <div className="home__avatar">
           <AvatarSvg config={profile.avatarConfig} size={56} />
+          {profile.equippedPet && getPetDef(profile.equippedPet) && (
+            <span className="home__pet-badge" title={getPetDef(profile.equippedPet)!.name}>
+              {PET_EMOJI[getPetDef(profile.equippedPet)!.species]}
+            </span>
+          )}
         </div>
         <div className="home__player-info">
           <p className="home__greeting">

@@ -24,6 +24,7 @@ import { SignIn } from "./components/SignIn";
 import { WeeklyTournament } from "./components/WeeklyTournament";
 import { TournamentHistoryPage } from "./components/TournamentHistoryPage";
 import { LevelsPage } from "./components/LevelsPage";
+import { PetShop } from "./components/PetShop";
 import { PlayerProvider, usePlayerProfile } from "./player/PlayerContext";
 import type { GameId } from "./player/types";
 import { currentTournamentWeek } from "./tournament/schedule";
@@ -47,6 +48,7 @@ type Screen =
   | "pattern-rated"
   | "tournament"
   | "tournament-history"
+  | "pet-shop"
   | GameId;
 
 function AppShell() {
@@ -64,6 +66,8 @@ function AppShell() {
     recordCombinedResult,
     recordRatedPuzzle,
     setAvatarConfig,
+    buyPet,
+    equipPet,
   } = usePlayerProfile();
   const [screen, setScreen] = useState<Screen>("hub");
   const goHub = () => setScreen("hub");
@@ -114,9 +118,11 @@ function AppShell() {
           onDb={() => setScreen("db")}
           onLeaderboard={() => setScreen("leaderboard")}
           onTournament={() => setScreen("tournament")}
+          onPetShop={() => setScreen("pet-shop")}
           onSignOut={signOut}
         />
       )}
+      {screen === "pet-shop" && <PetShop profile={profile} onBack={goHub} onBuyPet={buyPet} onEquipPet={equipPet} />}
       {screen === "tournament" && (
         <WeeklyTournament
           profile={profile}

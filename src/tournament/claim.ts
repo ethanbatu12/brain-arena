@@ -2,6 +2,7 @@ import { awardXp } from "../xp/award";
 import type { PlayerProfile } from "../player/types";
 import { cosmeticForRank, xpForRank } from "./rewards";
 import { emptyTournamentStats, type TournamentHistoryEntry } from "./types";
+import { awardCoins, coinsForRank } from "../coins/award";
 
 /** Which rank (if any) this username placed at in a finalized tournament. */
 function rankFor(entry: TournamentHistoryEntry, username: string): 1 | 2 | 3 | null {
@@ -36,6 +37,7 @@ export function claimTournamentRewards(
     const stats = working.tournamentStats ?? emptyTournamentStats();
 
     working = awardXp(working, xp);
+    working = awardCoins(working, coinsForRank(rank));
     working = {
       ...working,
       exclusiveCosmetics: working.exclusiveCosmetics.includes(cosmetic.value)

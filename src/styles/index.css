@@ -1775,10 +1775,38 @@ button {
   line-height: 1;
   flex-shrink: 0;
   display: flex;
+  position: relative;
 }
 
 .home__avatar svg {
   border-radius: var(--radius-sm);
+}
+
+.home__coins-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 999px);
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: #fbbf24;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.home__pet-badge,
+.pet-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -8px;
+  font-size: 1.1rem;
+  animation: pet-bounce 1.6s ease-in-out infinite;
+}
+
+@keyframes pet-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
 
 .home__player-info {
@@ -1921,6 +1949,7 @@ button {
 .profile__avatar-frame {
   border-radius: var(--radius);
   display: inline-flex;
+  position: relative;
 }
 
 .profile__row {
@@ -3084,4 +3113,94 @@ button {
 
 .levels__row--current .levels__row-unlocks {
   color: var(--text);
+}
+
+.screen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.pet-shop__tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.pet-shop {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pet-shop__preview {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+
+.pet-shop__preview-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.pet-shop__rarity {
+  font-weight: 700;
+  margin: 2px 0;
+}
+
+.pet-shop__price {
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.pet-shop__message {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.pet-shop__rarity-group h3 {
+  margin-bottom: 8px;
+}
+
+.pet-shop__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.pet-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 2px solid var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  cursor: pointer;
+}
+
+.pet-card--selected {
+  background: var(--surface-2);
+}
+
+.pet-card__emoji {
+  font-size: 1.8rem;
+}
+
+.pet-card__name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.pet-card__price {
+  font-size: 0.75rem;
+  color: var(--text-dim);
 }

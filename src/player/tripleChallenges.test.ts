@@ -119,8 +119,9 @@ describe("applyChallengeEvent", () => {
     const state = {
       date: "2026-06-24",
       challenges: [
-        { id: "score-math" as const, description: "Score 800+ in Mental Math", target: 800, progress: 0, completed: false, xpAwarded: false, xpReward: 50 },
+        { id: "score-math" as const, description: "Score 800+ in Mental Math", target: 800, progress: 0, completed: false, xpAwarded: false, xpReward: 50, coinReward: 25 },
       ],
+      allCompleteBonusAwarded: false,
     };
     const result = applyChallengeEvent(state, { type: "game", gameId: "math", score: 500 });
     expect(result.state.challenges[0].progress).toBe(500);
@@ -132,8 +133,9 @@ describe("applyChallengeEvent", () => {
     const state = {
       date: "2026-06-24",
       challenges: [
-        { id: "score-math" as const, description: "Score 800+ in Mental Math", target: 800, progress: 0, completed: false, xpAwarded: false, xpReward: 50 },
+        { id: "score-math" as const, description: "Score 800+ in Mental Math", target: 800, progress: 0, completed: false, xpAwarded: false, xpReward: 50, coinReward: 25 },
       ],
+      allCompleteBonusAwarded: false,
     };
     const first = applyChallengeEvent(state, { type: "game", gameId: "math", score: 900 });
     expect(first.state.challenges[0].completed).toBe(true);
@@ -147,8 +149,9 @@ describe("applyChallengeEvent", () => {
     const state: TripleChallengeState = {
       date: "2026-06-24",
       challenges: [
-        { id: "reaction-play-3", description: "Complete 3 games of Reaction Grid", target: 3, progress: 0, completed: false, xpAwarded: false, xpReward: 50 },
+        { id: "reaction-play-3", description: "Complete 3 games of Reaction Grid", target: 3, progress: 0, completed: false, xpAwarded: false, xpReward: 50, coinReward: 25 },
       ],
+      allCompleteBonusAwarded: false,
     };
     let s = state;
     for (let i = 0; i < 3; i++) {
@@ -162,8 +165,9 @@ describe("applyChallengeEvent", () => {
     const state = {
       date: "2026-06-24",
       challenges: [
-        { id: "score-math" as const, description: "Score 800+ in Mental Math", target: 800, progress: 0, completed: false, xpAwarded: false, xpReward: 50 },
+        { id: "score-math" as const, description: "Score 800+ in Mental Math", target: 800, progress: 0, completed: false, xpAwarded: false, xpReward: 50, coinReward: 25 },
       ],
+      allCompleteBonusAwarded: false,
     };
     const result = applyChallengeEvent(state, { type: "game", gameId: "logic", score: 900 });
     expect(result.state).toEqual(state);
@@ -174,15 +178,41 @@ describe("applyChallengeEvent", () => {
     const state: TripleChallengeState = {
       date: "2026-06-24",
       challenges: [
-        { id: "puzzle-5", description: "Complete 5 Chess Puzzles", target: 5, progress: 4, completed: false, xpAwarded: false, xpReward: 50 },
-        { id: "all-games-run", description: "Complete an All Games Challenge run", target: 1, progress: 0, completed: false, xpAwarded: false, xpReward: 50 },
-        { id: "direction-correct-20", description: "Answer 20 questions correctly in Direction Challenge", target: 20, progress: 19, completed: false, xpAwarded: false, xpReward: 50 },
+        { id: "puzzle-5", description: "Complete 5 Chess Puzzles", target: 5, progress: 4, completed: false, xpAwarded: false, xpReward: 50, coinReward: 25 },
+        { id: "all-games-run", description: "Complete an All Games Challenge run", target: 1, progress: 0, completed: false, xpAwarded: false, xpReward: 50, coinReward: 25 },
+        { id: "direction-correct-20", description: "Answer 20 questions correctly in Direction Challenge", target: 20, progress: 19, completed: false, xpAwarded: false, xpReward: 50, coinReward: 25 },
       ],
+      allCompleteBonusAwarded: false,
     };
     let s = state;
     ({ state: s } = applyChallengeEvent(s, { type: "puzzle-solved" }));
     ({ state: s } = applyChallengeEvent(s, { type: "all-games-challenge" }));
-    ({ state: s } = applyChallengeEvent(s, { type: "direction-correct", count: 1 }));
-    expect(s.challenges.every((c) => c.completed)).toBe(true);
+    const last = applyChallengeEvent(s, { type: "direction-correct", count: 1 });
+    expect(last.state.challenges.every((c) => c.completed)).toBe(true);
+  });
+
+  it("awards each challenge's coins as it completes, plus a one-time +50 bonus once all 3 are done", () => {
+    const state: TripleChallengeState = {
+      date: "2026-06-24",
+      challenges: [
+        { id: "puzzle-5", description: "Complete 5 Chess Puzzles", target: 1, progress: 0, completed: false, xpAwarded: false, xpReward: 50, coinReward: 25 },
+        { id: "all-games-run", description: "Complete an All Games Challenge run", target: 1, progress: 0, completed: false, xpAwarded: false, xpReward: 50, coinReward: 25 },
+        { id: "direction-correct-20", description: "Answer 20 questions correctly in Direction Challenge", target: 1, progress: 0, completed: false, xpAwarded: false, xpReward: 50, coinReward: 25 },
+      ],
+      allCompleteBonusAwarded: false,
+    };
+    const first = applyChallengeEvent(state, { type: "puzzle-solved" });
+    expect(first.coinsGained).toBe(25);
+
+    const second = applyChallengeEvent(first.state, { type: "all-games-challenge" });
+    expect(second.coinsGained).toBe(25);
+
+    const third = applyChallengeEvent(second.state, { type: "direction-correct", count: 1 });
+    expect(third.coinsGained).toBe(25 + 50);
+    expect(third.state.allCompleteBonusAwarded).toBe(true);
+
+    // re-applying after everything is already complete never re-awards the bonus
+    const again = applyChallengeEvent(third.state, { type: "puzzle-solved" });
+    expect(again.coinsGained).toBe(0);
   });
 });

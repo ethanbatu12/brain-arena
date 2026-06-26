@@ -179,4 +179,12 @@ export interface PlayerProfile {
   weeklyBadge: WeeklyBadge | null;
   /** Tournament week-start dates whose rewards have already been granted, so claiming is idempotent. */
   claimedTournamentWeeks: string[];
+  /** In-game currency, currently spendable only on pets. */
+  coins: number;
+  /** The highest level the per-level coin reward has already been paid out for — prevents double-granting. */
+  coinsGrantedForLevel: number;
+  /** Pet catalog ids the player has purchased. */
+  ownedPets: string[];
+  /** The pet currently shown following the avatar, or null for none. */
+  equippedPet: string | null;
 }

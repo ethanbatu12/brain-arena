@@ -17,6 +17,7 @@ import {
 import { emptyStreak } from "./streak";
 import { awardXp } from "../xp/award";
 import { levelForTotalXp, titleForLevel, XP_AWARDS } from "../xp/levels";
+import { awardCoins, coinsForGameResult, coinsForLevel, coinsOwedForLevelUp } from "../coins/award";
 import { sanitizeBorder } from "./borders";
 import {
   emptyChallengeStreak,
@@ -180,6 +181,10 @@ export function createProfile(
     tournamentStats: emptyTournamentStats(),
     weeklyBadge: null,
     claimedTournamentWeeks: [],
+    coins: coinsForLevel(1),
+    coinsGrantedForLevel: 1,
+    ownedPets: [],
+    equippedPet: null,
   };
 }
 
@@ -234,7 +239,8 @@ export function recordGameResult(profile: PlayerProfile, gameId: GameId, score: 
     overallBestScore: Math.max(profile.overallBestScore, score),
     overallTotalScore: profile.overallTotalScore + score,
   };
-  return awardXp(updated, xpForGameResult(score, isNewBest));
+  const withXp = awardXp(updated, xpForGameResult(score, isNewBest));
+  return awardCoins(withXp, coinsForGameResult(score, isNewBest));
 }
 
 /** Records a Reaction Grid result: updates games.reaction stats plus the cumulative dots-hit tally. */
@@ -351,6 +357,15 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
     const g = (profile.games as Record<string, GameStats> | undefined)?.[id];
     games[id] = g ?? emptyGameStats();
   }
+
+  const currentLevel = levelForTotalXp(profile.xp ?? 0).level;
+  // Retroactive catch-up: a player who leveled up before per-level coins
+  // existed (coinsGrantedForLevel missing/undefined) gets the full amount
+  // owed for their current level, exactly once — subsequent normalizations
+  // see coinsGrantedForLevel already caught up and grant nothing further.
+  const grantedForLevel = profile.coinsGrantedForLevel ?? 0;
+  const catchUpCoins = coinsOwedForLevelUp(grantedForLevel, currentLevel);
+
   return {
     ...profile,
     passwordHash: profile.passwordHash ?? "",
@@ -372,9 +387,9 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
     xp: profile.xp ?? 0,
     xpEarnedToday: profile.xpEarnedToday ?? { date: "", amount: 0 },
     xpEarnedThisWeek: profile.xpEarnedThisWeek ?? { weekStart: "", amount: 0 },
-    level: levelForTotalXp(profile.xp ?? 0).level,
-    selectedTitle: profile.selectedTitle ?? titleForLevel(levelForTotalXp(profile.xp ?? 0).level),
-    profileBorder: sanitizeBorder(profile.profileBorder, levelForTotalXp(profile.xp ?? 0).level),
+    level: currentLevel,
+    selectedTitle: profile.selectedTitle ?? titleForLevel(currentLevel),
+    profileBorder: sanitizeBorder(profile.profileBorder, currentLevel),
     tripleChallenges: normalizeTripleChallenges(profile.tripleChallenges),
     challengeStreak: normalizeChallengeStreak(profile.challengeStreak),
     reactionDotsHit: profile.reactionDotsHit ?? 0,
@@ -386,6 +401,11 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
     tournamentStats: { ...emptyTournamentStats(), ...profile.tournamentStats },
     weeklyBadge: (profile.weeklyBadge as WeeklyBadge | null | undefined) ?? null,
     claimedTournamentWeeks: profile.claimedTournamentWeeks ?? [],
+    coins: Math.max(0, profile.coins ?? 0) + catchUpCoins,
+    coinsGrantedForLevel: Math.max(grantedForLevel, currentLevel),
+    ownedPets: profile.ownedPets ?? [],
+    equippedPet:
+      profile.equippedPet && (profile.ownedPets ?? []).includes(profile.equippedPet) ? profile.equippedPet : null,
   } as PlayerProfile;
 }
 

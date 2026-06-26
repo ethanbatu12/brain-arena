@@ -1,5 +1,6 @@
 import { mulberry32 } from "../game/rng";
 import { XP_AWARDS } from "../xp/levels";
+import { COIN_AWARDS } from "../coins/award";
 import type { GameId } from "./types";
 
 export type TripleChallengeTemplateId =
@@ -42,11 +43,14 @@ export interface TripleChallengeItem {
   completed: boolean;
   xpAwarded: boolean;
   xpReward: number;
+  coinReward: number;
 }
 
 export interface TripleChallengeState {
   date: string;
   challenges: TripleChallengeItem[];
+  /** Whether the +50 coin bonus for completing all 3 has already been granted today. */
+  allCompleteBonusAwarded: boolean;
 }
 
 export interface ChallengeStreakData {
@@ -59,7 +63,7 @@ export interface ChallengeStreakData {
 }
 
 export function emptyTripleChallengeState(): TripleChallengeState {
-  return { date: "", challenges: [] };
+  return { date: "", challenges: [], allCompleteBonusAwarded: false };
 }
 
 export function emptyChallengeStreak(): ChallengeStreakData {
@@ -93,6 +97,7 @@ export function generateDailyChallenges(date: string): TripleChallengeItem[] {
     completed: false,
     xpAwarded: false,
     xpReward: XP_AWARDS.DAILY_CHALLENGE,
+    coinReward: COIN_AWARDS.DAILY_CHALLENGE,
   }));
 }
 
@@ -138,7 +143,7 @@ export function ensureTodaysChallenges(
   }
 
   return {
-    state: { date: today, challenges: generateDailyChallenges(today) },
+    state: { date: today, challenges: generateDailyChallenges(today), allCompleteBonusAwarded: false },
     streak: nextStreak,
   };
 }
@@ -187,8 +192,9 @@ function progressDelta(item: TripleChallengeItem, event: TripleChallengeEvent): 
 export function applyChallengeEvent(
   state: TripleChallengeState,
   event: TripleChallengeEvent,
-): { state: TripleChallengeState; xpGained: number; newlyCompleted: TripleChallengeItem[] } {
+): { state: TripleChallengeState; xpGained: number; coinsGained: number; newlyCompleted: TripleChallengeItem[] } {
   let xpGained = 0;
+  let coinsGained = 0;
   const newlyCompleted: TripleChallengeItem[] = [];
   const challenges = state.challenges.map((item) => {
     const delta = progressDelta(item, event);
@@ -198,11 +204,19 @@ export function applyChallengeEvent(
     const xpAwarded = item.xpAwarded || completed;
     if (completed && !item.completed) {
       xpGained += item.xpReward;
+      coinsGained += item.coinReward;
       const updated = { ...item, progress, completed, xpAwarded };
       newlyCompleted.push(updated);
       return updated;
     }
     return { ...item, progress, completed, xpAwarded };
   });
-  return { state: { ...state, challenges }, xpGained, newlyCompleted };
+
+  let allCompleteBonusAwarded = state.allCompleteBonusAwarded;
+  if (!allCompleteBonusAwarded && challenges.length > 0 && challenges.every((c) => c.completed)) {
+    coinsGained += COIN_AWARDS.ALL_DAILY_CHALLENGES_BONUS;
+    allCompleteBonusAwarded = true;
+  }
+
+  return { state: { ...state, challenges, allCompleteBonusAwarded }, xpGained, coinsGained, newlyCompleted };
 }
