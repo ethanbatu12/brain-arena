@@ -4,7 +4,6 @@ import { AllGamesChallenge } from "./components/AllGamesChallenge";
 import { AvatarEditor } from "./components/AvatarEditor";
 import { BalloonGame } from "./components/BalloonGame";
 import { ChessLobby } from "./components/ChessLobby";
-import { DbViewer } from "./components/DbViewer";
 import { DirectionChallenge } from "./components/DirectionChallenge";
 import { FullChessGame } from "./components/FullChessGame";
 import { Hub } from "./components/Hub";
@@ -38,7 +37,6 @@ type Screen =
   | "avatar-edit"
   | "leaderboard"
   | "challenge"
-  | "db"
   | "chess"
   | "chess-full"
   | "chess-puzzle"
@@ -117,7 +115,6 @@ function AppShell() {
           onPick={setScreen}
           onChess={() => setScreen("chess")}
           onProfile={() => setScreen("profile")}
-          onDb={() => setScreen("db")}
           onLeaderboard={() => setScreen("leaderboard")}
           onTournament={() => setScreen("tournament")}
           onPetShop={() => setScreen("pet-shop")}
@@ -192,7 +189,6 @@ function AppShell() {
           onBack={goHub}
         />
       )}
-      {screen === "db" && <DbViewer onBack={goHub} />}
       {screen === "challenge" && (
         <AllGamesChallenge profile={profile} onExit={goHub} recordCombinedResult={recordCombinedResult} />
       )}

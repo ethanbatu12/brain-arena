@@ -13,7 +13,6 @@ interface HubProps {
   onPick: (id: GameId | "challenge") => void;
   onChess: () => void;
   onProfile: () => void;
-  onDb: () => void;
   onLeaderboard: () => void;
   onTournament: () => void;
   onPetShop: () => void;
@@ -25,7 +24,6 @@ export function Hub({
   onPick,
   onChess,
   onProfile,
-  onDb,
   onLeaderboard,
   onTournament,
   onPetShop,
@@ -61,9 +59,6 @@ export function Hub({
           </button>
           <button className="btn btn--ghost" onClick={onPetShop}>
             Pet Shop
-          </button>
-          <button className="btn btn--ghost" onClick={onDb}>
-            Database
           </button>
           <button className="btn btn--ghost" onClick={onSignOut}>
             Sign Out
