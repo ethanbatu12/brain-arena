@@ -3393,6 +3393,10 @@ button {
   opacity: 0.9;
 }
 
+.season-hero__skip {
+  margin-top: 10px;
+}
+
 .season-message {
   background: var(--surface);
   border-radius: var(--radius-sm);

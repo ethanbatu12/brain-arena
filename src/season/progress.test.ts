@@ -8,7 +8,10 @@ import {
   isSeasonMaxed,
   rewardTrackFor,
   seasonCompletionPercent,
+  skipOneTier,
+  xpToSkipOneTier,
 } from "./progress";
+import { seasonLevelForXp } from "./rewards";
 
 describe("emptySeasonProgress", () => {
   it("starts at zero XP with nothing claimed", () => {
@@ -105,5 +108,45 @@ describe("isSeasonMaxed", () => {
   it("is true once tier 100 is reached", () => {
     const p = awardSeasonXp(emptySeasonProgress(0), SEASON_XP_PER_TIER * 150);
     expect(isSeasonMaxed(p)).toBe(true);
+  });
+});
+
+describe("xpToSkipOneTier", () => {
+  it("is the full tier cost at the very start of a tier", () => {
+    expect(xpToSkipOneTier(emptySeasonProgress(0))).toBe(SEASON_XP_PER_TIER);
+  });
+
+  it("is only the remainder when partway through a tier", () => {
+    const p = awardSeasonXp(emptySeasonProgress(0), 50);
+    expect(xpToSkipOneTier(p)).toBe(SEASON_XP_PER_TIER - 50);
+  });
+
+  it("is 0 once the season is already maxed", () => {
+    const p = awardSeasonXp(emptySeasonProgress(0), SEASON_XP_PER_TIER * 150);
+    expect(xpToSkipOneTier(p)).toBe(0);
+  });
+});
+
+describe("skipOneTier", () => {
+  it("advances exactly one tier", () => {
+    const p = emptySeasonProgress(0);
+    const startLevel = seasonLevelForXp(p.seasonXp);
+    const result = skipOneTier(p);
+    expect(result.ok).toBe(true);
+    const updated = (result as { ok: true; progress: typeof p }).progress;
+    expect(seasonLevelForXp(updated.seasonXp)).toBe(startLevel + 1);
+  });
+
+  it("advances exactly one tier even from partway through the current one", () => {
+    const p = awardSeasonXp(emptySeasonProgress(0), 50);
+    const startLevel = seasonLevelForXp(p.seasonXp);
+    const result = skipOneTier(p);
+    const updated = (result as { ok: true; progress: typeof p }).progress;
+    expect(seasonLevelForXp(updated.seasonXp)).toBe(startLevel + 1);
+  });
+
+  it("fails once the season is already maxed", () => {
+    const p = awardSeasonXp(emptySeasonProgress(0), SEASON_XP_PER_TIER * 150);
+    expect(skipOneTier(p)).toEqual({ ok: false, error: "already-maxed" });
   });
 });

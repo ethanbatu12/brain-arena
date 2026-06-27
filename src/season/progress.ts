@@ -1,5 +1,16 @@
-import { bonusFinaleRewards, buildSeasonRewardTrack, seasonLevelForXp, SEASON_TIER_COUNT, type SeasonReward } from "./rewards";
+import {
+  bonusFinaleRewards,
+  buildSeasonRewardTrack,
+  seasonLevelForXp,
+  xpIntoCurrentTier,
+  SEASON_TIER_COUNT,
+  SEASON_XP_PER_TIER,
+  type SeasonReward,
+} from "./rewards";
 import { themeForSeason } from "./schedule";
+
+/** Coin cost to skip straight to the next tier without earning the Season XP for it. */
+export const SEASON_TIER_SKIP_COST = 100;
 
 export interface SeasonProgress {
   seasonIndex: number;
@@ -60,4 +71,18 @@ export function seasonCompletionPercent(progress: SeasonProgress): number {
 
 export function isSeasonMaxed(progress: SeasonProgress): boolean {
   return seasonLevelForXp(progress.seasonXp) >= SEASON_TIER_COUNT;
+}
+
+/** The Season XP needed to jump straight to the start of the next tier — exactly one tier's worth of progress. */
+export function xpToSkipOneTier(progress: SeasonProgress): number {
+  if (isSeasonMaxed(progress)) return 0;
+  return SEASON_XP_PER_TIER - xpIntoCurrentTier(progress.seasonXp);
+}
+
+export type SkipTierResult = { ok: true; progress: SeasonProgress } | { ok: false; error: "already-maxed" };
+
+/** Advances exactly one tier of Season XP — the caller is responsible for charging the coin cost. */
+export function skipOneTier(progress: SeasonProgress): SkipTierResult {
+  if (isSeasonMaxed(progress)) return { ok: false, error: "already-maxed" };
+  return { ok: true, progress: awardSeasonXp(progress, xpToSkipOneTier(progress)) };
 }

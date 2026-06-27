@@ -73,6 +73,7 @@ function AppShell() {
     setPetAccessories,
     renamePet,
     claimSeasonReward,
+    skipSeasonTier,
   } = usePlayerProfile();
   const [screen, setScreen] = useState<Screen>("hub");
   const [petShopTab, setPetShopTab] = useState<"shop" | "collection" | "customize">("shop");
@@ -145,6 +146,7 @@ function AppShell() {
           onBack={goHub}
           onViewHistory={() => setScreen("season-history")}
           onClaimReward={claimSeasonReward}
+          onSkipTier={skipSeasonTier}
         />
       )}
       {screen === "season-history" && <SeasonHistoryPage profile={profile} onBack={() => setScreen("season-pass")} />}

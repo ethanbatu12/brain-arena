@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { PlayerProfile } from "../player/types";
-import { claimableRewards, rewardTrackFor, seasonCompletionPercent } from "../season/progress";
+import { claimableRewards, isSeasonMaxed, rewardTrackFor, seasonCompletionPercent, SEASON_TIER_SKIP_COST } from "../season/progress";
 import { seasonLevelForXp, xpIntoCurrentTier, xpRequiredForNextTier, type SeasonReward } from "../season/rewards";
 import { daysRemainingInSeason, themeForSeason } from "../season/schedule";
 
@@ -9,9 +9,10 @@ interface SeasonPassProps {
   onBack: () => void;
   onViewHistory: () => void;
   onClaimReward: (rewardId: string) => { ok: true; reward: SeasonReward } | { ok: false; error: string };
+  onSkipTier: () => { ok: true } | { ok: false; error: "already-maxed" | "not-enough-coins" };
 }
 
-export function SeasonPass({ profile, onBack, onViewHistory, onClaimReward }: SeasonPassProps) {
+export function SeasonPass({ profile, onBack, onViewHistory, onClaimReward, onSkipTier }: SeasonPassProps) {
   const { seasonProgress } = profile;
   const theme = themeForSeason(seasonProgress.seasonIndex);
   const level = seasonLevelForXp(seasonProgress.seasonXp);
@@ -23,12 +24,24 @@ export function SeasonPass({ profile, onBack, onViewHistory, onClaimReward }: Se
   const claimable = new Set(claimableRewards(seasonProgress).map((r) => r.id));
   const claimed = new Set(seasonProgress.claimedRewardIds);
   const completion = seasonCompletionPercent(seasonProgress);
+  const maxed = isSeasonMaxed(seasonProgress);
 
   const [message, setMessage] = useState<string | null>(null);
 
   const handleClaim = (reward: SeasonReward) => {
     const result = onClaimReward(reward.id);
     setMessage(result.ok ? `Claimed: ${reward.label}!` : "Couldn't claim that reward.");
+  };
+
+  const handleSkip = () => {
+    const result = onSkipTier();
+    setMessage(
+      result.ok
+        ? "Skipped ahead one tier!"
+        : result.error === "not-enough-coins"
+          ? `You need ${SEASON_TIER_SKIP_COST} coins to skip a tier.`
+          : "You've already reached the top tier this season!",
+    );
   };
 
   return (
@@ -59,6 +72,15 @@ export function SeasonPass({ profile, onBack, onViewHistory, onClaimReward }: Se
           {xpIntoTier} / {xpForNext} Season XP to Tier {Math.min(100, level + 1)}
         </p>
         <p className="season-hero__completion">{completion}% of the season's rewards claimed</p>
+        {!maxed && (
+          <button
+            className="btn btn--primary season-hero__skip"
+            disabled={profile.coins < SEASON_TIER_SKIP_COST}
+            onClick={handleSkip}
+          >
+            Skip Tier — 🪙 {SEASON_TIER_SKIP_COST}
+          </button>
+        )}
       </section>
 
       {message && <p className="season-message">{message}</p>}

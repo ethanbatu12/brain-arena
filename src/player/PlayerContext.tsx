@@ -39,7 +39,7 @@ import { canPurchase } from "../pets/collection";
 import { getPetDef } from "../pets/catalog";
 import { sanitizePetAccessories } from "../pets/accessories";
 import { applyRename, emptyPetNameRecord, renameCost, validatePetName, type PetNameError } from "../pets/naming";
-import { awardSeasonXp, claimReward as claimSeasonRewardLogic } from "../season/progress";
+import { awardSeasonXp, claimReward as claimSeasonRewardLogic, skipOneTier, SEASON_TIER_SKIP_COST } from "../season/progress";
 import { SEASON_XP_AWARDS } from "../season/xp";
 import type { SeasonReward } from "../season/rewards";
 
@@ -149,6 +149,7 @@ interface PlayerContextValue {
   setPetAccessories: (accessoryIds: string[]) => void;
   renamePet: (petId: string, newName: string) => RenamePetResult;
   claimSeasonReward: (rewardId: string) => { ok: true; reward: SeasonReward } | { ok: false; error: string };
+  skipSeasonTier: () => { ok: true } | { ok: false; error: "already-maxed" | "not-enough-coins" };
   existingUsernames: string[];
 }
 
@@ -572,6 +573,22 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [profile],
   );
 
+  const skipSeasonTier = useCallback(() => {
+    if (!profile) return { ok: false as const, error: "already-maxed" as const };
+    if (profile.coins < SEASON_TIER_SKIP_COST) return { ok: false as const, error: "not-enough-coins" as const };
+    const result = skipOneTier(profile.seasonProgress);
+    if (!result.ok) return result;
+    const updated: PlayerProfile = {
+      ...profile,
+      coins: profile.coins - SEASON_TIER_SKIP_COST,
+      seasonProgress: result.progress,
+    };
+    void saveProfile(updated);
+    void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
+    setProfiles((prev) => ({ ...prev, [updated.username]: updated }));
+    return { ok: true as const };
+  }, [profile]);
+
   const allProfiles = useMemo(() => Object.values(profiles), [profiles]);
   const existingUsernames = useMemo(() => Object.keys(profiles), [profiles]);
 
@@ -641,6 +658,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setPetAccessories,
     renamePet,
     claimSeasonReward,
+    skipSeasonTier,
     existingUsernames,
   };
 
