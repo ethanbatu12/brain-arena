@@ -24,6 +24,8 @@ import { WeeklyTournament } from "./components/WeeklyTournament";
 import { TournamentHistoryPage } from "./components/TournamentHistoryPage";
 import { LevelsPage } from "./components/LevelsPage";
 import { PetShop } from "./components/PetShop";
+import { SeasonPass } from "./components/SeasonPass";
+import { SeasonHistoryPage } from "./components/SeasonHistoryPage";
 import { PlayerProvider, usePlayerProfile } from "./player/PlayerContext";
 import type { GameId } from "./player/types";
 import { currentTournamentWeek } from "./tournament/schedule";
@@ -47,6 +49,8 @@ type Screen =
   | "tournament"
   | "tournament-history"
   | "pet-shop"
+  | "season-pass"
+  | "season-history"
   | GameId;
 
 function AppShell() {
@@ -68,6 +72,7 @@ function AppShell() {
     equipPet,
     setPetAccessories,
     renamePet,
+    claimSeasonReward,
   } = usePlayerProfile();
   const [screen, setScreen] = useState<Screen>("hub");
   const [petShopTab, setPetShopTab] = useState<"shop" | "collection" | "customize">("shop");
@@ -119,6 +124,7 @@ function AppShell() {
           onLeaderboard={() => setScreen("leaderboard")}
           onTournament={() => setScreen("tournament")}
           onPetShop={() => setScreen("pet-shop")}
+          onSeasonPass={() => setScreen("season-pass")}
           onSignOut={signOut}
         />
       )}
@@ -133,6 +139,15 @@ function AppShell() {
           initialTab={petShopTab}
         />
       )}
+      {screen === "season-pass" && (
+        <SeasonPass
+          profile={profile}
+          onBack={goHub}
+          onViewHistory={() => setScreen("season-history")}
+          onClaimReward={claimSeasonReward}
+        />
+      )}
+      {screen === "season-history" && <SeasonHistoryPage profile={profile} onBack={() => setScreen("season-pass")} />}
       {screen === "tournament" && (
         <WeeklyTournament
           profile={profile}

@@ -39,10 +39,42 @@ import { canPurchase } from "../pets/collection";
 import { getPetDef } from "../pets/catalog";
 import { sanitizePetAccessories } from "../pets/accessories";
 import { applyRename, emptyPetNameRecord, renameCost, validatePetName, type PetNameError } from "../pets/naming";
+import { awardSeasonXp, claimReward as claimSeasonRewardLogic } from "../season/progress";
+import { SEASON_XP_AWARDS } from "../season/xp";
+import type { SeasonReward } from "../season/rewards";
 
 export type RenamePetResult = { ok: true; cost: number } | { ok: false; error: PetNameError | "not-owned" | "not-enough-coins" };
 
 /** Apply streak update, daily-challenge tracking, and achievement check to an already-updated profile. */
+/**
+ * Applies a claimed Season Pass reward's actual effect to the profile.
+ * Coins/XP are credited directly. Pets are added to ownedPets with a
+ * default name. Every other cosmetic kind (hairstyle, hair color,
+ * clothing, accessory, banner, border, animated border, victory
+ * animation, avatar effect, title, animated name color, badge) is stored
+ * as an opaque id in exclusiveCosmetics — the same place Tournament-only
+ * cosmetics already live — but most of these categories don't have
+ * dedicated rendering anywhere in the app yet (there's no "banner" or
+ * "victory animation" concept in the avatar/profile UI), so claiming one
+ * records ownership without yet having anywhere to display it.
+ */
+function applySeasonReward(profile: PlayerProfile, reward: SeasonReward): PlayerProfile {
+  if (reward.kind === "coins") return awardCoins(profile, reward.amount ?? 0);
+  if (reward.kind === "xp") return awardXp(profile, reward.amount ?? 0);
+  if (reward.kind === "pet" || reward.kind === "petSkin") {
+    return {
+      ...profile,
+      ownedPets: profile.ownedPets.includes(reward.id) ? profile.ownedPets : [...profile.ownedPets, reward.id],
+      petNames: profile.petNames[reward.id]
+        ? profile.petNames
+        : { ...profile.petNames, [reward.id]: { name: reward.label, renameCount: 0, freeRenameUsed: false } },
+    };
+  }
+  return profile.exclusiveCosmetics.includes(reward.id)
+    ? profile
+    : { ...profile, exclusiveCosmetics: [...profile.exclusiveCosmetics, reward.id] };
+}
+
 function applyPostGameEffects(profile: PlayerProfile, events: TripleChallengeEvent[] = []): {
   updated: PlayerProfile;
   newAchievements: AchievementRecord[];
@@ -54,6 +86,7 @@ function applyPostGameEffects(profile: PlayerProfile, events: TripleChallengeEve
   working = { ...working, tripleChallenges: rollover.state, challengeStreak: rollover.streak };
 
   for (const event of events) {
+    const wasAllComplete = working.tripleChallenges.allCompleteBonusAwarded;
     const { state, xpGained, coinsGained, newlyCompleted } = applyChallengeEvent(working.tripleChallenges, event);
     working = { ...working, tripleChallenges: state };
     if (newlyCompleted.length > 0) {
@@ -67,11 +100,23 @@ function applyPostGameEffects(profile: PlayerProfile, events: TripleChallengeEve
     }
     if (xpGained > 0) working = awardXp(working, xpGained);
     if (coinsGained > 0) working = awardCoins(working, coinsGained);
+    const seasonXp =
+      newlyCompleted.length * SEASON_XP_AWARDS.DAILY_CHALLENGE +
+      (!wasAllComplete && state.allCompleteBonusAwarded ? SEASON_XP_AWARDS.ALL_DAILY_CHALLENGES_BONUS : 0);
+    if (seasonXp > 0) {
+      working = { ...working, seasonProgress: awardSeasonXp(working.seasonProgress, seasonXp) };
+    }
   }
 
   const newIds = checkAchievements(working);
   let updated = applyAchievements(working, newIds);
-  if (newIds.length > 0) updated = awardXp(updated, newIds.length * XP_AWARDS.ACHIEVEMENT_UNLOCKED);
+  if (newIds.length > 0) {
+    updated = awardXp(updated, newIds.length * XP_AWARDS.ACHIEVEMENT_UNLOCKED);
+    updated = {
+      ...updated,
+      seasonProgress: awardSeasonXp(updated.seasonProgress, newIds.length * SEASON_XP_AWARDS.ACHIEVEMENT_UNLOCKED),
+    };
+  }
   const newAchievements = updated.achievements.filter((a) => newIds.includes(a.id));
   return { updated, newAchievements };
 }
@@ -103,6 +148,7 @@ interface PlayerContextValue {
   equipPet: (petId: string | null) => void;
   setPetAccessories: (accessoryIds: string[]) => void;
   renamePet: (petId: string, newName: string) => RenamePetResult;
+  claimSeasonReward: (rewardId: string) => { ok: true; reward: SeasonReward } | { ok: false; error: string };
   existingUsernames: string[];
 }
 
@@ -512,6 +558,20 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     },
     [currentUsername],
   );
+  const claimSeasonReward = useCallback(
+    (rewardId: string) => {
+      if (!profile) return { ok: false as const, error: "unknown-reward" };
+      const result = claimSeasonRewardLogic(profile.seasonProgress, rewardId);
+      if (!result.ok) return result;
+      const updated = applySeasonReward({ ...profile, seasonProgress: result.progress }, result.reward);
+      void saveProfile(updated);
+      void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
+      setProfiles((prev) => ({ ...prev, [updated.username]: updated }));
+      return { ok: true as const, reward: result.reward };
+    },
+    [profile],
+  );
+
   const allProfiles = useMemo(() => Object.values(profiles), [profiles]);
   const existingUsernames = useMemo(() => Object.keys(profiles), [profiles]);
 
@@ -580,6 +640,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     equipPet,
     setPetAccessories,
     renamePet,
+    claimSeasonReward,
     existingUsernames,
   };
 

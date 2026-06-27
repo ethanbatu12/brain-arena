@@ -3,6 +3,8 @@ import type { BorderId } from "./borders";
 import type { ChallengeStreakData, TripleChallengeState } from "./tripleChallenges";
 import type { TournamentStats, WeeklyBadge } from "../tournament/types";
 import type { PetNameRecord } from "../pets/naming";
+import type { SeasonProgress } from "../season/progress";
+import type { SeasonHistoryEntry } from "../season/rollover";
 
 export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern" | "reaction" | "trivia" | "direction";
 
@@ -192,4 +194,8 @@ export interface PlayerProfile {
   petAccessories: string[];
   /** Custom name + rename history for each owned pet, keyed by pet catalog id. */
   petNames: Record<string, PetNameRecord>;
+  /** Season Pass progress for the current season — separate XP/leveling track from regular Level XP. */
+  seasonProgress: SeasonProgress;
+  /** Archived results from every season this player has actually played in. */
+  seasonHistory: SeasonHistoryEntry[];
 }

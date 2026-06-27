@@ -22,6 +22,10 @@ import { sanitizeBorder } from "./borders";
 import { SIMPLE_CAT_ID } from "../pets/catalog";
 import { sanitizePetAccessories } from "../pets/accessories";
 import { emptyPetNameRecord, type PetNameRecord } from "../pets/naming";
+import { awardSeasonXp, emptySeasonProgress, type SeasonProgress } from "../season/progress";
+import { seasonIndexFor } from "../season/schedule";
+import { ensureCurrentSeason, type SeasonHistoryEntry } from "../season/rollover";
+import { seasonXpForGameResult } from "../season/xp";
 import {
   emptyChallengeStreak,
   emptyTripleChallengeState,
@@ -190,6 +194,8 @@ export function createProfile(
     equippedPet: SIMPLE_CAT_ID,
     petAccessories: [],
     petNames: { [SIMPLE_CAT_ID]: emptyPetNameRecord(SIMPLE_CAT_ID) },
+    seasonProgress: emptySeasonProgress(seasonIndexFor(Date.now())),
+    seasonHistory: [],
   };
 }
 
@@ -245,7 +251,11 @@ export function recordGameResult(profile: PlayerProfile, gameId: GameId, score: 
     overallTotalScore: profile.overallTotalScore + score,
   };
   const withXp = awardXp(updated, xpForGameResult(score, isNewBest));
-  return awardCoins(withXp, coinsForGameResult(score, isNewBest));
+  const withCoins = awardCoins(withXp, coinsForGameResult(score, isNewBest));
+  return {
+    ...withCoins,
+    seasonProgress: awardSeasonXp(withCoins.seasonProgress, seasonXpForGameResult(isNewBest)),
+  };
 }
 
 /** Records a Reaction Grid result: updates games.reaction stats plus the cumulative dots-hit tally. */
@@ -365,6 +375,13 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
 
   const ownedPetsWithStarter = Array.from(new Set([...(profile.ownedPets ?? []), SIMPLE_CAT_ID]));
 
+  const rawSeasonProgress = (profile.seasonProgress as SeasonProgress | undefined) ?? emptySeasonProgress(seasonIndexFor(Date.now()));
+  const { progress: seasonProgress, history: seasonHistory } = ensureCurrentSeason(
+    rawSeasonProgress,
+    (profile.seasonHistory as SeasonHistoryEntry[] | undefined) ?? [],
+    Date.now(),
+  );
+
   // Every owned pet must have a name record — backfill the default catalog
   // name for pets bought before this feature existed, and defend against a
   // malformed/missing stored record for any pet.
@@ -439,6 +456,8 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
           : null,
     petAccessories: sanitizePetAccessories(profile.petAccessories, currentLevel),
     petNames,
+    seasonProgress,
+    seasonHistory,
   } as PlayerProfile;
 }
 

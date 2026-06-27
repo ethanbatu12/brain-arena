@@ -3338,3 +3338,139 @@ button {
   gap: 10px;
   margin-top: 4px;
 }
+
+.season-hero {
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  color: #fff;
+}
+
+.season-hero__name {
+  margin: 0 0 8px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.season-hero__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.season-hero__level {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.season-hero__days {
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.season-hero__bar {
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.season-hero__bar-fill {
+  height: 100%;
+  background: #fff;
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+.season-hero__xp,
+.season-hero__completion {
+  margin: 2px 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.season-message {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  color: var(--text-dim);
+}
+
+.season-track {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scroll-snap-type: x proximity;
+}
+
+.season-card {
+  flex: 0 0 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 2px solid var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: 12px 8px;
+  scroll-snap-align: start;
+  transition: transform 0.15s ease;
+}
+
+.season-card--claimed {
+  border-color: #22c55e;
+  background: color-mix(in srgb, #22c55e 10%, var(--surface));
+}
+
+.season-card--locked {
+  opacity: 0.55;
+}
+
+.season-card__tier {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-family: var(--mono);
+}
+
+.season-card__label {
+  font-size: 1.8rem;
+}
+
+.season-card__name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.season-card__status {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.season-card__claim {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  animation: pet-bounce 1.6s ease-in-out infinite;
+}
+
+.season-history__empty {
+  color: var(--text-dim);
+}
+
+.season-history__list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.season-history__card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+}
