@@ -55,7 +55,7 @@ export const TITLES: TitleDef[] = [
  * diamond, Grandmaster (75) a master purple, Legend (100) a flashy gold.
  */
 const TITLE_COLORS: Record<string, [string, string]> = {
-  Rookie: ["#9ca3af", "#6b7280"],
+  Rookie: ["#000000", "#000000"],
   Challenger: ["#4ade80", "#16a34a"],
   Competitor: ["#cd7f32", "#8a5524"],
   Strategist: ["#d4d4d8", "#9ca3af"],
@@ -65,7 +65,7 @@ const TITLE_COLORS: Record<string, [string, string]> = {
   Legend: ["#fde68a", "#dc2626"],
 };
 
-/** The [start, end] gradient colors for a title's display — falls back to the Rookie gray for unknown titles. */
+/** The [start, end] gradient colors for a title's display — falls back to the Rookie black for unknown titles. */
 export function titleColors(title: string): [string, string] {
   return TITLE_COLORS[title] ?? TITLE_COLORS.Rookie;
 }

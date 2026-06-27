@@ -2885,6 +2885,11 @@ button {
   font-family: var(--mono);
 }
 
+.leaderboard__pet {
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .leaderboard__value {
   font-family: var(--mono);
   font-weight: 700;
