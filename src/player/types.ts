@@ -187,4 +187,6 @@ export interface PlayerProfile {
   ownedPets: string[];
   /** The pet currently shown following the avatar, or null for none. */
   equippedPet: string | null;
+  /** Pet accessory ids currently equipped on the pet — unlocked by player level, not purchased. */
+  petAccessories: string[];
 }

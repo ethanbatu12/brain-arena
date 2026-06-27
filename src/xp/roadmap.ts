@@ -11,6 +11,7 @@ import {
 } from "../avatar/options";
 import { BORDERS } from "../player/borders";
 import { TITLES } from "./levels";
+import { PET_ACCESSORIES } from "../pets/accessories";
 
 export interface RoadmapEntry {
   level: number;
@@ -38,6 +39,7 @@ export function buildLevelRoadmap(totalXpForLevel: (level: number) => number): R
       ...labelsAtLevel(BACKGROUNDS, level).map((l) => `Background: ${l}`),
       ...BORDERS.filter((b) => b.unlockLevel === level).map((b) => `Profile border: ${b.label}`),
       ...TITLES.filter((t) => t.level === level).map((t) => `Title: "${t.title}"`),
+      ...PET_ACCESSORIES.filter((a) => a.unlockLevel === level).map((a) => `Pet accessory: ${a.label}`),
     ];
     entries.push({ level, xpRequired: totalXpForLevel(level), unlocks });
   }

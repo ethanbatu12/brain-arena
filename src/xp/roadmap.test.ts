@@ -26,6 +26,12 @@ describe("buildLevelRoadmap", () => {
     expect(byLevel(100).unlocks.some((u) => u.includes("Legend"))).toBe(true);
   });
 
+  it("includes pet accessory unlocks at the right levels", () => {
+    const byLevel = (n: number) => roadmap.find((r) => r.level === n)!;
+    expect(byLevel(5).unlocks.some((u) => u.includes("Pet accessory: Bow Tie"))).toBe(true);
+    expect(byLevel(100).unlocks.some((u) => u.includes("Pet accessory: Golden Crown"))).toBe(true);
+  });
+
   it("never lists an exclusive (tournament-only) item as a level unlock", () => {
     for (const entry of roadmap) {
       expect(entry.unlocks.some((u) => u.includes("Champion") && u.includes("Varsity"))).toBe(false);

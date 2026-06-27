@@ -16,8 +16,7 @@ import { usePlayerProfile } from "../player/PlayerContext";
 import { unlockedTitles } from "../xp/levels";
 import { BORDERS, getBorderDef, unlockedBorders } from "../player/borders";
 import { isBadgeActive } from "../tournament/claim";
-import { getPetDef } from "../pets/catalog";
-import { PET_EMOJI } from "../pets/rarity";
+import { PetBadge } from "./PetBadge";
 
 function formatTime(ms: number): string {
   if (ms === 0) return "—";
@@ -92,11 +91,7 @@ export function Profile({ profile, onBack, onEditAvatar, onViewLevels, onSignOut
             style={{ boxShadow: border.id === "none" ? undefined : `0 0 0 5px ${border.colors[0]}, 0 0 0 8px ${border.colors[1]}` }}
           >
             <AvatarSvg config={profile.avatarConfig} size={120} />
-            {profile.equippedPet && getPetDef(profile.equippedPet) && (
-              <span className="pet-badge" title={getPetDef(profile.equippedPet)!.name} style={{ fontSize: "1.6rem" }}>
-                {PET_EMOJI[getPetDef(profile.equippedPet)!.species]}
-              </span>
-            )}
+            <PetBadge petId={profile.equippedPet} accessoryIds={profile.petAccessories} size={26} className="pet-badge" />
           </div>
           <button className="btn btn--primary" onClick={onEditAvatar}>
             Edit Avatar

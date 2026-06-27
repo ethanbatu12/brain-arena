@@ -68,6 +68,7 @@ function AppShell() {
     setAvatarConfig,
     buyPet,
     equipPet,
+    setPetAccessories,
   } = usePlayerProfile();
   const [screen, setScreen] = useState<Screen>("hub");
   const goHub = () => setScreen("hub");
@@ -122,7 +123,15 @@ function AppShell() {
           onSignOut={signOut}
         />
       )}
-      {screen === "pet-shop" && <PetShop profile={profile} onBack={goHub} onBuyPet={buyPet} onEquipPet={equipPet} />}
+      {screen === "pet-shop" && (
+        <PetShop
+          profile={profile}
+          onBack={goHub}
+          onBuyPet={buyPet}
+          onEquipPet={equipPet}
+          onSetPetAccessories={setPetAccessories}
+        />
+      )}
       {screen === "tournament" && (
         <WeeklyTournament
           profile={profile}

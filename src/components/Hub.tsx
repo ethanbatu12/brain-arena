@@ -6,8 +6,7 @@ import { AvatarSvg } from "./AvatarSvg";
 import { XpBar } from "./XpBar";
 import { DailyChallengesWidget } from "./DailyChallengesWidget";
 import { WeeklyTournamentCard } from "./WeeklyTournamentCard";
-import { getPetDef } from "../pets/catalog";
-import { PET_EMOJI } from "../pets/rarity";
+import { PetBadge } from "./PetBadge";
 
 interface HubProps {
   profile: PlayerProfile;
@@ -76,11 +75,12 @@ export function Hub({
       <div className="home__player">
         <div className="home__avatar">
           <AvatarSvg config={profile.avatarConfig} size={56} />
-          {profile.equippedPet && getPetDef(profile.equippedPet) && (
-            <span className="home__pet-badge" title={getPetDef(profile.equippedPet)!.name}>
-              {PET_EMOJI[getPetDef(profile.equippedPet)!.species]}
-            </span>
-          )}
+          <PetBadge
+            petId={profile.equippedPet}
+            accessoryIds={profile.petAccessories}
+            size={22}
+            className="home__pet-badge"
+          />
         </div>
         <div className="home__player-info">
           <p className="home__greeting">

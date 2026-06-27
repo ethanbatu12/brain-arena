@@ -37,6 +37,7 @@ import { sanitizeBorder } from "./borders";
 import { awardCoins } from "../coins/award";
 import { canPurchase } from "../pets/collection";
 import { getPetDef } from "../pets/catalog";
+import { sanitizePetAccessories } from "../pets/accessories";
 
 /** Apply streak update, daily-challenge tracking, and achievement check to an already-updated profile. */
 function applyPostGameEffects(profile: PlayerProfile, events: TripleChallengeEvent[] = []): {
@@ -97,6 +98,7 @@ interface PlayerContextValue {
   setProfileBorder: (borderId: string) => void;
   buyPet: (petId: string) => { ok: true } | { ok: false; error: "already-owned" | "not-enough-coins" | "unknown-pet" };
   equipPet: (petId: string | null) => void;
+  setPetAccessories: (accessoryIds: string[]) => void;
   existingUsernames: string[];
 }
 
@@ -468,6 +470,21 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     },
     [currentUsername],
   );
+
+  const setPetAccessories = useCallback(
+    (accessoryIds: string[]) => {
+      setProfiles((prev) => {
+        if (!currentUsername) return prev;
+        const current = prev[currentUsername];
+        if (!current) return prev;
+        const updated = { ...current, petAccessories: sanitizePetAccessories(accessoryIds, current.level) };
+        void saveProfile(updated);
+        void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
+        return { ...prev, [currentUsername]: updated };
+      });
+    },
+    [currentUsername],
+  );
   const allProfiles = useMemo(() => Object.values(profiles), [profiles]);
   const existingUsernames = useMemo(() => Object.keys(profiles), [profiles]);
 
@@ -534,6 +551,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setProfileBorder,
     buyPet,
     equipPet,
+    setPetAccessories,
     existingUsernames,
   };
 

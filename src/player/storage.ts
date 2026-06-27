@@ -20,6 +20,7 @@ import { levelForTotalXp, titleForLevel, XP_AWARDS } from "../xp/levels";
 import { awardCoins, coinsForGameResult, coinsForLevel, coinsOwedForLevelUp } from "../coins/award";
 import { sanitizeBorder } from "./borders";
 import { SIMPLE_CAT_ID } from "../pets/catalog";
+import { sanitizePetAccessories } from "../pets/accessories";
 import {
   emptyChallengeStreak,
   emptyTripleChallengeState,
@@ -186,6 +187,7 @@ export function createProfile(
     coinsGrantedForLevel: 1,
     ownedPets: [SIMPLE_CAT_ID],
     equippedPet: SIMPLE_CAT_ID,
+    petAccessories: [],
   };
 }
 
@@ -416,6 +418,7 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
         : (profile.ownedPets ?? []).length === 0
           ? SIMPLE_CAT_ID
           : null,
+    petAccessories: sanitizePetAccessories(profile.petAccessories, currentLevel),
   } as PlayerProfile;
 }
 

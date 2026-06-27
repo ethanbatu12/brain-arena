@@ -1800,8 +1800,31 @@ button {
   position: absolute;
   bottom: -4px;
   right: -8px;
-  font-size: 1.1rem;
   animation: pet-bounce 1.6s ease-in-out infinite;
+}
+
+.pet-badge-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.pet-badge-icon__accessory {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  line-height: 1;
+}
+
+.pet-badge-icon__accessory:nth-of-type(2) {
+  top: 60%;
+  right: -10px;
+}
+
+.pet-badge-icon__accessory:nth-of-type(3) {
+  top: -6px;
+  left: -8px;
 }
 
 @keyframes pet-bounce {
@@ -2885,9 +2908,11 @@ button {
   font-family: var(--mono);
 }
 
-.leaderboard__pet {
-  font-size: 1rem;
-  line-height: 1;
+.leaderboard__pet-avatar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  margin-left: -4px;
 }
 
 .leaderboard__value {

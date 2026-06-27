@@ -10,8 +10,7 @@ import type { AvatarConfig } from "../avatar/types";
 import { getBorderDef } from "../player/borders";
 import { titleColors, titleForLevel } from "../xp/levels";
 import { AvatarSvg } from "./AvatarSvg";
-import { getPetDef } from "../pets/catalog";
-import { PET_EMOJI } from "../pets/rarity";
+import { PetBadge } from "./PetBadge";
 
 type AvgKey =
   | "memory-avg" | "math-avg" | "logic-avg" | "balloon-avg" | "pattern-avg"
@@ -45,8 +44,8 @@ interface Row {
   level: number;
   title: string;
   borderColor: string | null;
-  petEmoji: string | null;
-  petName: string | null;
+  equippedPet: string | null;
+  petAccessories: string[];
   value: number;
   label: string;
   isCurrentUser: boolean;
@@ -92,7 +91,6 @@ function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): 
     }
   }
   const border = getBorderDef(p.profileBorder);
-  const equippedPet = p.equippedPet ? getPetDef(p.equippedPet) : undefined;
   return {
     username: p.username,
     avatar: p.avatar ?? "🧠",
@@ -100,8 +98,8 @@ function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): 
     level: p.level,
     title: p.selectedTitle || titleForLevel(p.level),
     borderColor: border.id === "none" ? null : border.colors[0],
-    petEmoji: equippedPet ? PET_EMOJI[equippedPet.species] : null,
-    petName: equippedPet ? equippedPet.name : null,
+    equippedPet: p.equippedPet,
+    petAccessories: p.petAccessories,
     value,
     label,
     isCurrentUser: p.username === currentUsername,
@@ -275,14 +273,14 @@ VITE_SUPABASE_ANON_KEY=your-anon-key`}</pre>
               <span className="leaderboard__avatar">
                 <AvatarSvg config={row.avatarConfig} size={32} />
               </span>
+              {row.equippedPet && (
+                <span className="leaderboard__pet-avatar">
+                  <PetBadge petId={row.equippedPet} accessoryIds={row.petAccessories} size={20} />
+                </span>
+              )}
               <span className="leaderboard__name">
                 <span className="leaderboard__name-row">
                   <span style={{ color: row.borderColor ?? "#000000" }}>{row.username}</span>
-                  {row.petEmoji && (
-                    <span className="leaderboard__pet" title={row.petName ?? undefined}>
-                      {row.petEmoji}
-                    </span>
-                  )}
                   {row.isCurrentUser && <span className="leaderboard__you-tag"> (you)</span>}
                   {activeKey !== "level" && <span className="leaderboard__level-badge">Lv {row.level}</span>}
                 </span>

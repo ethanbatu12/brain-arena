@@ -3,7 +3,9 @@ import type { PlayerProfile } from "../player/types";
 import { PET_CATALOG, getPetDef } from "../pets/catalog";
 import { RARITY_COLORS, RARITY_LABELS, RARITY_ORDER, PET_EMOJI } from "../pets/rarity";
 import { canPurchase, collectionStats } from "../pets/collection";
+import { MAX_PET_ACCESSORY_SLOTS, PET_ACCESSORIES, unlockedPetAccessories } from "../pets/accessories";
 import { AvatarSvg } from "./AvatarSvg";
+import { PetBadge } from "./PetBadge";
 
 const Pet3D = lazy(() => import("./Pet3D").then((m) => ({ default: m.Pet3D })));
 
@@ -12,6 +14,7 @@ interface PetShopProps {
   onBack: () => void;
   onBuyPet: (petId: string) => { ok: true } | { ok: false; error: "already-owned" | "not-enough-coins" | "unknown-pet" };
   onEquipPet: (petId: string | null) => void;
+  onSetPetAccessories: (accessoryIds: string[]) => void;
 }
 
 const PURCHASE_ERROR_LABEL: Record<string, string> = {
@@ -20,8 +23,8 @@ const PURCHASE_ERROR_LABEL: Record<string, string> = {
   "unknown-pet": "Unknown pet.",
 };
 
-export function PetShop({ profile, onBack, onBuyPet, onEquipPet }: PetShopProps) {
-  const [tab, setTab] = useState<"shop" | "collection">("shop");
+export function PetShop({ profile, onBack, onBuyPet, onEquipPet, onSetPetAccessories }: PetShopProps) {
+  const [tab, setTab] = useState<"shop" | "collection" | "customize">("shop");
   const [selectedId, setSelectedId] = useState<string>(PET_CATALOG[0].id);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -55,6 +58,12 @@ export function PetShop({ profile, onBack, onBuyPet, onEquipPet }: PetShopProps)
           onClick={() => setTab("collection")}
         >
           My Collection ({stats.owned}/{stats.total} · {stats.percent}%)
+        </button>
+        <button
+          className={`btn ${tab === "customize" ? "btn--primary" : "btn--ghost"}`}
+          onClick={() => setTab("customize")}
+        >
+          Customize Pet
         </button>
       </div>
 
@@ -154,6 +163,49 @@ export function PetShop({ profile, onBack, onBuyPet, onEquipPet }: PetShopProps)
             ))}
             {stats.owned === 0 && <p>No pets owned yet — visit the Shop tab to buy your first one!</p>}
           </div>
+        </div>
+      )}
+
+      {tab === "customize" && (
+        <div className="pet-shop">
+          {profile.equippedPet ? (
+            <>
+              <div className="pet-shop__preview">
+                <PetBadge petId={profile.equippedPet} accessoryIds={profile.petAccessories} size={48} />
+                <p>
+                  {profile.petAccessories.length}/{MAX_PET_ACCESSORY_SLOTS} accessory slots worn
+                </p>
+              </div>
+              <div className="pet-shop__grid">
+                {PET_ACCESSORIES.map((accessory) => {
+                  const unlocked = unlockedPetAccessories(profile.level).some((a) => a.id === accessory.id);
+                  const equipped = profile.petAccessories.includes(accessory.id);
+                  const atCap = profile.petAccessories.length >= MAX_PET_ACCESSORY_SLOTS;
+                  return (
+                    <button
+                      key={accessory.id}
+                      className={`pet-card${equipped ? " pet-card--selected" : ""}`}
+                      disabled={!unlocked || (!equipped && atCap)}
+                      onClick={() => {
+                        const next = equipped
+                          ? profile.petAccessories.filter((id) => id !== accessory.id)
+                          : [...profile.petAccessories, accessory.id];
+                        onSetPetAccessories(next);
+                      }}
+                    >
+                      <span className="pet-card__emoji">{unlocked ? accessory.emoji : "🔒"}</span>
+                      <span className="pet-card__name">{accessory.label}</span>
+                      <span className="pet-card__price">
+                        {unlocked ? (equipped ? "Worn — tap to remove" : "Tap to wear") : `Unlocks at level ${accessory.unlockLevel}`}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <p>Equip a pet first (Shop or Collection tab) before customizing it.</p>
+          )}
         </div>
       )}
     </div>
