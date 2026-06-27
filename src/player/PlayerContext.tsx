@@ -38,6 +38,9 @@ import { awardCoins } from "../coins/award";
 import { canPurchase } from "../pets/collection";
 import { getPetDef } from "../pets/catalog";
 import { sanitizePetAccessories } from "../pets/accessories";
+import { applyRename, emptyPetNameRecord, renameCost, validatePetName, type PetNameError } from "../pets/naming";
+
+export type RenamePetResult = { ok: true; cost: number } | { ok: false; error: PetNameError | "not-owned" | "not-enough-coins" };
 
 /** Apply streak update, daily-challenge tracking, and achievement check to an already-updated profile. */
 function applyPostGameEffects(profile: PlayerProfile, events: TripleChallengeEvent[] = []): {
@@ -99,6 +102,7 @@ interface PlayerContextValue {
   buyPet: (petId: string) => { ok: true } | { ok: false; error: "already-owned" | "not-enough-coins" | "unknown-pet" };
   equipPet: (petId: string | null) => void;
   setPetAccessories: (accessoryIds: string[]) => void;
+  renamePet: (petId: string, newName: string) => RenamePetResult;
   existingUsernames: string[];
 }
 
@@ -446,11 +450,34 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         ...profile,
         coins: profile.coins - pet.price,
         ownedPets: [...profile.ownedPets, petId],
+        petNames: { ...profile.petNames, [petId]: emptyPetNameRecord(petId) },
       };
       void saveProfile(updated);
       void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
       setProfiles((prev) => ({ ...prev, [updated.username]: updated }));
       return { ok: true as const };
+    },
+    [profile],
+  );
+
+  const renamePet = useCallback(
+    (petId: string, newName: string): RenamePetResult => {
+      if (!profile) return { ok: false, error: "not-owned" };
+      if (!profile.ownedPets.includes(petId)) return { ok: false, error: "not-owned" };
+      const validation = validatePetName(newName);
+      if (!validation.ok) return { ok: false, error: validation.error };
+      const record = profile.petNames[petId];
+      const cost = renameCost(record);
+      if (cost > profile.coins) return { ok: false, error: "not-enough-coins" };
+      const updated: PlayerProfile = {
+        ...profile,
+        coins: profile.coins - cost,
+        petNames: { ...profile.petNames, [petId]: applyRename(record, validation.name) },
+      };
+      void saveProfile(updated);
+      void pushCloudProfile(updated.username, updated.passwordHash, updated.passwordSalt, updated as unknown as Record<string, unknown>);
+      setProfiles((prev) => ({ ...prev, [updated.username]: updated }));
+      return { ok: true, cost };
     },
     [profile],
   );
@@ -552,6 +579,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     buyPet,
     equipPet,
     setPetAccessories,
+    renamePet,
     existingUsernames,
   };
 

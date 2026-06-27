@@ -1827,6 +1827,19 @@ button {
   left: -8px;
 }
 
+.pet-badge-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pet-badge-icon__name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
 @keyframes pet-bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
@@ -1978,6 +1991,12 @@ button {
 .profile__avatar-actions {
   display: flex;
   gap: 10px;
+}
+
+.profile__pet-name {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text-dim);
 }
 
 .profile__row {
@@ -2902,6 +2921,12 @@ button {
   font-size: 12px;
 }
 
+.leaderboard__pet-name {
+  font-weight: 500;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
 .leaderboard__level-badge {
   margin-left: 8px;
   padding: 2px 8px;
@@ -3238,4 +3263,78 @@ button {
 .pet-card__price {
   font-size: 0.75rem;
   color: var(--text-dim);
+}
+
+.pet-card__equip-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.pet-card__rename-btn {
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+}
+
+.pet-shop__preview-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.pet-shop__catalog-name {
+  margin: -6px 0 4px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.rename-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.rename-dialog {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  width: min(360px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rename-dialog__preview {
+  margin: 0;
+  color: var(--text-dim);
+}
+
+.rename-dialog__error {
+  margin: 0;
+  color: #f87171;
+  font-size: 0.85rem;
+}
+
+.rename-dialog__cost {
+  margin: 0;
+  color: #fbbf24;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.rename-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
 }

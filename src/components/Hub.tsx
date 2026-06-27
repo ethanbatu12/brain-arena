@@ -7,6 +7,7 @@ import { XpBar } from "./XpBar";
 import { DailyChallengesWidget } from "./DailyChallengesWidget";
 import { WeeklyTournamentCard } from "./WeeklyTournamentCard";
 import { PetBadge } from "./PetBadge";
+import { petDisplayName } from "../pets/naming";
 
 interface HubProps {
   profile: PlayerProfile;
@@ -73,6 +74,7 @@ export function Hub({
           <PetBadge
             petId={profile.equippedPet}
             accessoryIds={profile.petAccessories}
+            name={profile.equippedPet ? petDisplayName(profile.petNames, profile.equippedPet) : undefined}
             size={22}
             className="home__pet-badge"
           />

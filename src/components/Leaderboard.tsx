@@ -11,6 +11,7 @@ import { getBorderDef } from "../player/borders";
 import { titleColors, titleForLevel } from "../xp/levels";
 import { AvatarSvg } from "./AvatarSvg";
 import { PetBadge } from "./PetBadge";
+import { petDisplayName } from "../pets/naming";
 
 type AvgKey =
   | "memory-avg" | "math-avg" | "logic-avg" | "balloon-avg" | "pattern-avg"
@@ -46,6 +47,7 @@ interface Row {
   borderColor: string | null;
   equippedPet: string | null;
   petAccessories: string[];
+  petName: string | null;
   value: number;
   label: string;
   isCurrentUser: boolean;
@@ -100,6 +102,7 @@ function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): 
     borderColor: border.id === "none" ? null : border.colors[0],
     equippedPet: p.equippedPet,
     petAccessories: p.petAccessories,
+    petName: p.equippedPet ? petDisplayName(p.petNames, p.equippedPet) : null,
     value,
     label,
     isCurrentUser: p.username === currentUsername,
@@ -275,12 +278,13 @@ VITE_SUPABASE_ANON_KEY=your-anon-key`}</pre>
               </span>
               {row.equippedPet && (
                 <span className="leaderboard__pet-avatar">
-                  <PetBadge petId={row.equippedPet} accessoryIds={row.petAccessories} size={20} />
+                  <PetBadge petId={row.equippedPet} accessoryIds={row.petAccessories} name={row.petName ?? undefined} size={20} />
                 </span>
               )}
               <span className="leaderboard__name">
                 <span className="leaderboard__name-row">
                   <span style={{ color: row.borderColor ?? "#000000" }}>{row.username}</span>
+                  {row.petName && <span className="leaderboard__pet-name"> &amp; {row.petName}</span>}
                   {row.isCurrentUser && <span className="leaderboard__you-tag"> (you)</span>}
                   {activeKey !== "level" && <span className="leaderboard__level-badge">Lv {row.level}</span>}
                 </span>

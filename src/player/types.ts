@@ -2,6 +2,7 @@ import type { AvatarConfig } from "../avatar/types";
 import type { BorderId } from "./borders";
 import type { ChallengeStreakData, TripleChallengeState } from "./tripleChallenges";
 import type { TournamentStats, WeeklyBadge } from "../tournament/types";
+import type { PetNameRecord } from "../pets/naming";
 
 export type GameId = "memory" | "math" | "logic" | "balloon" | "pattern" | "reaction" | "trivia" | "direction";
 
@@ -189,4 +190,6 @@ export interface PlayerProfile {
   equippedPet: string | null;
   /** Pet accessory ids currently equipped on the pet — unlocked by player level, not purchased. */
   petAccessories: string[];
+  /** Custom name + rename history for each owned pet, keyed by pet catalog id. */
+  petNames: Record<string, PetNameRecord>;
 }

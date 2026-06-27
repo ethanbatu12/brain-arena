@@ -21,6 +21,7 @@ import { awardCoins, coinsForGameResult, coinsForLevel, coinsOwedForLevelUp } fr
 import { sanitizeBorder } from "./borders";
 import { SIMPLE_CAT_ID } from "../pets/catalog";
 import { sanitizePetAccessories } from "../pets/accessories";
+import { emptyPetNameRecord, type PetNameRecord } from "../pets/naming";
 import {
   emptyChallengeStreak,
   emptyTripleChallengeState,
@@ -188,6 +189,7 @@ export function createProfile(
     ownedPets: [SIMPLE_CAT_ID],
     equippedPet: SIMPLE_CAT_ID,
     petAccessories: [],
+    petNames: { [SIMPLE_CAT_ID]: emptyPetNameRecord(SIMPLE_CAT_ID) },
   };
 }
 
@@ -363,6 +365,23 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
 
   const ownedPetsWithStarter = Array.from(new Set([...(profile.ownedPets ?? []), SIMPLE_CAT_ID]));
 
+  // Every owned pet must have a name record — backfill the default catalog
+  // name for pets bought before this feature existed, and defend against a
+  // malformed/missing stored record for any pet.
+  const rawPetNames = (profile.petNames ?? {}) as Record<string, Partial<PetNameRecord> | undefined>;
+  const petNames: Record<string, PetNameRecord> = {};
+  for (const petId of ownedPetsWithStarter) {
+    const existing = rawPetNames[petId];
+    petNames[petId] =
+      existing && typeof existing.name === "string" && existing.name.trim().length > 0
+        ? {
+            name: existing.name,
+            renameCount: existing.renameCount ?? 0,
+            freeRenameUsed: existing.freeRenameUsed ?? false,
+          }
+        : emptyPetNameRecord(petId);
+  }
+
   const currentLevel = levelForTotalXp(profile.xp ?? 0).level;
   // Retroactive catch-up: a player who leveled up before per-level coins
   // existed (coinsGrantedForLevel missing/undefined) gets the full amount
@@ -419,6 +438,7 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
           ? SIMPLE_CAT_ID
           : null,
     petAccessories: sanitizePetAccessories(profile.petAccessories, currentLevel),
+    petNames,
   } as PlayerProfile;
 }
 

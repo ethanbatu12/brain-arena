@@ -4,6 +4,16 @@ import { PET_CATALOG, getPetDef } from "../pets/catalog";
 import { RARITY_COLORS, RARITY_LABELS, RARITY_ORDER, PET_EMOJI } from "../pets/rarity";
 import { canPurchase, collectionStats } from "../pets/collection";
 import { MAX_PET_ACCESSORY_SLOTS, PET_ACCESSORIES, unlockedPetAccessories } from "../pets/accessories";
+import {
+  PET_NAME_MAX_LENGTH,
+  PET_RENAME_COST,
+  defaultPetName,
+  petDisplayName,
+  renameCost,
+  validatePetName,
+  type PetNameError,
+} from "../pets/naming";
+import type { RenamePetResult } from "../player/PlayerContext";
 import { AvatarSvg } from "./AvatarSvg";
 import { PetBadge } from "./PetBadge";
 
@@ -17,6 +27,7 @@ interface PetShopProps {
   onBuyPet: (petId: string) => { ok: true } | { ok: false; error: "already-owned" | "not-enough-coins" | "unknown-pet" };
   onEquipPet: (petId: string | null) => void;
   onSetPetAccessories: (accessoryIds: string[]) => void;
+  onRenamePet: (petId: string, newName: string) => RenamePetResult;
   initialTab?: PetShopTab;
 }
 
@@ -26,10 +37,32 @@ const PURCHASE_ERROR_LABEL: Record<string, string> = {
   "unknown-pet": "Unknown pet.",
 };
 
-export function PetShop({ profile, onBack, onBuyPet, onEquipPet, onSetPetAccessories, initialTab = "shop" }: PetShopProps) {
+const RENAME_ERROR_LABEL: Record<PetNameError | "not-owned" | "not-enough-coins", string> = {
+  "too-short": "Name can't be blank.",
+  "too-long": `Name must be ${PET_NAME_MAX_LENGTH} characters or fewer.`,
+  "invalid-characters": "Only letters, numbers, spaces, apostrophes, and hyphens are allowed.",
+  inappropriate: "That name isn't allowed.",
+  "not-owned": "You don't own this pet.",
+  "not-enough-coins": "Not enough coins for this rename.",
+};
+
+export function PetShop({
+  profile,
+  onBack,
+  onBuyPet,
+  onEquipPet,
+  onSetPetAccessories,
+  onRenamePet,
+  initialTab = "shop",
+}: PetShopProps) {
   const [tab, setTab] = useState<PetShopTab>(initialTab);
   const [selectedId, setSelectedId] = useState<string>(PET_CATALOG[0].id);
   const [message, setMessage] = useState<string | null>(null);
+
+  const [renamePetId, setRenamePetId] = useState<string | null>(null);
+  const [renameInput, setRenameInput] = useState("");
+  const [renameConfirming, setRenameConfirming] = useState(false);
+  const [renameError, setRenameError] = useState<string | null>(null);
 
   const selected = getPetDef(selectedId) ?? PET_CATALOG[0];
   const owned = profile.ownedPets.includes(selected.id);
@@ -38,6 +71,37 @@ export function PetShop({ profile, onBack, onBuyPet, onEquipPet, onSetPetAccesso
   const handleBuy = () => {
     const result = onBuyPet(selected.id);
     setMessage(result.ok ? `${selected.name} purchased!` : PURCHASE_ERROR_LABEL[result.error]);
+  };
+
+  const openRename = (petId: string) => {
+    setRenamePetId(petId);
+    setRenameInput(petDisplayName(profile.petNames, petId));
+    setRenameConfirming(false);
+    setRenameError(null);
+  };
+
+  const closeRename = () => setRenamePetId(null);
+
+  const handleRenameSave = () => {
+    if (!renamePetId) return;
+    const validation = validatePetName(renameInput);
+    if (!validation.ok) {
+      setRenameError(RENAME_ERROR_LABEL[validation.error]);
+      return;
+    }
+    const cost = renameCost(profile.petNames[renamePetId]);
+    if (cost > 0 && !renameConfirming) {
+      setRenameConfirming(true);
+      setRenameError(null);
+      return;
+    }
+    const result = onRenamePet(renamePetId, renameInput);
+    if (result.ok) {
+      closeRename();
+    } else {
+      setRenameError(RENAME_ERROR_LABEL[result.error]);
+      setRenameConfirming(false);
+    }
   };
 
   return (
@@ -81,21 +145,31 @@ export function PetShop({ profile, onBack, onBuyPet, onEquipPet, onSetPetAccesso
                 </div>
               </Suspense>
             </div>
-            <h2 style={{ color: RARITY_COLORS[selected.rarity][0] }}>{selected.name}</h2>
+            <h2 style={{ color: RARITY_COLORS[selected.rarity][0] }}>
+              {owned ? petDisplayName(profile.petNames, selected.id) : selected.name}
+            </h2>
+            {owned && petDisplayName(profile.petNames, selected.id) !== selected.name && (
+              <p className="pet-shop__catalog-name">({selected.name})</p>
+            )}
             <p className="pet-shop__rarity" style={{ color: RARITY_COLORS[selected.rarity][0] }}>
               {RARITY_LABELS[selected.rarity]}
             </p>
             <p className="pet-shop__price">🪙 {selected.price.toLocaleString()}</p>
             {message && <p className="pet-shop__message">{message}</p>}
             {owned ? (
-              <button
-                className="btn btn--primary"
-                onClick={() => {
-                  onEquipPet(profile.equippedPet === selected.id ? null : selected.id);
-                }}
-              >
-                {profile.equippedPet === selected.id ? "Unequip" : "Equip"}
-              </button>
+              <div className="pet-shop__preview-actions">
+                <button
+                  className="btn btn--primary"
+                  onClick={() => {
+                    onEquipPet(profile.equippedPet === selected.id ? null : selected.id);
+                  }}
+                >
+                  {profile.equippedPet === selected.id ? "Unequip" : "Equip"}
+                </button>
+                <button className="btn btn--ghost" onClick={() => openRename(selected.id)}>
+                  Rename
+                </button>
+              </div>
             ) : (
               <button
                 className="btn btn--primary"
@@ -124,7 +198,7 @@ export function PetShop({ profile, onBack, onBuyPet, onEquipPet, onSetPetAccesso
                       }}
                     >
                       <span className="pet-card__emoji">{PET_EMOJI[pet.species]}</span>
-                      <span className="pet-card__name">{pet.name}</span>
+                      <span className="pet-card__name">{isOwned ? petDisplayName(profile.petNames, pet.id) : pet.name}</span>
                       <span className="pet-card__price">{isOwned ? "Owned" : `🪙 ${pet.price}`}</span>
                     </button>
                   );
@@ -153,16 +227,16 @@ export function PetShop({ profile, onBack, onBuyPet, onEquipPet, onSetPetAccesso
           </div>
           <div className="pet-shop__grid">
             {PET_CATALOG.filter((p) => profile.ownedPets.includes(p.id)).map((pet) => (
-              <button
-                key={pet.id}
-                className={`pet-card${profile.equippedPet === pet.id ? " pet-card--selected" : ""}`}
-                style={{ borderColor: RARITY_COLORS[pet.rarity][0] }}
-                onClick={() => onEquipPet(profile.equippedPet === pet.id ? null : pet.id)}
-              >
-                <span className="pet-card__emoji">{PET_EMOJI[pet.species]}</span>
-                <span className="pet-card__name">{pet.name}</span>
-                <span className="pet-card__price">{profile.equippedPet === pet.id ? "Equipped" : "Tap to equip"}</span>
-              </button>
+              <div key={pet.id} className={`pet-card${profile.equippedPet === pet.id ? " pet-card--selected" : ""}`} style={{ borderColor: RARITY_COLORS[pet.rarity][0] }}>
+                <button className="pet-card__equip-area" onClick={() => onEquipPet(profile.equippedPet === pet.id ? null : pet.id)}>
+                  <span className="pet-card__emoji">{PET_EMOJI[pet.species]}</span>
+                  <span className="pet-card__name">{petDisplayName(profile.petNames, pet.id)}</span>
+                  <span className="pet-card__price">{profile.equippedPet === pet.id ? "Equipped" : "Tap to equip"}</span>
+                </button>
+                <button className="btn btn--ghost pet-card__rename-btn" onClick={() => openRename(pet.id)}>
+                  Rename
+                </button>
+              </div>
             ))}
             {stats.owned === 0 && <p>No pets owned yet — visit the Shop tab to buy your first one!</p>}
           </div>
@@ -174,7 +248,13 @@ export function PetShop({ profile, onBack, onBuyPet, onEquipPet, onSetPetAccesso
           {profile.equippedPet ? (
             <>
               <div className="pet-shop__preview">
-                <PetBadge petId={profile.equippedPet} accessoryIds={profile.petAccessories} size={48} />
+                <PetBadge
+                  petId={profile.equippedPet}
+                  accessoryIds={profile.petAccessories}
+                  name={petDisplayName(profile.petNames, profile.equippedPet)}
+                  showName
+                  size={48}
+                />
                 <p>
                   {profile.petAccessories.length}/{MAX_PET_ACCESSORY_SLOTS} accessory slots worn
                 </p>
@@ -209,6 +289,40 @@ export function PetShop({ profile, onBack, onBuyPet, onEquipPet, onSetPetAccesso
           ) : (
             <p>Equip a pet first (Shop or Collection tab) before customizing it.</p>
           )}
+        </div>
+      )}
+
+      {renamePetId && (
+        <div className="rename-dialog__overlay" onClick={closeRename}>
+          <div className="rename-dialog" onClick={(e) => e.stopPropagation()}>
+            <h3>Rename {defaultPetName(renamePetId)}</h3>
+            <input
+              className="signin__input"
+              value={renameInput}
+              maxLength={PET_NAME_MAX_LENGTH}
+              autoFocus
+              onChange={(e) => {
+                setRenameInput(e.target.value);
+                setRenameConfirming(false);
+                setRenameError(null);
+              }}
+            />
+            <p className="rename-dialog__preview">
+              Preview: <strong>{renameInput.trim() || "—"}</strong>
+            </p>
+            {renameError && <p className="rename-dialog__error">{renameError}</p>}
+            {renameConfirming && !renameError && (
+              <p className="rename-dialog__cost">This rename costs 🪙 {PET_RENAME_COST} coins. Confirm?</p>
+            )}
+            <div className="rename-dialog__actions">
+              <button className="btn btn--ghost" onClick={closeRename}>
+                Cancel
+              </button>
+              <button className="btn btn--primary" onClick={handleRenameSave}>
+                {renameConfirming ? "Confirm & Pay" : "Save"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

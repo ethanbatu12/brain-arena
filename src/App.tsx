@@ -67,6 +67,7 @@ function AppShell() {
     buyPet,
     equipPet,
     setPetAccessories,
+    renamePet,
   } = usePlayerProfile();
   const [screen, setScreen] = useState<Screen>("hub");
   const [petShopTab, setPetShopTab] = useState<"shop" | "collection" | "customize">("shop");
@@ -128,6 +129,7 @@ function AppShell() {
           onBuyPet={buyPet}
           onEquipPet={equipPet}
           onSetPetAccessories={setPetAccessories}
+          onRenamePet={renamePet}
           initialTab={petShopTab}
         />
       )}
