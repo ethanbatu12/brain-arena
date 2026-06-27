@@ -70,6 +70,34 @@ describe("puzzle bank integrity", () => {
       expect(state.status, `puzzle ${p.id} should end in checkmate`).toBe("checkmate");
     }
   });
+
+  it("ends every mate-in-1 puzzle in checkmate after the solution move", () => {
+    const mateIn1 = PUZZLES.filter((p) => p.puzzleType === "mate" && p.solution.length === 1);
+    expect(mateIn1.length, "expected at least one verified mate-in-1").toBeGreaterThan(0);
+    for (const p of mateIn1) {
+      const state = playLegal(p, loadFen(p.fen), 0);
+      expect(state.status, `puzzle ${p.id} should end in checkmate`).toBe("checkmate");
+    }
+  });
+
+  it("every expert puzzle's solution move is the only one capturing material or delivering check/mate (sanity check against blunder solutions)", () => {
+    // A loose but useful guard: for tactic/fork/sacrifice-typed puzzles, the
+    // first solution move must capture a piece, give check, or deliver
+    // mate — a quiet, non-forcing move recorded as "the strongest
+    // continuation" is exactly the bug this test exists to catch.
+    const expertTactics = PUZZLES.filter(
+      (p) => p.difficulty === "expert" && (p.puzzleType === "tactic" || p.puzzleType === "fork" || p.puzzleType === "sacrifice"),
+    );
+    expect(expertTactics.length).toBeGreaterThan(0);
+    for (const p of expertTactics) {
+      const state = loadFen(p.fen);
+      const move = p.solution[0];
+      const captured = state.board[move.to];
+      const after = playLegal(p, state, 0);
+      const isForcing = Boolean(captured) || after.status === "check" || after.status === "checkmate";
+      expect(isForcing, `puzzle ${p.id}: solution move is neither a capture nor a check`).toBe(true);
+    }
+  });
 });
 
 describe("answer handling (no leaks before solving)", () => {
