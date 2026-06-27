@@ -8,6 +8,7 @@ import { DirectionChallenge } from "./components/DirectionChallenge";
 import { FullChessGame } from "./components/FullChessGame";
 import { Hub } from "./components/Hub";
 import { Leaderboard } from "./components/Leaderboard";
+import { PublicProfile } from "./components/PublicProfile";
 import { LogicGame } from "./components/LogicGame";
 import { MathGame } from "./components/MathGame";
 import { MemoryGame } from "./components/MemoryGame";
@@ -27,7 +28,7 @@ import { PetShop } from "./components/PetShop";
 import { SeasonPass } from "./components/SeasonPass";
 import { SeasonHistoryPage } from "./components/SeasonHistoryPage";
 import { PlayerProvider, usePlayerProfile } from "./player/PlayerContext";
-import type { GameId } from "./player/types";
+import type { GameId, PlayerProfile } from "./player/types";
 import { currentTournamentWeek } from "./tournament/schedule";
 
 export type { GameId };
@@ -38,6 +39,7 @@ type Screen =
   | "avatar-setup"
   | "avatar-edit"
   | "leaderboard"
+  | "view-profile"
   | "challenge"
   | "chess"
   | "chess-full"
@@ -77,6 +79,7 @@ function AppShell() {
   } = usePlayerProfile();
   const [screen, setScreen] = useState<Screen>("hub");
   const [petShopTab, setPetShopTab] = useState<"shop" | "collection" | "customize">("shop");
+  const [viewedProfile, setViewedProfile] = useState<PlayerProfile | null>(null);
   const goHub = () => setScreen("hub");
 
   const handleCreateAccount = async (username: string, password: string) => {
@@ -126,6 +129,7 @@ function AppShell() {
           onTournament={() => setScreen("tournament")}
           onPetShop={() => setScreen("pet-shop")}
           onSeasonPass={() => setScreen("season-pass")}
+          onViewLevels={() => setScreen("levels")}
           onSignOut={signOut}
         />
       )}
@@ -206,7 +210,14 @@ function AppShell() {
           profiles={allProfiles}
           currentUsername={profile.username}
           onBack={goHub}
+          onViewProfile={(viewed) => {
+            setViewedProfile(viewed);
+            setScreen("view-profile");
+          }}
         />
+      )}
+      {screen === "view-profile" && viewedProfile && (
+        <PublicProfile profile={viewedProfile} onBack={() => setScreen("leaderboard")} />
       )}
       {screen === "challenge" && (
         <AllGamesChallenge profile={profile} onExit={goHub} recordCombinedResult={recordCombinedResult} />

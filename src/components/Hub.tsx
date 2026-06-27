@@ -18,6 +18,7 @@ interface HubProps {
   onTournament: () => void;
   onPetShop: () => void;
   onSeasonPass: () => void;
+  onViewLevels: () => void;
   onSignOut: () => void;
 }
 
@@ -30,6 +31,7 @@ export function Hub({
   onTournament,
   onPetShop,
   onSeasonPass,
+  onViewLevels,
   onSignOut,
 }: HubProps) {
   const today = getToday();
@@ -59,6 +61,9 @@ export function Hub({
           </button>
           <button className="btn btn--ghost" onClick={onTournament}>
             Tournament
+          </button>
+          <button className="btn btn--ghost" onClick={onViewLevels}>
+            Levels
           </button>
           <button className="btn btn--ghost" onClick={onPetShop}>
             Pet Shop

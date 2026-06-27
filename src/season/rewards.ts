@@ -49,6 +49,7 @@ const MILESTONES: { tier: number; kind: SeasonRewardKind; label: (themeName: str
   { tier: 70, kind: "hairColor", label: (t) => `${t} Hair Color` },
   { tier: 75, kind: "accessory", label: () => "Legendary Helmet" },
   { tier: 80, kind: "victoryAnimation", label: (t) => `${t} Victory Animation` },
+  { tier: 85, kind: "pet", label: (t) => `${t} Phoenix Companion` },
   { tier: 90, kind: "animatedBorder", label: (t) => `Animated ${t} Border` },
 ];
 
@@ -99,11 +100,12 @@ export function buildSeasonRewardTrack(themeId: string, themeName: string): Seas
   return track;
 }
 
-/** Tier 100 grants extra exclusive rewards beyond the single track slot — the title and animated border called out in the spec. */
+/** Tier 100 grants extra exclusive rewards beyond the single track slot — the title, animated border, and a pet called out in the spec. */
 export function bonusFinaleRewards(themeId: string, themeName: string): SeasonReward[] {
   return [
     { tier: SEASON_TIER_COUNT, kind: "animatedBorder", id: `${themeId}-t100-border`, label: `Legendary Animated ${themeName} Border` },
     { tier: SEASON_TIER_COUNT, kind: "title", id: `${themeId}-t100-title`, label: `${themeName} Champion` },
+    { tier: SEASON_TIER_COUNT, kind: "pet", id: `${themeId}-t100-pet`, label: `${themeName} Champion's Companion` },
   ];
 }
 

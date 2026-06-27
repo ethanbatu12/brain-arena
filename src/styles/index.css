@@ -1993,6 +1993,20 @@ button {
   gap: 10px;
 }
 
+.public-profile__name {
+  margin: 4px 0 0;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.public-profile__title {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .profile__pet-name {
   margin: 0;
   font-weight: 700;
@@ -2874,7 +2888,16 @@ button {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.leaderboard__row:hover {
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
 }
 
 .leaderboard__row--you {

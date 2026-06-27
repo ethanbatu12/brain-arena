@@ -33,7 +33,14 @@ describe("buildSeasonRewardTrack", () => {
     expect(byTier(40).kind).toBe("pet");
     expect(byTier(50).kind).toBe("avatarEffect");
     expect(byTier(75).kind).toBe("accessory");
+    expect(byTier(85).kind).toBe("pet");
     expect(byTier(100).kind).toBe("clothing");
+  });
+
+  it("has 3 exclusive pet rewards in the main track, each only obtainable through the pass", () => {
+    const petRewards = track.filter((r) => r.kind === "pet");
+    expect(petRewards).toHaveLength(3);
+    expect(petRewards.map((r) => r.tier)).toEqual([5, 40, 85]);
   });
 
   it("namespaces every exclusive reward id by theme, so two seasons never collide", () => {
@@ -51,10 +58,11 @@ describe("buildSeasonRewardTrack", () => {
 });
 
 describe("bonusFinaleRewards", () => {
-  it("grants the title and animated border called out for tier 100", () => {
+  it("grants the title, animated border, and an exclusive pet for tier 100", () => {
     const bonus = bonusFinaleRewards("space", "Space Season");
     expect(bonus.some((r) => r.kind === "title")).toBe(true);
     expect(bonus.some((r) => r.kind === "animatedBorder")).toBe(true);
+    expect(bonus.some((r) => r.kind === "pet")).toBe(true);
     expect(bonus.every((r) => r.tier === SEASON_TIER_COUNT)).toBe(true);
   });
 });

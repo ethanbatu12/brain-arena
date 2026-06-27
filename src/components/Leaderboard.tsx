@@ -36,9 +36,11 @@ interface LeaderboardProps {
   profiles: PlayerProfile[];
   currentUsername: string;
   onBack: () => void;
+  onViewProfile: (profile: PlayerProfile) => void;
 }
 
 interface Row {
+  profile: PlayerProfile;
   username: string;
   avatar: string;
   avatarConfig: AvatarConfig;
@@ -94,6 +96,7 @@ function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): 
   }
   const border = getBorderDef(p.profileBorder);
   return {
+    profile: p,
     username: p.username,
     avatar: p.avatar ?? "🧠",
     avatarConfig: sanitizeAvatarConfig(p.avatarConfig),
@@ -144,7 +147,7 @@ const TAB_GROUPS: TabGroup[] = [
   },
 ];
 
-export function Leaderboard({ profiles, currentUsername, onBack }: LeaderboardProps) {
+export function Leaderboard({ profiles, currentUsername, onBack, onViewProfile }: LeaderboardProps) {
   const [activeKey, setActiveKey] = useState<SortKey>("score");
   const [scope, setScope] = useState<Scope>("local");
   const [globalProfiles, setGlobalProfiles] = useState<PlayerProfile[]>([]);
@@ -266,9 +269,11 @@ VITE_SUPABASE_ANON_KEY=your-anon-key`}</pre>
       ) : (
         <div className="leaderboard__list">
           {rows.map((row, idx) => (
-            <div
+            <button
               key={`${row.username}-${idx}`}
+              type="button"
               className={`leaderboard__row${row.isCurrentUser ? " leaderboard__row--you" : ""}`}
+              onClick={() => onViewProfile(row.profile)}
             >
               <span className="leaderboard__rank">
                 {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`}
@@ -293,7 +298,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key`}</pre>
                 </span>
               </span>
               <span className="leaderboard__value">{row.label}</span>
-            </div>
+            </button>
           ))}
         </div>
       )}

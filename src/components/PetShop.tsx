@@ -67,6 +67,8 @@ export function PetShop({
   const selected = getPetDef(selectedId) ?? PET_CATALOG[0];
   const owned = profile.ownedPets.includes(selected.id);
   const stats = collectionStats(profile.ownedPets);
+  // Pets owned but not in the purchasable catalog — Season Pass exclusives.
+  const exclusivePetIds = profile.ownedPets.filter((id) => !getPetDef(id));
 
   const handleBuy = () => {
     const result = onBuyPet(selected.id);
@@ -240,6 +242,26 @@ export function PetShop({
             ))}
             {stats.owned === 0 && <p>No pets owned yet — visit the Shop tab to buy your first one!</p>}
           </div>
+
+          {exclusivePetIds.length > 0 && (
+            <div className="pet-shop__rarity-group">
+              <h3 style={{ color: "#fbbf24" }}>Season-Exclusive Pets</h3>
+              <div className="pet-shop__grid">
+                {exclusivePetIds.map((petId) => (
+                  <div key={petId} className={`pet-card${profile.equippedPet === petId ? " pet-card--selected" : ""}`} style={{ borderColor: "#fbbf24" }}>
+                    <button className="pet-card__equip-area" onClick={() => onEquipPet(profile.equippedPet === petId ? null : petId)}>
+                      <span className="pet-card__emoji">✨</span>
+                      <span className="pet-card__name">{petDisplayName(profile.petNames, petId)}</span>
+                      <span className="pet-card__price">{profile.equippedPet === petId ? "Equipped" : "Tap to equip"}</span>
+                    </button>
+                    <button className="btn btn--ghost pet-card__rename-btn" onClick={() => openRename(petId)}>
+                      Rename
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

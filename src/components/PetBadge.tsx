@@ -13,15 +13,23 @@ interface PetBadgeProps {
   className?: string;
 }
 
-/** The small emoji "avatar" for a player's equipped pet, with its accessories, shared across Hub/Profile/Leaderboard. */
+/**
+ * The small emoji "avatar" for a player's equipped pet, with its
+ * accessories, shared across Hub/Profile/Leaderboard. Falls back to a
+ * generic sparkle emoji for pets not in the purchasable catalog (e.g.
+ * Season Pass-exclusive pets), so those still render correctly even
+ * though they have no catalog entry — that's exactly what keeps them
+ * unobtainable any other way.
+ */
 export function PetBadge({ petId, accessoryIds, name, showName = false, size = 22, className }: PetBadgeProps) {
-  const pet = petId ? getPetDef(petId) : undefined;
-  if (!pet) return null;
-  const displayName = name ?? pet.name;
+  if (!petId) return null;
+  const pet = getPetDef(petId);
+  const displayName = name ?? pet?.name ?? "Pet";
+  const emoji = pet ? PET_EMOJI[pet.species] : "✨";
   return (
     <span className={`pet-badge-wrap${className ? ` ${className}` : ""}`}>
       <span className="pet-badge-icon" style={{ fontSize: size }} title={displayName}>
-        {PET_EMOJI[pet.species]}
+        {emoji}
         {accessoryIds.map((id) => {
           const def = getPetAccessoryDef(id);
           if (!def) return null;
