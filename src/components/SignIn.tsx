@@ -101,6 +101,10 @@ export function SignIn({ onCreateAccount, onSignIn, initialError, onDismissIniti
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           maxLength={20}
+          autoCapitalize="none"
+          autoCorrect="off"
+          autoComplete="username"
+          spellCheck={false}
         />
         <input
           className="signin__input"
@@ -110,6 +114,10 @@ export function SignIn({ onCreateAccount, onSignIn, initialError, onDismissIniti
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           maxLength={40}
+          autoCapitalize="none"
+          autoCorrect="off"
+          autoComplete={mode === "create" ? "new-password" : "current-password"}
+          spellCheck={false}
         />
         {mode === "create" && (
           <input
@@ -120,6 +128,10 @@ export function SignIn({ onCreateAccount, onSignIn, initialError, onDismissIniti
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             maxLength={40}
+            autoCapitalize="none"
+            autoCorrect="off"
+            autoComplete="new-password"
+            spellCheck={false}
           />
         )}
         <button type="submit" className="btn btn--primary">
