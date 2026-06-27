@@ -30,6 +30,7 @@ interface ProfileProps {
   profile: PlayerProfile;
   onBack: () => void;
   onEditAvatar: () => void;
+  onEditPet: () => void;
   onViewLevels: () => void;
   onSignOut: () => void;
 }
@@ -38,7 +39,7 @@ function round(value: number): number {
   return Math.round(value);
 }
 
-export function Profile({ profile, onBack, onEditAvatar, onViewLevels, onSignOut }: ProfileProps) {
+export function Profile({ profile, onBack, onEditAvatar, onEditPet, onViewLevels, onSignOut }: ProfileProps) {
   const { setSelectedTitle, setProfileBorder } = usePlayerProfile();
   const unlockedIds = new Set(profile.achievements.map((a) => a.id));
   const titles = unlockedTitles(profile.level);
@@ -93,9 +94,16 @@ export function Profile({ profile, onBack, onEditAvatar, onViewLevels, onSignOut
             <AvatarSvg config={profile.avatarConfig} size={120} />
             <PetBadge petId={profile.equippedPet} accessoryIds={profile.petAccessories} size={26} className="pet-badge" />
           </div>
-          <button className="btn btn--primary" onClick={onEditAvatar}>
-            Edit Avatar
-          </button>
+          <div className="profile__avatar-actions">
+            <button className="btn btn--primary" onClick={onEditAvatar}>
+              Edit Avatar
+            </button>
+            {profile.equippedPet && (
+              <button className="btn btn--primary" onClick={onEditPet}>
+                Edit Pet
+              </button>
+            )}
+          </div>
         </div>
         {borders.length > 1 && (
           <>

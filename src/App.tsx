@@ -71,6 +71,7 @@ function AppShell() {
     setPetAccessories,
   } = usePlayerProfile();
   const [screen, setScreen] = useState<Screen>("hub");
+  const [petShopTab, setPetShopTab] = useState<"shop" | "collection" | "customize">("shop");
   const goHub = () => setScreen("hub");
 
   const handleCreateAccount = async (username: string, password: string) => {
@@ -130,6 +131,7 @@ function AppShell() {
           onBuyPet={buyPet}
           onEquipPet={equipPet}
           onSetPetAccessories={setPetAccessories}
+          initialTab={petShopTab}
         />
       )}
       {screen === "tournament" && (
@@ -146,6 +148,10 @@ function AppShell() {
           profile={profile}
           onBack={goHub}
           onEditAvatar={() => setScreen("avatar-edit")}
+          onEditPet={() => {
+            setPetShopTab("customize");
+            setScreen("pet-shop");
+          }}
           onViewLevels={() => setScreen("levels")}
           onSignOut={() => {
             signOut();

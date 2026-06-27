@@ -9,12 +9,15 @@ import { PetBadge } from "./PetBadge";
 
 const Pet3D = lazy(() => import("./Pet3D").then((m) => ({ default: m.Pet3D })));
 
+type PetShopTab = "shop" | "collection" | "customize";
+
 interface PetShopProps {
   profile: PlayerProfile;
   onBack: () => void;
   onBuyPet: (petId: string) => { ok: true } | { ok: false; error: "already-owned" | "not-enough-coins" | "unknown-pet" };
   onEquipPet: (petId: string | null) => void;
   onSetPetAccessories: (accessoryIds: string[]) => void;
+  initialTab?: PetShopTab;
 }
 
 const PURCHASE_ERROR_LABEL: Record<string, string> = {
@@ -23,8 +26,8 @@ const PURCHASE_ERROR_LABEL: Record<string, string> = {
   "unknown-pet": "Unknown pet.",
 };
 
-export function PetShop({ profile, onBack, onBuyPet, onEquipPet, onSetPetAccessories }: PetShopProps) {
-  const [tab, setTab] = useState<"shop" | "collection" | "customize">("shop");
+export function PetShop({ profile, onBack, onBuyPet, onEquipPet, onSetPetAccessories, initialTab = "shop" }: PetShopProps) {
+  const [tab, setTab] = useState<PetShopTab>(initialTab);
   const [selectedId, setSelectedId] = useState<string>(PET_CATALOG[0].id);
   const [message, setMessage] = useState<string | null>(null);
 

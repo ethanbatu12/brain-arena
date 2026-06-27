@@ -1975,6 +1975,11 @@ button {
   position: relative;
 }
 
+.profile__avatar-actions {
+  display: flex;
+  gap: 10px;
+}
+
 .profile__row {
   display: flex;
   align-items: center;
