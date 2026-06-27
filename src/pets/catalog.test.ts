@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { PET_CATALOG, getPetDef } from "./catalog";
+import { PET_CATALOG, SIMPLE_CAT_ID, getPetDef } from "./catalog";
 import { RARITY_LABELS, RARITY_ORDER, PET_EMOJI } from "./rarity";
 
 describe("PET_CATALOG", () => {
-  it("has exactly 20 starter pets", () => {
-    expect(PET_CATALOG).toHaveLength(20);
+  it("has exactly 20 paid starter pets plus the free starter cat", () => {
+    expect(PET_CATALOG).toHaveLength(21);
   });
 
-  it("has 4 pets per rarity tier", () => {
+  it("has 4 paid pets per rarity tier, plus the free starter cat in common", () => {
     for (const rarity of RARITY_ORDER) {
-      expect(PET_CATALOG.filter((p) => p.rarity === rarity)).toHaveLength(4);
+      const expected = rarity === "common" ? 5 : 4;
+      expect(PET_CATALOG.filter((p) => p.rarity === rarity)).toHaveLength(expected);
     }
   });
 
@@ -20,10 +21,15 @@ describe("PET_CATALOG", () => {
     expect(new Set(names).size).toBe(names.length);
   });
 
-  it("has a positive, rarity-appropriate price for every pet", () => {
+  it("gives the starter cat away for free", () => {
+    expect(getPetDef(SIMPLE_CAT_ID)?.price).toBe(0);
+  });
+
+  it("has a positive, rarity-appropriate price for every paid pet", () => {
     const maxByRarity: Record<string, number> = { common: 350, uncommon: 700, rare: 1250, epic: 2500, legendary: 6000 };
     const minByRarity: Record<string, number> = { common: 300, uncommon: 600, rare: 1000, epic: 2000, legendary: 4000 };
     for (const pet of PET_CATALOG) {
+      if (pet.id === SIMPLE_CAT_ID) continue;
       expect(pet.price).toBeGreaterThanOrEqual(minByRarity[pet.rarity]);
       expect(pet.price).toBeLessThanOrEqual(maxByRarity[pet.rarity]);
     }

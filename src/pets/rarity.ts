@@ -21,6 +21,7 @@ export const RARITY_COLORS: Record<PetRarity, [string, string]> = {
 
 /** A lightweight emoji per species, used for the badge that follows the avatar outside the Pet Shop's 3D preview. */
 export const PET_EMOJI: Record<PetSpecies, string> = {
+  simpleCat: "🐱",
   goldenRetriever: "🐕",
   blackCat: "🐈‍⬛",
   rabbit: "🐇",

@@ -19,6 +19,7 @@ import { awardXp } from "../xp/award";
 import { levelForTotalXp, titleForLevel, XP_AWARDS } from "../xp/levels";
 import { awardCoins, coinsForGameResult, coinsForLevel, coinsOwedForLevelUp } from "../coins/award";
 import { sanitizeBorder } from "./borders";
+import { SIMPLE_CAT_ID } from "../pets/catalog";
 import {
   emptyChallengeStreak,
   emptyTripleChallengeState,
@@ -183,8 +184,8 @@ export function createProfile(
     claimedTournamentWeeks: [],
     coins: coinsForLevel(1),
     coinsGrantedForLevel: 1,
-    ownedPets: [],
-    equippedPet: null,
+    ownedPets: [SIMPLE_CAT_ID],
+    equippedPet: SIMPLE_CAT_ID,
   };
 }
 
@@ -358,6 +359,8 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
     games[id] = g ?? emptyGameStats();
   }
 
+  const ownedPetsWithStarter = Array.from(new Set([...(profile.ownedPets ?? []), SIMPLE_CAT_ID]));
+
   const currentLevel = levelForTotalXp(profile.xp ?? 0).level;
   // Retroactive catch-up: a player who leveled up before per-level coins
   // existed (coinsGrantedForLevel missing/undefined) gets the full amount
@@ -403,9 +406,16 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
     claimedTournamentWeeks: profile.claimedTournamentWeeks ?? [],
     coins: Math.max(0, profile.coins ?? 0) + catchUpCoins,
     coinsGrantedForLevel: Math.max(grantedForLevel, currentLevel),
-    ownedPets: profile.ownedPets ?? [],
+    // Every player owns the free starter cat, even retroactively for accounts
+    // created before pets existed — auto-equip it for those legacy accounts
+    // (no pets at all yet) without overriding anyone's existing equip choice.
+    ownedPets: ownedPetsWithStarter,
     equippedPet:
-      profile.equippedPet && (profile.ownedPets ?? []).includes(profile.equippedPet) ? profile.equippedPet : null,
+      profile.equippedPet && ownedPetsWithStarter.includes(profile.equippedPet)
+        ? profile.equippedPet
+        : (profile.ownedPets ?? []).length === 0
+          ? SIMPLE_CAT_ID
+          : null,
   } as PlayerProfile;
 }
 

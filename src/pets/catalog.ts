@@ -5,7 +5,13 @@ import type { PetDef } from "./types";
  * reward, achievement reward, etc.) is just appending an entry here —
  * the shop, collection page, and 3D preview all read from this list.
  */
+/** Given free to every player as their starter pet — see DEFAULT_STARTER_PET_ID. */
+export const SIMPLE_CAT_ID = "simple-cat";
+
 export const PET_CATALOG: PetDef[] = [
+  // Free starter
+  { id: SIMPLE_CAT_ID, name: "Simple Cat", species: "simpleCat", rarity: "common", price: 0 },
+
   // Common
   { id: "golden-retriever", name: "Golden Retriever", species: "goldenRetriever", rarity: "common", price: 300 },
   { id: "black-cat", name: "Black Cat", species: "blackCat", rarity: "common", price: 300 },

@@ -7,6 +7,7 @@ export type PetRarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
  * seasonal/holiday/tournament/achievement pets.
  */
 export type PetSpecies =
+  | "simpleCat"
   | "goldenRetriever" | "blackCat" | "rabbit" | "hamster"
   | "fox" | "panda" | "penguin" | "owl"
   | "redPanda" | "wolf" | "snowLeopard" | "babyTiger"

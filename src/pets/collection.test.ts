@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { PET_CATALOG } from "./catalog";
 import { canPurchase, collectionStats } from "./collection";
 
 describe("collectionStats", () => {
   it("is 0/total/0% with no pets owned", () => {
     const stats = collectionStats([]);
     expect(stats.owned).toBe(0);
-    expect(stats.total).toBe(20);
+    expect(stats.total).toBe(21);
     expect(stats.percent).toBe(0);
   });
 
@@ -15,11 +16,7 @@ describe("collectionStats", () => {
   });
 
   it("is 100% once every pet is owned", () => {
-    const allIds = Array.from({ length: 20 }, (_, i) => i).map(
-      (i) => ["golden-retriever", "black-cat", "rabbit", "hamster", "fox", "panda", "penguin", "owl",
-        "red-panda", "wolf", "snow-leopard", "baby-tiger", "baby-dragon", "phoenix", "robot-companion",
-        "space-alien", "golden-dragon", "crystal-phoenix", "cosmic-wolf", "galaxy-dragon"][i],
-    );
+    const allIds = PET_CATALOG.map((p) => p.id);
     expect(collectionStats(allIds).percent).toBe(100);
   });
 });
@@ -43,5 +40,9 @@ describe("canPurchase", () => {
 
   it("succeeds with exactly enough coins", () => {
     expect(canPurchase("golden-retriever", 300, [])).toEqual({ ok: true });
+  });
+
+  it("the free starter cat can be bought with zero coins", () => {
+    expect(canPurchase("simple-cat", 0, [])).toEqual({ ok: true });
   });
 });
