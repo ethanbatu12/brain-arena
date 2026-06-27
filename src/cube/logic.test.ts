@@ -124,9 +124,23 @@ describe("generateStructure", () => {
     }
   });
 
-  it("sets total to cols * rows (one visible cube per cell)", () => {
+  it("sets total to the sum of every stack's height", () => {
     const s = generateStructure(6, mulberry32(123), 1);
-    expect(s.total).toBe(s.cols * s.rows);
+    const expectedTotal = s.heights.flat().reduce((sum, h) => sum + h, 0);
+    expect(s.total).toBe(expectedTotal);
+  });
+
+  it("doesn't always land on a perfect square (heights vary the total)", () => {
+    // At level 1 every stack is forced to height 1, so cols*rows (a perfect
+    // square, since footprint is square) is unavoidable there — but once
+    // heights can vary, the total should escape that pattern.
+    const isPerfectSquare = (n: number) => Number.isInteger(Math.sqrt(n));
+    let sawNonSquare = false;
+    for (let seed = 0; seed < 30; seed++) {
+      const s = generateStructure(MAX_LEVEL, mulberry32(seed), 1);
+      if (!isPerfectSquare(s.total)) sawNonSquare = true;
+    }
+    expect(sawNonSquare).toBe(true);
   });
 
   it("is deterministic for a given seed", () => {
@@ -154,14 +168,30 @@ describe("cubesToDraw", () => {
     expect(cubesToDraw(s)).toHaveLength(s.total);
   });
 
-  it("every cube is within bounds and is the top of its cell's stack", () => {
+  it("every cube is within bounds and within its cell's stack height", () => {
     const s = generateStructure(7, mulberry32(11), 1);
     for (const { col, row, z } of cubesToDraw(s)) {
       expect(row).toBeGreaterThanOrEqual(0);
       expect(row).toBeLessThan(s.rows);
       expect(col).toBeGreaterThanOrEqual(0);
       expect(col).toBeLessThan(s.cols);
-      expect(z).toBe(s.heights[row][col] - 1);
+      expect(z).toBeGreaterThanOrEqual(0);
+      expect(z).toBeLessThan(s.heights[row][col]);
+    }
+  });
+
+  it("draws every cube in every stack — count matches each cell's full height, not just the top", () => {
+    const s = generateStructure(8, mulberry32(3), 1);
+    const draws = cubesToDraw(s);
+    const countPerCell = new Map<string, number>();
+    for (const { col, row } of draws) {
+      const key = `${row},${col}`;
+      countPerCell.set(key, (countPerCell.get(key) ?? 0) + 1);
+    }
+    for (let row = 0; row < s.rows; row++) {
+      for (let col = 0; col < s.cols; col++) {
+        expect(countPerCell.get(`${row},${col}`)).toBe(s.heights[row][col]);
+      }
     }
   });
 
@@ -176,7 +206,19 @@ describe("cubesToDraw", () => {
     }
   });
 
-  it("draws exactly one cube per footprint cell", () => {
+  it("within a cell, draws bottom-to-top: z is ascending for consecutive same-cell entries", () => {
+    const s = generateStructure(9, mulberry32(4), 1);
+    const draws = cubesToDraw(s);
+    for (let i = 1; i < draws.length; i++) {
+      const a = draws[i - 1];
+      const b = draws[i];
+      if (a.row === b.row && a.col === b.col) {
+        expect(b.z).toBeGreaterThan(a.z);
+      }
+    }
+  });
+
+  it("draws at least one cube per footprint cell", () => {
     const s = generateStructure(8, mulberry32(3), 1);
     const draws = cubesToDraw(s);
     const seenCells = new Set(draws.map(({ col, row }) => `${row},${col}`));

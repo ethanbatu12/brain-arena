@@ -51,42 +51,49 @@ function randInt(min: number, max: number, rng: Rng): number {
 /**
  * Build one cube structure for the given difficulty level. Guarantees:
  *  - footprint and max height follow footprintForLevel / maxHeightForLevel
- *  - every footprint cell holds a stack of height >= 1, but only the top
- *    cube of each stack is ever visible (taller stacks fully occlude the
- *    cubes beneath them in the isometric view)
- *  - total is the number of visible cubes — exactly one per footprint cell
- *    (cols * rows) — so the correct answer is always unambiguous
+ *  - every footprint cell holds a stack of height >= 1, and every cube in
+ *    every stack is drawn (full towers, not just the top cube) — the player
+ *    sees the actual stacking and counts every unit cube
+ *  - total is the sum of every stack's height, so the answer varies with
+ *    the structure instead of always being cols * rows
  */
 export function generateStructure(level: number, rng: Rng, id: number): Structure {
   const { cols, rows } = footprintForLevel(level);
   const maxHeight = maxHeightForLevel(level);
 
   const heights: number[][] = [];
+  let total = 0;
   for (let r = 0; r < rows; r++) {
     const row: number[] = [];
     for (let c = 0; c < cols; c++) {
-      row.push(randInt(1, maxHeight, rng));
+      const h = randInt(1, maxHeight, rng);
+      row.push(h);
+      total += h;
     }
     heights.push(row);
   }
 
-  return { id, cols, rows, heights, total: cols * rows };
+  return { id, cols, rows, heights, total };
 }
 
 /**
- * Flatten a structure into the individual visible unit cubes in
- * back-to-front painter's-algorithm order: sorted by (row + col) ascending
- * (depth from the viewer). Only the top cube of each stack is visible, since
- * a taller neighboring stack would otherwise occlude everything below it.
+ * Flatten a structure into every individual visible unit cube, in
+ * back-to-front, bottom-to-top painter's-algorithm order: sorted by
+ * (row + col) ascending (depth from the viewer), then by height ascending
+ * within a cell. Every cube in every stack is included — full towers are
+ * visible, not just the top cube — so the player can see and count the
+ * stacking directly instead of having to infer hidden cubes.
  */
 export function cubesToDraw(structure: Structure): { col: number; row: number; z: number }[] {
   const cubes: { col: number; row: number; z: number }[] = [];
   for (let row = 0; row < structure.rows; row++) {
     for (let col = 0; col < structure.cols; col++) {
       const height = structure.heights[row][col];
-      cubes.push({ col, row, z: height - 1 });
+      for (let z = 0; z < height; z++) {
+        cubes.push({ col, row, z });
+      }
     }
   }
-  cubes.sort((a, b) => a.row + a.col - (b.row + b.col));
+  cubes.sort((a, b) => a.row + a.col - (b.row + b.col) || a.z - b.z);
   return cubes;
 }

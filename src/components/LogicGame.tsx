@@ -80,9 +80,9 @@ export function LogicGame({ onExit, mode = "solo", onRoundComplete }: LogicGameP
           <Overlay>
             <h2>Logic Challenge</h2>
             <p className="overlay__lead">
-              A 3D structure made of cube towers appears. Count only the
-              cubes you can actually see on top of each tower and add them up
-              for the total.
+              A 3D structure made of cube towers appears. Every cube in every
+              tower is fully visible — count all the stacked cubes in each
+              tower and add them all up for the total.
             </p>
             <ul className="overlay__rules">
               <li>
