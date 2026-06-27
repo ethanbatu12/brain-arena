@@ -37,6 +37,16 @@ describe("buildSeasonRewardTrack", () => {
     expect(byTier(100).kind).toBe("clothing");
   });
 
+  it("themes its border and name-color rewards instead of hardcoding one color for every season", () => {
+    const neonTrack = buildSeasonRewardTrack("neon", "Neon Season");
+    expect(neonTrack.find((r) => r.tier === 10)!.label).toBe("Animated Neon Name Color");
+    expect(neonTrack.find((r) => r.tier === 30)!.label).toBe("Neon Border");
+
+    const winterTrack = buildSeasonRewardTrack("winter", "Winter Season");
+    expect(winterTrack.find((r) => r.tier === 10)!.label).toBe("Animated Winter Name Color");
+    expect(winterTrack.find((r) => r.tier === 10)!.label).not.toContain("Blue");
+  });
+
   it("has 3 exclusive pet rewards in the main track, each only obtainable through the pass", () => {
     const petRewards = track.filter((r) => r.kind === "pet");
     expect(petRewards).toHaveLength(3);
