@@ -4,6 +4,7 @@ import {
   SEASON_XP_PER_TIER,
   bonusFinaleRewards,
   buildSeasonRewardTrack,
+  emojiForSeasonPetId,
   seasonLevelForXp,
   xpIntoCurrentTier,
 } from "./rewards";
@@ -53,6 +54,17 @@ describe("buildSeasonRewardTrack", () => {
     expect(petRewards.map((r) => r.tier)).toEqual([5, 40, 85]);
   });
 
+  it("gives every pet reward its own real species emoji, not a generic placeholder", () => {
+    const fox = track.find((r) => r.tier === 5)!;
+    const dragon = track.find((r) => r.tier === 40)!;
+    const phoenix = track.find((r) => r.tier === 85)!;
+    expect(fox.emoji).toBe("🦊");
+    expect(dragon.emoji).toBe("🐉");
+    expect(phoenix.emoji).toBe("🔥");
+    // distinct from each other and from a generic paw/sparkle
+    expect(new Set([fox.emoji, dragon.emoji, phoenix.emoji]).size).toBe(3);
+  });
+
   it("namespaces every exclusive reward id by theme, so two seasons never collide", () => {
     const spaceTrack = buildSeasonRewardTrack("space", "Space Season");
     const sportsTrack = buildSeasonRewardTrack("sports", "Sports Season");
@@ -99,5 +111,18 @@ describe("xpIntoCurrentTier", () => {
 
   it("tracks partial progress within a tier", () => {
     expect(xpIntoCurrentTier(SEASON_XP_PER_TIER + 50)).toBe(50);
+  });
+});
+
+describe("emojiForSeasonPetId", () => {
+  it("resolves each exclusive pet's real emoji regardless of theme", () => {
+    expect(emojiForSeasonPetId("space-t5-pet")).toBe("🦊");
+    expect(emojiForSeasonPetId("winter-t40-pet")).toBe("🐉");
+    expect(emojiForSeasonPetId("neon-t85-pet")).toBe("🔥");
+    expect(emojiForSeasonPetId("sports-t100-pet")).toBe("🦁");
+  });
+
+  it("returns undefined for a non-season-pet id", () => {
+    expect(emojiForSeasonPetId("golden-retriever")).toBeUndefined();
   });
 });

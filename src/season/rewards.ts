@@ -28,6 +28,8 @@ export interface SeasonReward {
   label: string;
   /** Coin/XP amount for filler reward kinds; undefined for cosmetics. */
   amount?: number;
+  /** Explicit emoji for this specific reward (a fox reward shows a fox, not a generic paw/sparkle) — falls back to a kind-based icon if unset. */
+  emoji?: string;
 }
 
 /** "Neon Season" -> "Neon" — reads better in a short cosmetic name than "Neon Season Banner". */
@@ -42,21 +44,21 @@ function shortThemeName(themeName: string): string {
  * something — exclusive cosmetics are the minority of tiers, not most of
  * them.
  */
-const MILESTONES: { tier: number; kind: SeasonRewardKind; label: (themeName: string) => string }[] = [
-  { tier: 3, kind: "banner", label: (t) => `${shortThemeName(t)} Banner` },
-  { tier: 5, kind: "pet", label: (t) => `${shortThemeName(t)} Fox` },
-  { tier: 10, kind: "animatedNameColor", label: (t) => `Animated ${shortThemeName(t)} Name Color` },
+const MILESTONES: { tier: number; kind: SeasonRewardKind; label: (themeName: string) => string; emoji?: string }[] = [
+  { tier: 3, kind: "banner", label: (t) => `${shortThemeName(t)} Banner`, emoji: "🚩" },
+  { tier: 5, kind: "pet", label: (t) => `${shortThemeName(t)} Fox`, emoji: "🦊" },
+  { tier: 10, kind: "animatedNameColor", label: (t) => `Animated ${shortThemeName(t)} Name Color`, emoji: "🌈" },
   { tier: 15, kind: "coins", label: () => "250 Coins" },
-  { tier: 20, kind: "clothing", label: (t) => `${shortThemeName(t)} Astronaut Outfit` },
-  { tier: 30, kind: "border", label: (t) => `${shortThemeName(t)} Border` },
-  { tier: 40, kind: "pet", label: (t) => `Cosmic ${shortThemeName(t)} Dragon Pet` },
-  { tier: 50, kind: "avatarEffect", label: (t) => `Animated ${shortThemeName(t)} Avatar Effect` },
-  { tier: 60, kind: "petSkin", label: (t) => `${shortThemeName(t)} Pet Skin` },
-  { tier: 70, kind: "hairColor", label: (t) => `${shortThemeName(t)} Hair Color` },
-  { tier: 75, kind: "accessory", label: () => "Legendary Helmet" },
-  { tier: 80, kind: "victoryAnimation", label: (t) => `${shortThemeName(t)} Victory Animation` },
-  { tier: 85, kind: "pet", label: (t) => `${shortThemeName(t)} Phoenix Companion` },
-  { tier: 90, kind: "animatedBorder", label: (t) => `Animated ${shortThemeName(t)} Border` },
+  { tier: 20, kind: "clothing", label: (t) => `${shortThemeName(t)} Astronaut Outfit`, emoji: "👨‍🚀" },
+  { tier: 30, kind: "border", label: (t) => `${shortThemeName(t)} Border`, emoji: "🖼️" },
+  { tier: 40, kind: "pet", label: (t) => `Cosmic ${shortThemeName(t)} Dragon Pet`, emoji: "🐉" },
+  { tier: 50, kind: "avatarEffect", label: (t) => `Animated ${shortThemeName(t)} Avatar Effect`, emoji: "💫" },
+  { tier: 60, kind: "petSkin", label: (t) => `${shortThemeName(t)} Pet Skin`, emoji: "🎨" },
+  { tier: 70, kind: "hairColor", label: (t) => `${shortThemeName(t)} Hair Color`, emoji: "💇" },
+  { tier: 75, kind: "accessory", label: () => "Legendary Helmet", emoji: "🪖" },
+  { tier: 80, kind: "victoryAnimation", label: (t) => `${shortThemeName(t)} Victory Animation`, emoji: "🏆" },
+  { tier: 85, kind: "pet", label: (t) => `${shortThemeName(t)} Phoenix Companion`, emoji: "🔥" },
+  { tier: 90, kind: "animatedBorder", label: (t) => `Animated ${shortThemeName(t)} Border`, emoji: "🖼️" },
 ];
 
 function coinAmountForTier(tier: number): number {
@@ -83,7 +85,13 @@ export function buildSeasonRewardTrack(themeId: string, themeName: string): Seas
       if (milestone.kind === "coins") {
         track.push({ tier, kind: "coins", id: `${themeId}-t${tier}-coins`, label: milestone.label(themeName), amount: 250 });
       } else {
-        track.push({ tier, kind: milestone.kind, id: `${themeId}-t${tier}-${milestone.kind}`, label: milestone.label(themeName) });
+        track.push({
+          tier,
+          kind: milestone.kind,
+          id: `${themeId}-t${tier}-${milestone.kind}`,
+          label: milestone.label(themeName),
+          emoji: milestone.emoji,
+        });
       }
       continue;
     }
@@ -110,9 +118,9 @@ export function buildSeasonRewardTrack(themeId: string, themeName: string): Seas
 export function bonusFinaleRewards(themeId: string, themeName: string): SeasonReward[] {
   const t = shortThemeName(themeName);
   return [
-    { tier: SEASON_TIER_COUNT, kind: "animatedBorder", id: `${themeId}-t100-border`, label: `Legendary Animated ${t} Border` },
-    { tier: SEASON_TIER_COUNT, kind: "title", id: `${themeId}-t100-title`, label: `${t} Champion` },
-    { tier: SEASON_TIER_COUNT, kind: "pet", id: `${themeId}-t100-pet`, label: `${t} Champion's Companion` },
+    { tier: SEASON_TIER_COUNT, kind: "animatedBorder", id: `${themeId}-t100-border`, label: `Legendary Animated ${t} Border`, emoji: "🖼️" },
+    { tier: SEASON_TIER_COUNT, kind: "title", id: `${themeId}-t100-title`, label: `${t} Champion`, emoji: "🏅" },
+    { tier: SEASON_TIER_COUNT, kind: "pet", id: `${themeId}-t100-pet`, label: `${t} Champion's Companion`, emoji: "🦁" },
   ];
 }
 
@@ -126,4 +134,19 @@ export function xpIntoCurrentTier(xp: number): number {
 
 export function xpRequiredForNextTier(): number {
   return SEASON_XP_PER_TIER;
+}
+
+/** Tier suffix -> emoji for the fixed set of exclusive pet milestones, so an equipped Season Pass pet shows its real icon (a fox, not a generic paw) wherever it's displayed. */
+const SEASON_PET_TIER_EMOJI: Record<string, string> = {
+  "t5-pet": "🦊",
+  "t40-pet": "🐉",
+  "t85-pet": "🔥",
+  "t100-pet": "🦁",
+};
+
+export function emojiForSeasonPetId(petId: string): string | undefined {
+  for (const [suffix, emoji] of Object.entries(SEASON_PET_TIER_EMOJI)) {
+    if (petId.endsWith(suffix)) return emoji;
+  }
+  return undefined;
 }

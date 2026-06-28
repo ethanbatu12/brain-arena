@@ -96,7 +96,7 @@ export function SeasonPass({ profile, onBack, onViewHistory, onClaimReward, onSk
               className={`season-card${isClaimed ? " season-card--claimed" : ""}${isLocked ? " season-card--locked" : ""}`}
             >
               <span className="season-card__tier">Tier {reward.tier}</span>
-              <span className="season-card__label">{isLocked ? "🔒" : rewardEmoji(reward.kind)}</span>
+              <span className="season-card__label">{isLocked ? "🔒" : reward.emoji ?? rewardEmoji(reward.kind)}</span>
               <span className="season-card__name">{reward.label}</span>
               {isClaimed ? (
                 <span className="season-card__status">Claimed</span>

@@ -16,6 +16,7 @@ import {
 import type { RenamePetResult } from "../player/PlayerContext";
 import { AvatarSvg } from "./AvatarSvg";
 import { PetBadge } from "./PetBadge";
+import { emojiForSeasonPetId } from "../season/rewards";
 
 const Pet3D = lazy(() => import("./Pet3D").then((m) => ({ default: m.Pet3D })));
 
@@ -250,7 +251,7 @@ export function PetShop({
                 {exclusivePetIds.map((petId) => (
                   <div key={petId} className={`pet-card${profile.equippedPet === petId ? " pet-card--selected" : ""}`} style={{ borderColor: "#fbbf24" }}>
                     <button className="pet-card__equip-area" onClick={() => onEquipPet(profile.equippedPet === petId ? null : petId)}>
-                      <span className="pet-card__emoji">✨</span>
+                      <span className="pet-card__emoji">{emojiForSeasonPetId(petId) ?? "✨"}</span>
                       <span className="pet-card__name">{petDisplayName(profile.petNames, petId)}</span>
                       <span className="pet-card__price">{profile.equippedPet === petId ? "Equipped" : "Tap to equip"}</span>
                     </button>
