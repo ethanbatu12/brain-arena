@@ -144,7 +144,7 @@ export function PetShop({
               <AvatarSvg config={profile.avatarConfig} size={120} />
               <Suspense fallback={<div style={{ height: 220, flex: 1 }} />}>
                 <div style={{ flex: 1 }}>
-                  <Pet3D rarity={selected.rarity} />
+                  <Pet3D species={selected.species} />
                 </div>
               </Suspense>
             </div>
