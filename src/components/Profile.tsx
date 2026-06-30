@@ -14,7 +14,7 @@ import { AvatarSvg } from "./AvatarSvg";
 import { XpBar } from "./XpBar";
 import { usePlayerProfile } from "../player/PlayerContext";
 import { unlockedTitles } from "../xp/levels";
-import { BORDERS, getBorderDef, unlockedBorders } from "../player/borders";
+import { BORDERS, equippableBorders, getBorderDef, unlockedBorders } from "../player/borders";
 import { isBadgeActive } from "../tournament/claim";
 import { PetBadge } from "./PetBadge";
 import { petDisplayName } from "../pets/naming";
@@ -44,8 +44,9 @@ export function Profile({ profile, onBack, onEditAvatar, onEditPet, onViewLevels
   const { setSelectedTitle, setProfileBorder } = usePlayerProfile();
   const unlockedIds = new Set(profile.achievements.map((a) => a.id));
   const titles = unlockedTitles(profile.level);
-  const borders = unlockedBorders(profile.level);
-  const border = getBorderDef(profile.profileBorder);
+  const borders = equippableBorders(profile.level, profile.exclusiveCosmetics);
+  const levelUnlockedBorders = unlockedBorders(profile.level);
+  const border = getBorderDef(profile.profileBorder, profile.exclusiveCosmetics);
 
   return (
     <div className="app__shell">
@@ -141,8 +142,8 @@ export function Profile({ profile, onBack, onEditAvatar, onEditPet, onViewLevels
             </div>
           </>
         )}
-        {borders.length < BORDERS.length && (() => {
-          const next = BORDERS.find((b) => !borders.includes(b));
+        {levelUnlockedBorders.length < BORDERS.length && (() => {
+          const next = BORDERS.find((b) => !levelUnlockedBorders.includes(b));
           return next ? (
             <p className="profile__locked-hint">
               🔒 Next border: <span style={{ color: next.colors[0], fontWeight: 700 }}>{next.label}</span> — Requires

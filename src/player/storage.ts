@@ -430,7 +430,7 @@ export function normalizeProfile(profile: Partial<PlayerProfile>): PlayerProfile
     xpEarnedThisWeek: profile.xpEarnedThisWeek ?? { weekStart: "", amount: 0 },
     level: currentLevel,
     selectedTitle: profile.selectedTitle ?? titleForLevel(currentLevel),
-    profileBorder: sanitizeBorder(profile.profileBorder, currentLevel),
+    profileBorder: sanitizeBorder(profile.profileBorder, currentLevel, profile.exclusiveCosmetics ?? []),
     tripleChallenges: normalizeTripleChallenges(profile.tripleChallenges),
     challengeStreak: normalizeChallengeStreak(profile.challengeStreak),
     reactionDotsHit: profile.reactionDotsHit ?? 0,

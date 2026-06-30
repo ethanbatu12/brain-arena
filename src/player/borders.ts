@@ -1,7 +1,10 @@
+import { seasonBorderFromRewardId } from "../season/rewards";
+
 export type BorderId = "none" | "bronze" | "silver" | "gold" | "diamond" | "master" | "legend";
 
 export interface BorderDef {
-  id: BorderId;
+  /** A fixed BorderId for level-unlocked borders, or an arbitrary claimed Season Pass reward id for season-exclusive ones. */
+  id: string;
   label: string;
   unlockLevel: number;
   /** CSS color(s) used to render the ring; a single color or a gradient pair. */
@@ -26,14 +29,39 @@ export function unlockedBorders(playerLevel: number): BorderDef[] {
   return BORDERS.filter((b) => isBorderUnlocked(b, playerLevel));
 }
 
-export function getBorderDef(id: string): BorderDef {
-  return BORDERS.find((b) => b.id === id) ?? BORDERS[0];
+/**
+ * Season Pass-claimed border/animated-border/name-color rewards, turned
+ * into the same BorderDef shape so they show up in the same equip picker
+ * as level-unlocked borders — there's no separate "name color" slot since
+ * the leaderboard name color already comes from the equipped border.
+ */
+export function ownedSeasonBorders(exclusiveCosmeticIds: string[]): BorderDef[] {
+  return exclusiveCosmeticIds
+    .map((id) => seasonBorderFromRewardId(id))
+    .filter((b): b is NonNullable<typeof b> => !!b)
+    .map((b) => ({ id: b.id, label: b.label, unlockLevel: 0, colors: b.colors }));
 }
 
-/** Validates a stored border id against the unlock catalog, falling back to "none" if unrecognized or no longer unlocked. */
-export function sanitizeBorder(id: unknown, playerLevel: number): BorderId {
+/** Every border the player can currently equip: level-unlocked plus any claimed Season Pass borders. */
+export function equippableBorders(playerLevel: number, exclusiveCosmeticIds: string[]): BorderDef[] {
+  return [...unlockedBorders(playerLevel), ...ownedSeasonBorders(exclusiveCosmeticIds)];
+}
+
+export function getBorderDef(id: string, exclusiveCosmeticIds: string[] = []): BorderDef {
+  const fixed = BORDERS.find((b) => b.id === id);
+  if (fixed) return fixed;
+  if (exclusiveCosmeticIds.includes(id)) {
+    const season = seasonBorderFromRewardId(id);
+    if (season) return { id: season.id, label: season.label, unlockLevel: 0, colors: season.colors };
+  }
+  return BORDERS[0];
+}
+
+/** Validates a stored border id against the unlock catalog and any claimed Season Pass borders, falling back to "none" otherwise. */
+export function sanitizeBorder(id: unknown, playerLevel: number, exclusiveCosmeticIds: string[] = []): string {
   if (typeof id !== "string") return "none";
-  const def = BORDERS.find((b) => b.id === id);
-  if (!def) return "none";
-  return isBorderUnlocked(def, playerLevel) ? def.id : "none";
+  const fixed = BORDERS.find((b) => b.id === id);
+  if (fixed) return isBorderUnlocked(fixed, playerLevel) ? fixed.id : "none";
+  if (exclusiveCosmeticIds.includes(id) && seasonBorderFromRewardId(id)) return id;
+  return "none";
 }

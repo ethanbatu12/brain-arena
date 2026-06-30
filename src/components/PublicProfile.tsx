@@ -14,7 +14,7 @@ interface PublicProfileProps {
 
 /** Read-only view of another player's stats and level — reached by clicking their row on the leaderboard. */
 export function PublicProfile({ profile, onBack }: PublicProfileProps) {
-  const border = getBorderDef(profile.profileBorder);
+  const border = getBorderDef(profile.profileBorder, profile.exclusiveCosmetics);
   const title = profile.selectedTitle || titleForLevel(profile.level);
 
   return (

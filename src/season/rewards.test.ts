@@ -5,6 +5,7 @@ import {
   bonusFinaleRewards,
   buildSeasonRewardTrack,
   emojiForSeasonPetId,
+  seasonBorderFromRewardId,
   seasonLevelForXp,
   xpIntoCurrentTier,
 } from "./rewards";
@@ -124,5 +125,34 @@ describe("emojiForSeasonPetId", () => {
 
   it("returns undefined for a non-season-pet id", () => {
     expect(emojiForSeasonPetId("golden-retriever")).toBeUndefined();
+  });
+});
+
+describe("seasonBorderFromRewardId", () => {
+  it("resolves the animated name color reward (tier 10) to an equippable border", () => {
+    const b = seasonBorderFromRewardId("neon-t10-animatedNameColor")!;
+    expect(b).toBeDefined();
+    expect(b.id).toBe("neon-t10-animatedNameColor");
+    expect(b.label).toBe("Animated Neon Name Color");
+  });
+
+  it("resolves the tier-30 border and tier-90 animated border rewards", () => {
+    expect(seasonBorderFromRewardId("space-t30-border")).toBeDefined();
+    expect(seasonBorderFromRewardId("space-t90-animatedBorder")).toBeDefined();
+  });
+
+  it("resolves the tier-100 finale border", () => {
+    expect(seasonBorderFromRewardId("winter-t100-border")).toBeDefined();
+  });
+
+  it("colors the border from the reward's actual season theme", () => {
+    const neon = seasonBorderFromRewardId("neon-t30-border")!;
+    const space = seasonBorderFromRewardId("space-t30-border")!;
+    expect(neon.colors).not.toEqual(space.colors);
+  });
+
+  it("returns undefined for a non-border reward id", () => {
+    expect(seasonBorderFromRewardId("neon-t5-pet")).toBeUndefined();
+    expect(seasonBorderFromRewardId("neon-t3-banner")).toBeUndefined();
   });
 });

@@ -1,3 +1,5 @@
+import { getTheme } from "./themes";
+
 export const SEASON_TIER_COUNT = 100;
 /** Every tier costs the same Season XP, so progression feels smooth and predictable. */
 export const SEASON_XP_PER_TIER = 150;
@@ -149,4 +151,33 @@ export function emojiForSeasonPetId(petId: string): string | undefined {
     if (petId.endsWith(suffix)) return emoji;
   }
   return undefined;
+}
+
+/**
+ * Reward suffixes that grant a border-colored cosmetic — the "border",
+ * "animatedBorder", and "animatedNameColor" reward kinds all end up as
+ * equippable profile borders, since the player's name color on the
+ * leaderboard already comes from their equipped border color. There's no
+ * separate "name color" slot to equip — it reuses the existing border
+ * picker instead of adding a whole new equip surface for the same thing.
+ */
+const SEASON_BORDER_SUFFIXES = ["t10-animatedNameColor", "t30-border", "t90-animatedBorder", "t100-border"];
+
+/**
+ * Resolves a claimed Season Pass reward id (e.g. "neon-t10-animatedNameColor")
+ * to an equippable border — colored from that season's actual theme, with
+ * the exact label the reward was claimed under. Returns undefined for any
+ * reward id that isn't a border-type reward.
+ */
+export function seasonBorderFromRewardId(
+  rewardId: string,
+): { id: string; label: string; colors: [string, string] } | undefined {
+  const suffix = SEASON_BORDER_SUFFIXES.find((s) => rewardId.endsWith(s));
+  if (!suffix) return undefined;
+  const themeId = rewardId.slice(0, rewardId.length - suffix.length - 1);
+  const theme = getTheme(themeId);
+  if (!theme) return undefined;
+  const track = [...buildSeasonRewardTrack(themeId, theme.name), ...bonusFinaleRewards(themeId, theme.name)];
+  const reward = track.find((r) => r.id === rewardId);
+  return { id: rewardId, label: reward?.label ?? `${shortThemeName(theme.name)} Border`, colors: theme.colors };
 }

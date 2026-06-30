@@ -472,7 +472,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         if (!currentUsername) return prev;
         const current = prev[currentUsername];
         if (!current) return prev;
-        const sanitized = sanitizeBorder(borderId, current.level);
+        const sanitized = sanitizeBorder(borderId, current.level, current.exclusiveCosmetics);
         if (sanitized === "none" && borderId !== "none") return prev;
         const updated = { ...current, profileBorder: sanitized };
         void saveProfile(updated);

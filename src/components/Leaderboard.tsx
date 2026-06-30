@@ -94,7 +94,7 @@ function profileToRow(p: PlayerProfile, key: SortKey, currentUsername: string): 
       default:               value = 0; label = "0";
     }
   }
-  const border = getBorderDef(p.profileBorder);
+  const border = getBorderDef(p.profileBorder, p.exclusiveCosmetics);
   return {
     profile: p,
     username: p.username,

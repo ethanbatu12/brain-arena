@@ -1,5 +1,4 @@
 import type { AvatarConfig } from "../avatar/types";
-import type { BorderId } from "./borders";
 import type { ChallengeStreakData, TripleChallengeState } from "./tripleChallenges";
 import type { TournamentStats, WeeklyBadge } from "../tournament/types";
 import type { PetNameRecord } from "../pets/naming";
@@ -158,8 +157,8 @@ export interface PlayerProfile {
   xpEarnedThisWeek: { weekStart: string; amount: number };
   /** The title currently displayed on the profile (must be one the player has unlocked). */
   selectedTitle: string;
-  /** The profile border currently displayed (must be one the player has unlocked). */
-  profileBorder: BorderId;
+  /** The profile border currently displayed — a fixed BorderId for level-unlocked borders, or a claimed Season Pass reward id. */
+  profileBorder: string;
   /** Today's set of 3 daily challenges and progress toward each. */
   tripleChallenges: TripleChallengeState;
   /** Streak of consecutive days completing all 3 daily challenges. */
