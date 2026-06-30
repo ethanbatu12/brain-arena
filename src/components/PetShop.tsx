@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from "react";
 import type { PlayerProfile } from "../player/types";
 import { PET_CATALOG, getPetDef } from "../pets/catalog";
-import { RARITY_COLORS, RARITY_LABELS, RARITY_ORDER, PET_EMOJI } from "../pets/rarity";
+import { RARITY_COLORS, RARITY_LABELS, RARITY_ORDER } from "../pets/rarity";
 import { canPurchase, collectionStats } from "../pets/collection";
 import { MAX_PET_ACCESSORY_SLOTS, PET_ACCESSORIES, unlockedPetAccessories } from "../pets/accessories";
 import {
@@ -16,7 +16,7 @@ import {
 import type { RenamePetResult } from "../player/PlayerContext";
 import { AvatarSvg } from "./AvatarSvg";
 import { PetBadge } from "./PetBadge";
-import { emojiForSeasonPetId } from "../season/rewards";
+import { PetSvg } from "./PetSvg";
 
 const Pet3D = lazy(() => import("./Pet3D").then((m) => ({ default: m.Pet3D })));
 
@@ -202,7 +202,7 @@ export function PetShop({
                         setMessage(null);
                       }}
                     >
-                      <span className="pet-card__emoji">{PET_EMOJI[pet.species]}</span>
+                      <PetSvg species={pet.species} size={48} className="pet-card__emoji" />
                       <span className="pet-card__name">{isOwned ? petDisplayName(profile.petNames, pet.id) : pet.name}</span>
                       <span className="pet-card__price">{isOwned ? "Owned" : `🪙 ${pet.price}`}</span>
                     </button>
@@ -234,7 +234,7 @@ export function PetShop({
             {PET_CATALOG.filter((p) => profile.ownedPets.includes(p.id)).map((pet) => (
               <div key={pet.id} className={`pet-card${profile.equippedPet === pet.id ? " pet-card--selected" : ""}`} style={{ borderColor: RARITY_COLORS[pet.rarity][0] }}>
                 <button className="pet-card__equip-area" onClick={() => onEquipPet(profile.equippedPet === pet.id ? null : pet.id)}>
-                  <span className="pet-card__emoji">{PET_EMOJI[pet.species]}</span>
+                  <PetSvg species={pet.species} size={48} className="pet-card__emoji" />
                   <span className="pet-card__name">{petDisplayName(profile.petNames, pet.id)}</span>
                   <span className="pet-card__price">{profile.equippedPet === pet.id ? "Equipped" : "Tap to equip"}</span>
                 </button>
@@ -278,7 +278,7 @@ export function PetShop({
                     style={{ borderColor: "#fbbf24" }}
                     onClick={() => setSelectedExclusiveId(petId)}
                   >
-                    <span className="pet-card__emoji">{emojiForSeasonPetId(petId) ?? "✨"}</span>
+                    <PetSvg species={petId} size={48} className="pet-card__emoji" />
                     <span className="pet-card__name">{petDisplayName(profile.petNames, petId)}</span>
                     <span className="pet-card__price">{profile.equippedPet === petId ? "Equipped" : "Tap to view"}</span>
                   </button>
