@@ -151,6 +151,7 @@ function buildArithmeticAdd(band: number, rng: Rng): Pattern {
     answer: String(answer),
     distractors: numericDistractors(answer, step, rng),
     kind: "arithmetic-add",
+    hint: "Arithmetic",
     points: pointsForBand(band),
   };
 }
@@ -170,6 +171,7 @@ function buildArithmeticSub(band: number, rng: Rng): Pattern {
     answer: String(answer),
     distractors: numericDistractors(answer, step, rng),
     kind: "arithmetic-sub",
+    hint: "Arithmetic",
     points: pointsForBand(band),
   };
 }
@@ -190,7 +192,8 @@ function buildGeometric(band: number, rng: Rng): Pattern {
     answer: String(answer),
     distractors: numericDistractors(answer, nums[gap > 0 ? gap - 1 : 1] * (ratio - 1), rng),
     kind: "geometric",
-    points: pointsForBand(band) + 5, // slightly richer reward
+    hint: "Geometric ×",
+    points: pointsForBand(band) + 5,
   };
 }
 
@@ -207,6 +210,7 @@ function buildGeometricDiv(band: number, rng: Rng): Pattern {
     answer: String(answer),
     distractors: numericDistractors(answer, Math.round(nums[0] / ratio), rng),
     kind: "geometric-div",
+    hint: "Geometric ÷",
     points: pointsForBand(band) + 5,
   };
 }
@@ -224,8 +228,9 @@ function buildSquares(band: number, rng: Rng): Pattern {
     terms: nums.map((v, i) => (i === gap ? null : v)) as (number | null)[],
     gapIndex: gap,
     answer: String(answer),
-    distractors: numericDistractors(answer, 2 * gapN - 1, rng), // step between consecutive squares
+    distractors: numericDistractors(answer, 2 * gapN - 1, rng),
     kind: "squares",
+    hint: "Perfect squares",
     points: pointsForBand(band) + 10,
   };
 }
@@ -244,6 +249,7 @@ function buildCubes(band: number, rng: Rng): Pattern {
     answer: String(answer),
     distractors: numericDistractors(answer, 3 * gapN ** 2, rng),
     kind: "cubes",
+    hint: "Perfect cubes",
     points: pointsForBand(band) + 15,
   };
 }
@@ -266,6 +272,7 @@ function buildFibonacci(band: number, rng: Rng): Pattern {
     answer: String(answer),
     distractors: numericDistractors(answer, step, rng),
     kind: "fibonacci",
+    hint: "Sum of two",
     points: pointsForBand(band) + 10,
   };
 }
@@ -295,6 +302,7 @@ function buildAlternating(band: number, rng: Rng): Pattern {
     answer: String(answer),
     distractors: numericDistractors(answer, step, rng),
     kind: "alternating",
+    hint: "Two series",
     points: pointsForBand(band) + 10,
   };
 }
@@ -312,6 +320,7 @@ function buildPrimes(band: number, rng: Rng): Pattern {
     answer: String(answer),
     distractors: numericDistractors(answer, 2, rng),
     kind: "primes",
+    hint: "Prime numbers",
     points: pointsForBand(band) + 10,
   };
 }
@@ -333,6 +342,7 @@ function buildTriangular(band: number, rng: Rng): Pattern {
     answer: String(answer),
     distractors: numericDistractors(answer, step, rng),
     kind: "triangular",
+    hint: "Triangular numbers",
     points: pointsForBand(band) + 10,
   };
 }
@@ -351,6 +361,7 @@ function buildAlphabetAdd(band: number, rng: Rng): Pattern {
     answer: String.fromCharCode(answer),
     distractors: alphaDistractors(answer, step, rng),
     kind: "alphabet-add",
+    hint: "Alphabet",
     points: pointsForBand(band),
   };
 }
@@ -375,6 +386,7 @@ function buildAlphabetSkip(band: number, rng: Rng): Pattern {
       answer: String.fromCharCode(answer),
       distractors: alphaDistractors(answer, step, rng),
       kind: "alphabet-skip",
+      hint: "Alphabet skip",
       points: pointsForBand(band),
     };
   }
@@ -386,6 +398,7 @@ function buildAlphabetSkip(band: number, rng: Rng): Pattern {
     answer: String.fromCharCode(answer),
     distractors: alphaDistractors(answer, step, rng),
     kind: "alphabet-skip",
+    hint: "Alphabet skip",
     points: pointsForBand(band),
   };
 }
@@ -408,6 +421,7 @@ function buildPolynomial(band: number, rng: Rng): Pattern {
     answer: String(answer),
     distractors: numericDistractors(answer, step, rng),
     kind: "polynomial",
+    hint: "Polynomial",
     points: pointsForBand(band) + 15,
   };
 }
@@ -432,6 +446,7 @@ function buildNegativeArithmetic(band: number, rng: Rng): Pattern {
     answer: String(answer),
     distractors: numericDistractors(answer, step, rng),
     kind: "negative-arithmetic",
+    hint: "Negative arithmetic",
     points: pointsForBand(band) + 10,
   };
 }
@@ -460,6 +475,7 @@ function buildDoubleStep(band: number, rng: Rng): Pattern {
     answer: String(answer),
     distractors: numericDistractors(answer, localStep, rng),
     kind: "double-step",
+    hint: "Growing gaps",
     points: pointsForBand(band) + 15,
   };
 }
@@ -492,6 +508,7 @@ function buildMixedMultiply(band: number, rng: Rng): Pattern {
       answer: String(safe[gap]),
       distractors: numericDistractors(safe[gap], safe[gap > 0 ? gap - 1 : 1] * (k - 1), rng),
       kind: "mixed-multiply",
+      hint: "Multiply & add",
       points: pointsForBand(band) + 20,
     };
   }
@@ -504,6 +521,161 @@ function buildMixedMultiply(band: number, rng: Rng): Pattern {
     answer: String(answer),
     distractors: numericDistractors(answer, Math.max(1, step), rng),
     kind: "mixed-multiply",
+    hint: "Multiply & add",
+    points: pointsForBand(band) + 20,
+  };
+}
+
+// ── new pattern builders ──────────────────────────────────────────────────────
+
+/** Descending alphabet: Z, Y, X, W, V, ? */
+function buildAlphabetReverse(band: number, rng: Rng): Pattern {
+  const maxStep  = band <= 4 ? 1 : 2;
+  const step     = randInt(1, maxStep, rng);
+  const length   = 5;
+  // Start high enough that all terms stay ≥ A (65)
+  const minStart = 65 + step * (length - 1);
+  const start    = randInt(minStart, 90, rng);
+  const codes    = Array.from({ length }, (_, i) => start - i * step);
+  const gap      = chooseGap(length, rng);
+  const answer   = codes[gap];
+  return {
+    terms: codes.map((c, i) => (i === gap ? null : String.fromCharCode(c))) as (string | null)[],
+    gapIndex: gap,
+    answer: String.fromCharCode(answer),
+    distractors: alphaDistractors(answer, step, rng),
+    kind: "alphabet-reverse",
+    hint: "Alphabet reverse",
+    points: pointsForBand(band),
+  };
+}
+
+/** Factorial sequence: n! for consecutive n. */
+function buildFactorial(_band: number, rng: Rng): Pattern {
+  // n! values: 1,2,6,24,120,720,5040
+  const factorials = [1, 2, 6, 24, 120, 720, 5040];
+  // Start from index n0 (0=1!, 1=2!, ...)
+  const n0     = randInt(0, 2, rng); // keep terms manageable
+  const length = 5;
+  const nums   = factorials.slice(n0, n0 + length);
+  const gap    = chooseGap(length, rng);
+  const answer = nums[gap];
+  // Distractors: adjacent factorials + one "off by small number"
+  const prev   = gap > 0 ? nums[gap - 1] : 1;
+  const next   = gap < length - 1 ? nums[gap + 1] : answer * (n0 + gap + 2);
+  const nearby = answer + randInt(1, 3, rng) * (gap % 2 === 0 ? 1 : -1);
+  const raw    = [prev, next, nearby].filter(v => v > 0 && v !== answer);
+  // Pad if needed
+  while (raw.length < 3) raw.push(answer + raw.length + 1);
+  return {
+    terms: nums.map((v, i) => (i === gap ? null : v)) as (number | null)[],
+    gapIndex: gap,
+    answer: String(answer),
+    distractors: raw.slice(0, 3).map(String),
+    kind: "factorial",
+    hint: "Factorials",
+    points: pointsForBand(_band) + 20,
+  };
+}
+
+/** Tribonacci: each term = sum of the 3 preceding. */
+function buildTribonacci(band: number, rng: Rng): Pattern {
+  const maxSeed = band <= 8 ? 3 : 5;
+  const a = randInt(0, maxSeed, rng);
+  const b = randInt(1, maxSeed, rng);
+  const c = randInt(1, maxSeed, rng);
+  const length = 7;
+  const nums: number[] = [a, b, c];
+  while (nums.length < length) {
+    nums.push(nums[nums.length - 1] + nums[nums.length - 2] + nums[nums.length - 3]);
+  }
+  const gap    = chooseGap(length, rng);
+  const answer = nums[gap];
+  const step   = gap > 0 ? nums[gap] - nums[gap - 1] : nums[2] - nums[1];
+  return {
+    terms: nums.map((v, i) => (i === gap ? null : v)) as (number | null)[],
+    gapIndex: gap,
+    answer: String(answer),
+    distractors: numericDistractors(answer, Math.max(1, step), rng),
+    kind: "tribonacci",
+    hint: "Sum of three",
+    points: pointsForBand(band) + 15,
+  };
+}
+
+/** Pentagonal numbers: P(n) = n(3n−1)/2 → 1, 5, 12, 22, 35, 51, 70 */
+function buildPentagonal(band: number, rng: Rng): Pattern {
+  const maxN0  = band <= 7 ? 4 : 7;
+  const n0     = randInt(1, maxN0, rng);
+  const length = 5;
+  const nums   = Array.from({ length }, (_, i) => {
+    const n = n0 + i;
+    return (n * (3 * n - 1)) / 2;
+  });
+  const gap    = chooseGap(length, rng);
+  const answer = nums[gap];
+  const step   = gap > 0 ? nums[gap] - nums[gap - 1] : nums[1] - nums[0];
+  return {
+    terms: nums.map((v, i) => (i === gap ? null : v)) as (number | null)[],
+    gapIndex: gap,
+    answer: String(answer),
+    distractors: numericDistractors(answer, step, rng),
+    kind: "pentagonal",
+    hint: "Pentagonal numbers",
+    points: pointsForBand(band) + 15,
+  };
+}
+
+/** Hexagonal numbers: H(n) = n(2n−1) → 1, 6, 15, 28, 45, 66 */
+function buildHexagonal(band: number, rng: Rng): Pattern {
+  const maxN0  = band <= 8 ? 3 : 5;
+  const n0     = randInt(1, maxN0, rng);
+  const length = 5;
+  const nums   = Array.from({ length }, (_, i) => {
+    const n = n0 + i;
+    return n * (2 * n - 1);
+  });
+  const gap    = chooseGap(length, rng);
+  const answer = nums[gap];
+  const step   = gap > 0 ? nums[gap] - nums[gap - 1] : nums[1] - nums[0];
+  return {
+    terms: nums.map((v, i) => (i === gap ? null : v)) as (number | null)[],
+    gapIndex: gap,
+    answer: String(answer),
+    distractors: numericDistractors(answer, step, rng),
+    kind: "hexagonal",
+    hint: "Hexagonal numbers",
+    points: pointsForBand(band) + 15,
+  };
+}
+
+/**
+ * Alternate-ops: alternating ×k and +c each step.
+ * e.g. k=2, c=3 from 2: 2, 4, 7, 14, 17, 34, 37
+ */
+function buildAlternateOps(band: number, rng: Rng): Pattern {
+  const k      = randInt(2, band <= 9 ? 2 : 3, rng);
+  const maxC   = band <= 9 ? 5 : 10;
+  const c      = randInt(1, maxC, rng);
+  const length = 7;
+  const maxStart = Math.floor(500 / Math.pow(k, Math.ceil(length / 2)));
+  const start  = randInt(1, Math.max(1, maxStart), rng);
+  const nums: number[] = [start];
+  for (let i = 1; i < length; i++) {
+    if (i % 2 === 1) nums.push(nums[i - 1] * k);
+    else             nums.push(nums[i - 1] + c);
+  }
+  const gap    = chooseGap(length, rng);
+  const answer = nums[gap];
+  // Step for distractor: approximate local change
+  const step   = gap > 0 ? Math.abs(nums[gap] - nums[gap - 1]) : c;
+  return {
+    terms: nums.map((v, i) => (i === gap ? null : v)) as (number | null)[],
+    gapIndex: gap,
+    answer: String(answer),
+    distractors: numericDistractors(answer, Math.max(1, step), rng),
+    kind: "alternate-ops",
+    hint: "× then +",
     points: pointsForBand(band) + 20,
   };
 }
@@ -532,36 +704,32 @@ export function kindsForBand(band: number): PatternKind[] {
     ];
   }
   if (band === 2) {
-    // Still arithmetic; no letters or special types
     return [
       "arithmetic-add", "arithmetic-add",
       "arithmetic-sub", "arithmetic-sub",
-      "arithmetic-add",
+      "alphabet-reverse",
     ];
   }
   if (band <= 4) {
-    // ~85 % arithmetic, alternating introduced, rare letter (1 in 7)
     return [
       "arithmetic-add", "arithmetic-add",
       "arithmetic-sub", "arithmetic-sub",
       "alternating",
-      "arithmetic-add",
-      "alphabet-add", // ← only letter slot
+      "alphabet-add",
+      "alphabet-reverse",
     ];
   }
   if (band <= 6) {
-    // Geometric + Fibonacci + negative arithmetic; rare letter (1 in 9)
     return [
       "arithmetic-add", "arithmetic-sub",
       "geometric", "fibonacci",
       "triangular", "alternating",
       "negative-arithmetic",
-      "arithmetic-sub",
-      "alphabet-skip", // ← only letter slot
+      "pentagonal",
+      "alphabet-skip",
     ];
   }
   if (band <= 8) {
-    // No letters; harder types including double-step, squares, cubes
     return [
       "geometric", "geometric-div",
       "fibonacci", "squares",
@@ -569,15 +737,21 @@ export function kindsForBand(band: number): PatternKind[] {
       "polynomial", "alternating",
       "negative-arithmetic",
       "double-step",
+      "factorial",
+      "tribonacci",
+      "hexagonal",
     ];
   }
-  // Band 9–10: hardest pure-number types
+  // Band 9–10: all hard types including new ones
   return [
     "fibonacci", "squares", "cubes",
     "primes", "polynomial", "geometric",
     "triangular", "alternating",
     "geometric-div", "double-step",
     "mixed-multiply", "negative-arithmetic",
+    "factorial", "tribonacci",
+    "pentagonal", "hexagonal",
+    "alternate-ops",
   ];
 }
 
@@ -600,9 +774,15 @@ export function makePattern(levelF: number, rng: Rng): Pattern {
     case "triangular":          return buildTriangular(band, rng);
     case "alphabet-add":        return buildAlphabetAdd(band, rng);
     case "alphabet-skip":       return buildAlphabetSkip(band, rng);
+    case "alphabet-reverse":    return buildAlphabetReverse(band, rng);
     case "polynomial":          return buildPolynomial(band, rng);
     case "negative-arithmetic": return buildNegativeArithmetic(band, rng);
     case "double-step":         return buildDoubleStep(band, rng);
     case "mixed-multiply":      return buildMixedMultiply(band, rng);
+    case "factorial":           return buildFactorial(band, rng);
+    case "tribonacci":          return buildTribonacci(band, rng);
+    case "pentagonal":          return buildPentagonal(band, rng);
+    case "hexagonal":           return buildHexagonal(band, rng);
+    case "alternate-ops":       return buildAlternateOps(band, rng);
   }
 }

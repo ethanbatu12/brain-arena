@@ -178,6 +178,7 @@ function PatternCard({
 
   return (
     <div className={`pattern__card ${flashClass}`} key={flashId}>
+      <p className="pattern__hint">{pattern.hint}</p>
       <div className="pattern__sequence">
         {pattern.terms.map((term, i) => (
           <span

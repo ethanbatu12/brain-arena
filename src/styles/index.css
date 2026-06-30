@@ -1727,6 +1727,16 @@ button {
   transform: translateY(0);
 }
 
+.pattern__hint {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin: 0 0 0.4rem 0;
+  opacity: 0.7;
+}
+
 .pattern__points {
   font-size: 12px;
   font-weight: 700;
