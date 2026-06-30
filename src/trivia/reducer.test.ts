@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { mulberry32 } from "../game/rng";
-import { BONUS_POINTS, POINTS_PER_CORRECT, TRIVIA_GAME_MS } from "./constants";
+import { BONUS_POINTS, POINTS_PER_CORRECT, TRIVIA_GAME_MS, WRONG_ANSWER_LOCK_MS } from "./constants";
 import { triviaInitialState, triviaReduce } from "./reducer";
 import type { TriviaState } from "./types";
 
@@ -51,13 +51,22 @@ describe("ANSWER", () => {
     expect(next.lastResult).toEqual({ questionId: prevId, chosenIndex: next.lastResult!.chosenIndex, correct: true });
   });
 
-  it("awards no points on a wrong answer but still advances", () => {
+  it("awards no points on a wrong answer and locks the same question on screen", () => {
     const s = start();
+    const prevId = s.question!.id;
     const next = answer(s, false);
     expect(next.score).toBe(0);
     expect(next.wrongCount).toBe(1);
     expect(next.totalAnswered).toBe(1);
     expect(next.lastResult!.correct).toBe(false);
+    expect(next.lockedMs).toBe(WRONG_ANSWER_LOCK_MS);
+    expect(next.question!.id).toBe(prevId); // doesn't advance immediately
+  });
+
+  it("ignores further answers while locked out after a wrong answer", () => {
+    const s = answer(start(), false);
+    const again = triviaReduce(s, { type: "ANSWER", questionId: s.question!.id, choiceIndex: 0 }, rng());
+    expect(again).toEqual(s);
   });
 
   it("ignores answers to a stale question id", () => {
@@ -102,6 +111,29 @@ describe("TICK", () => {
   it("does nothing while idle", () => {
     const idle = triviaInitialState();
     expect(triviaReduce(idle, { type: "TICK", deltaMs: 100 }, rng())).toEqual(idle);
+  });
+
+  it("counts down the lock timer without advancing the question yet", () => {
+    const wrong = answer(start(), false);
+    const prevId = wrong.question!.id;
+    const next = triviaReduce(wrong, { type: "TICK", deltaMs: 500 }, rng());
+    expect(next.lockedMs).toBe(WRONG_ANSWER_LOCK_MS - 500);
+    expect(next.question!.id).toBe(prevId);
+  });
+
+  it("advances to a new question once the lock timer elapses", () => {
+    const wrong = answer(start(), false);
+    const prevId = wrong.question!.id;
+    const next = triviaReduce(wrong, { type: "TICK", deltaMs: WRONG_ANSWER_LOCK_MS }, rng());
+    expect(next.lockedMs).toBe(0);
+    expect(next.question).not.toBeNull();
+    expect(next.question!.id).not.toBe(prevId);
+  });
+
+  it("still counts down the round timer while locked", () => {
+    const wrong = answer(start(), false);
+    const next = triviaReduce(wrong, { type: "TICK", deltaMs: 500 }, rng());
+    expect(next.timeLeftMs).toBe(TRIVIA_GAME_MS - 500);
   });
 });
 

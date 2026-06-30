@@ -61,12 +61,24 @@ export function TriviaGame({ onExit, mode = "solo", onRoundComplete }: TriviaGam
 
             <p className="trivia__prompt">{question.prompt}</p>
             <div className="trivia__choices">
-              {question.choices.map((choice, i) => (
-                <button key={i} className="trivia__choice" onClick={() => answer(question.id, i)}>
-                  {choice}
-                </button>
-              ))}
+              {question.choices.map((choice, i) => {
+                const locked = state.lockedMs > 0;
+                const isChosenWrong = locked && state.lastResult?.chosenIndex === i && !state.lastResult.correct;
+                const isRevealedCorrect = locked && i === question.correctIndex;
+                const variant = isChosenWrong ? " trivia__choice--wrong" : isRevealedCorrect ? " trivia__choice--correct" : "";
+                return (
+                  <button
+                    key={i}
+                    className={`trivia__choice${variant}`}
+                    disabled={locked}
+                    onClick={() => answer(question.id, i)}
+                  >
+                    {choice}
+                  </button>
+                );
+              })}
             </div>
+            {state.lockedMs > 0 && <p className="trivia__lock-hint">Next question in a moment…</p>}
           </div>
         )}
 

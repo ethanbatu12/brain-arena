@@ -43,6 +43,16 @@ export function previousWeekStart(weekStart: string): string {
   return utcMsToDateStr(dateToUtcMs(weekStart) - 7 * DAY_MS);
 }
 
+/** The Monday (UTC) of the week immediately after `weekStart`. */
+export function nextWeekStart(weekStart: string): string {
+  return utcMsToDateStr(nextWeekStartTimestamp(weekStart));
+}
+
+/** The Monday (UTC) `n` weeks before `weekStart`. */
+export function weeksBefore(weekStart: string, n: number): string {
+  return utcMsToDateStr(dateToUtcMs(weekStart) - n * 7 * DAY_MS);
+}
+
 function seedFromString(s: string): number {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;

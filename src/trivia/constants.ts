@@ -5,6 +5,9 @@ export const POINTS_PER_CORRECT = 85;
 export const BONUS_EVERY_CORRECT = 5; // every Nth correct answer earns a bonus
 export const BONUS_POINTS = 25;
 
+/** How long the next question is held back after a wrong answer, so the player has time to see what they missed. */
+export const WRONG_ANSWER_LOCK_MS = 2_000;
+
 export const CATEGORIES = [
   "sports",
   "geography",

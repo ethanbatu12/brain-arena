@@ -48,6 +48,8 @@ export interface TriviaState {
   usedIds: number[];
   lastResult: TriviaLastResult | null;
   flashId: number;
+  /** Milliseconds remaining before the next question appears after a wrong answer. 0 when not locked. */
+  lockedMs: number;
 }
 
 export type TriviaAction =
