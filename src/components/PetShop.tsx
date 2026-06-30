@@ -60,6 +60,8 @@ export function PetShop({
   const [selectedId, setSelectedId] = useState<string>(PET_CATALOG[0].id);
   const [message, setMessage] = useState<string | null>(null);
 
+  const [selectedExclusiveId, setSelectedExclusiveId] = useState<string | null>(null);
+
   const [renamePetId, setRenamePetId] = useState<string | null>(null);
   const [renameInput, setRenameInput] = useState("");
   const [renameConfirming, setRenameConfirming] = useState(false);
@@ -247,18 +249,39 @@ export function PetShop({
           {exclusivePetIds.length > 0 && (
             <div className="pet-shop__rarity-group">
               <h3 style={{ color: "#fbbf24" }}>Season-Exclusive Pets</h3>
+
+              {(() => {
+                const previewId = selectedExclusiveId && exclusivePetIds.includes(selectedExclusiveId) ? selectedExclusiveId : exclusivePetIds[0];
+                return (
+                  <div className="pet-shop__preview">
+                    <Suspense fallback={<div style={{ height: 220 }} />}>
+                      <Pet3D species={previewId} />
+                    </Suspense>
+                    <h2 style={{ color: "#fbbf24" }}>{petDisplayName(profile.petNames, previewId)}</h2>
+                    <div className="pet-shop__preview-actions">
+                      <button className="btn btn--primary" onClick={() => onEquipPet(profile.equippedPet === previewId ? null : previewId)}>
+                        {profile.equippedPet === previewId ? "Unequip" : "Equip"}
+                      </button>
+                      <button className="btn btn--ghost" onClick={() => openRename(previewId)}>
+                        Rename
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div className="pet-shop__grid">
                 {exclusivePetIds.map((petId) => (
-                  <div key={petId} className={`pet-card${profile.equippedPet === petId ? " pet-card--selected" : ""}`} style={{ borderColor: "#fbbf24" }}>
-                    <button className="pet-card__equip-area" onClick={() => onEquipPet(profile.equippedPet === petId ? null : petId)}>
-                      <span className="pet-card__emoji">{emojiForSeasonPetId(petId) ?? "✨"}</span>
-                      <span className="pet-card__name">{petDisplayName(profile.petNames, petId)}</span>
-                      <span className="pet-card__price">{profile.equippedPet === petId ? "Equipped" : "Tap to equip"}</span>
-                    </button>
-                    <button className="btn btn--ghost pet-card__rename-btn" onClick={() => openRename(petId)}>
-                      Rename
-                    </button>
-                  </div>
+                  <button
+                    key={petId}
+                    className={`pet-card${(selectedExclusiveId ?? exclusivePetIds[0]) === petId ? " pet-card--selected" : ""}`}
+                    style={{ borderColor: "#fbbf24" }}
+                    onClick={() => setSelectedExclusiveId(petId)}
+                  >
+                    <span className="pet-card__emoji">{emojiForSeasonPetId(petId) ?? "✨"}</span>
+                    <span className="pet-card__name">{petDisplayName(profile.petNames, petId)}</span>
+                    <span className="pet-card__price">{profile.equippedPet === petId ? "Equipped" : "Tap to view"}</span>
+                  </button>
                 ))}
               </div>
             </div>
