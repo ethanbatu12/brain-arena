@@ -24,7 +24,9 @@ export type DirectionQuestionKind =
   | "map-memory"
   | "advanced-navigation"
   | "highway-navigation"
-  | "place-rating";
+  | "place-rating"
+  | "heading"
+  | "between";
 
 /** A single turn-by-turn step of a route, from OSRM. */
 export interface RouteStep {

@@ -64,6 +64,10 @@ const BASIC_DIRECTION_TEMPLATES = [
   (kind: string, dir: string) => `Which ${kind} lies to the ${dir} of where you are now?`,
   (kind: string, dir: string) => `Heading ${dir} from here, which ${kind} is in that direction?`,
   (kind: string, dir: string) => `Which ${kind} sits ${dir} of your current location?`,
+  (kind: string, dir: string) => `Point ${dir} — which ${kind} are you pointing at?`,
+  (kind: string, dir: string) => `There's a ${kind} ${dir} of you. Which one is it?`,
+  (kind: string, dir: string) => `Which ${kind} would you find if you walked ${dir} from here?`,
+  (kind: string, dir: string) => `Which ${kind} is directly ${dir} of your position?`,
 ];
 
 function buildBasicDirection(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
@@ -80,6 +84,9 @@ const CLOSEST_TEMPLATES = [
   (ref: string) => `Out of these, which is nearest to ${ref}?`,
   (ref: string) => `Which place is the shortest distance from ${ref}?`,
   (ref: string) => `Which of these would you reach first starting from ${ref}?`,
+  (ref: string) => `Standing at ${ref}, which of these is right on your doorstep?`,
+  (ref: string) => `Which of these places is the quickest walk from ${ref}?`,
+  (ref: string) => `Closest neighbor to ${ref} — which one is it?`,
 ];
 
 const FURTHEST_TEMPLATES = [
@@ -87,6 +94,9 @@ const FURTHEST_TEMPLATES = [
   (ref: string) => `Which of these is farthest away from ${ref}?`,
   (ref: string) => `Out of these, which is the most distant from ${ref}?`,
   (ref: string) => `Which place would take the longest to reach from ${ref}?`,
+  (ref: string) => `From ${ref}, which of these is the longest walk away?`,
+  (ref: string) => `Which of these is on the opposite end of the map from ${ref}?`,
+  (ref: string) => `Standing at ${ref}, which place is hardest to get to?`,
 ];
 
 function buildClosest(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
@@ -120,6 +130,10 @@ const RELATIVE_POSITION_TEMPLATES = [
   (dir: string, ref: string) => `What's located ${dir} of ${ref}?`,
   (dir: string, ref: string) => `Looking ${dir} from ${ref}, which place is there?`,
   (dir: string, ref: string) => `Which place sits ${dir} of ${ref}?`,
+  (dir: string, ref: string) => `Stand at ${ref} and face ${dir} — which place do you see?`,
+  (dir: string, ref: string) => `If you're at ${ref}, what's ${dir} of you?`,
+  (dir: string, ref: string) => `Which place is to the ${dir} when standing at ${ref}?`,
+  (dir: string, ref: string) => `From ${ref}, which location is ${dir}?`,
 ];
 
 function buildRelativePosition(_origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
@@ -207,23 +221,38 @@ function buildMapMemory(origin: Coords, features: MapFeature[], rng: Rng, id: nu
 }
 
 const WAYPOINT_TEMPLATES = [
-  () => "If you travel north then east from your location, which of these would you reach first?",
-  () => "Heading north and then turning east, which place would you come across first?",
-  () => "Starting north then east from here, which of these is closest to that path?",
+  (d1: string, d2: string) => `If you travel ${d1} then ${d2} from your location, which of these would you reach first?`,
+  (d1: string, d2: string) => `Heading ${d1} and then turning ${d2}, which place would you come across first?`,
+  (d1: string, d2: string) => `Starting ${d1} then ${d2} from here, which of these is closest to that path?`,
+  (d1: string, d2: string) => `Walk ${d1}, then turn ${d2} — which place do you hit first?`,
 ];
 const DIAGONAL_TEMPLATES = [
   (dir: string) => `Which location is most directly ${dir} of your location?`,
   (dir: string) => `Out of these, which is positioned most precisely to the ${dir}?`,
   (dir: string) => `Which place is closest to due ${dir} of where you are?`,
+  (dir: string) => `If you drew a line ${dir} from your position, which place would it pass through first?`,
+  (dir: string) => `Which place lies most squarely to the ${dir} of you?`,
+];
+
+const WAYPOINT_DIR_PAIRS: Array<[string, string, number, number]> = [
+  ["north", "east",  400,  400],
+  ["north", "west",  400, -400],
+  ["south", "east", -400,  400],
+  ["south", "west", -400, -400],
+  ["east",  "north",  400,  400],
+  ["east",  "south", -400,  400],
+  ["west",  "north",  400, -400],
+  ["west",  "south", -400, -400],
 ];
 
 function buildAdvancedNavigation(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
   const variant = pick(["waypoint", "diagonal"] as const, rng);
 
   if (variant === "waypoint") {
-    const waypoint = offsetCoords(origin, 400, 400);
+    const [d1, d2, latOff, lonOff] = pick(WAYPOINT_DIR_PAIRS, rng);
+    const waypoint = offsetCoords(origin, latOff, lonOff);
     const correct = sortByDistance(waypoint, features)[0];
-    const prompt = pick(WAYPOINT_TEMPLATES, rng)();
+    const prompt = pick(WAYPOINT_TEMPLATES, rng)(d1, d2);
     const { choices, correctIndex } = buildChoices(rng, correct.name, namesExcluding(features, [correct]));
     return { id, kind: "advanced-navigation", prompt, choices, correctIndex };
   }
@@ -240,6 +269,54 @@ function buildAdvancedNavigation(origin: Coords, features: MapFeature[], rng: Rn
   const prompt = pick(DIAGONAL_TEMPLATES, rng)(DIRECTION_WORDS[dir]);
   const { choices, correctIndex } = buildChoices(rng, correct.name, namesExcluding(features, [correct]));
   return { id, kind: "advanced-navigation", prompt, choices, correctIndex };
+}
+
+// ── heading (what direction do you travel between two landmarks?) ──────────
+
+const HEADING_TEMPLATES = [
+  (from: string, to: string) => `If you walk from ${from} to ${to}, which direction are you heading?`,
+  (from: string, to: string) => `Travelling from ${from} to ${to}, which way are you going?`,
+  (from: string, to: string) => `Starting at ${from} and going to ${to} — which direction is that?`,
+  (from: string, to: string) => `What compass direction takes you from ${from} to ${to}?`,
+  (from: string, to: string) => `From ${from} toward ${to} — which way are you facing?`,
+];
+
+function buildHeading(_origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion {
+  const from = pick(features, rng);
+  const others = features.filter((f) => f.id !== from.id);
+  const to = pick(others, rng);
+  const dir = directionFrom(from, to);
+  const correctWord = DIRECTION_WORDS[dir];
+  const allDirs = Object.values(DIRECTION_WORDS);
+  const distractors = allDirs.filter((d) => d !== correctWord);
+  const prompt = pick(HEADING_TEMPLATES, rng)(from.name, to.name);
+  const { choices, correctIndex } = buildChoices(rng, correctWord, distractors);
+  return { id, kind: "heading", prompt, choices, correctIndex };
+}
+
+// ── between (which landmark lies between you and another?) ─────────────────
+
+const BETWEEN_TEMPLATES = [
+  (dest: string) => `Which place lies between your location and ${dest}?`,
+  (dest: string) => `On the way from here to ${dest}, which place would you pass closest to?`,
+  (dest: string) => `Which location is between you and ${dest}?`,
+  (dest: string) => `Heading towards ${dest}, which place do you pass first?`,
+  (dest: string) => `Which of these is on the path between your location and ${dest}?`,
+];
+
+function buildBetween(origin: Coords, features: MapFeature[], rng: Rng, id: number): DirectionQuestion | null {
+  if (features.length < 4) return null;
+  const destination = pick(features, rng);
+  const others = features.filter((f) => f.id !== destination.id);
+  // Find which feature is closest to the midpoint between origin and destination
+  const midLat = (origin.lat + destination.lat) / 2;
+  const midLon = (origin.lon + destination.lon) / 2;
+  const midpoint: Coords = { lat: midLat, lon: midLon };
+  const sorted = sortByDistance(midpoint, others);
+  const correct = sorted[0];
+  const prompt = pick(BETWEEN_TEMPLATES, rng)(destination.name);
+  const { choices, correctIndex } = buildChoices(rng, correct.name, namesExcluding(others, [correct]));
+  return { id, kind: "between", prompt, choices, correctIndex };
 }
 
 // ── highway-navigation (real turn-by-turn routes via OSRM) ─────────────────
@@ -376,7 +453,7 @@ function buildPlaceRating(_origin: Coords, features: MapFeature[], rng: Rng, id:
 }
 
 const GENERATORS: Record<
-  Exclude<DirectionQuestionKind, "highway-navigation" | "place-rating">,
+  Exclude<DirectionQuestionKind, "highway-navigation" | "place-rating" | "heading" | "between">,
   (origin: Coords, features: MapFeature[], rng: Rng, id: number) => DirectionQuestion
 > = {
   "basic-direction": buildBasicDirection,
@@ -406,7 +483,7 @@ export function makeQuestion(
   if (routes.length > 0) pool.push("highway-navigation", "highway-navigation");
   if (features.filter((f) => f.rating !== undefined).length >= 2) pool.push("place-rating");
 
-  for (let attempt = 0; attempt < 6; attempt++) {
+  for (let attempt = 0; attempt < 8; attempt++) {
     const kind = pick(pool, rng);
     if (kind === "highway-navigation") {
       const q = buildHighwayNavigation(routes, rng, id);
@@ -415,6 +492,12 @@ export function makeQuestion(
     }
     if (kind === "place-rating") {
       const q = buildPlaceRating(origin, features, rng, id);
+      if (q) return q;
+      continue;
+    }
+    if (kind === "heading") return buildHeading(origin, features, rng, id);
+    if (kind === "between") {
+      const q = buildBetween(origin, features, rng, id);
       if (q) return q;
       continue;
     }
