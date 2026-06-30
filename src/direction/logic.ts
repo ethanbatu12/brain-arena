@@ -453,7 +453,7 @@ function buildPlaceRating(_origin: Coords, features: MapFeature[], rng: Rng, id:
 }
 
 const GENERATORS: Record<
-  Exclude<DirectionQuestionKind, "highway-navigation" | "place-rating" | "heading" | "between">,
+  Exclude<DirectionQuestionKind, "highway-navigation" | "place-rating" | "heading" | "between" | "ai-generated">,
   (origin: Coords, features: MapFeature[], rng: Rng, id: number) => DirectionQuestion
 > = {
   "basic-direction": buildBasicDirection,
@@ -501,6 +501,7 @@ export function makeQuestion(
       if (q) return q;
       continue;
     }
+    if (kind === "ai-generated") continue; // handled externally via the AI pool
     return GENERATORS[kind](origin, features, rng, id);
   }
   return buildBasicDirection(origin, features, rng, id);

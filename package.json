@@ -12,6 +12,7 @@
     "postinstall": "node -e \"const fs=require('fs');const b='node_modules/stockfish/bin';const p='public';fs.mkdirSync(p,{recursive:true});fs.copyFileSync(b+'/stockfish-18-lite-single.js',p+'/stockfish-worker.js');fs.copyFileSync(b+'/stockfish-18-lite-single.wasm',p+'/stockfish.wasm');\""
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.109.0",
     "@googlemaps/js-api-loader": "^2.1.1",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",

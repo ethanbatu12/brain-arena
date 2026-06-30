@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { mulberry32 } from "../game/rng";
 import { MAX_SAMPLE_ROUTES, MIN_FEATURES_REQUIRED, SEARCH_RADIUS_M } from "../direction/constants";
+import { fetchAiQuestions } from "../direction/aiQuestions";
 import { fetchSampleRoutesGoogle } from "../direction/google/directions";
 import { geocodeAddressGoogle } from "../direction/google/geocode";
 import { fetchNearbyFeaturesGoogle } from "../direction/google/places";
@@ -77,6 +78,14 @@ export function useDirectionChallenge() {
       // game still plays fine with the non-routing question types.
       const routes = await fetchSampleRoutesGoogle(origin, features, rngRef.current, MAX_SAMPLE_ROUTES).catch(() => []);
       dispatch({ type: "FEATURES_LOADED", features, routes });
+
+      // Fire-and-forget AI question generation — arrives after gameplay starts
+      // and fills the pool; fails silently if the API is unavailable.
+      fetchAiQuestions(origin, features, routes, 1000).then((questions) => {
+        if (questions.length > 0) {
+          dispatch({ type: "AI_QUESTIONS_LOADED", questions });
+        }
+      });
     })();
   }, []);
 

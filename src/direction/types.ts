@@ -26,7 +26,8 @@ export type DirectionQuestionKind =
   | "highway-navigation"
   | "place-rating"
   | "heading"
-  | "between";
+  | "between"
+  | "ai-generated";
 
 /** A single turn-by-turn step of a route, from OSRM. */
 export interface RouteStep {
@@ -72,6 +73,8 @@ export interface DirectionState {
   origin: Coords | null;
   features: MapFeature[];
   routes: RouteInfo[];
+  /** Pre-fetched AI-generated questions, drawn from during gameplay. */
+  aiQuestionPool: DirectionQuestion[];
   question: DirectionQuestion | null;
   score: number;
   timeLeftMs: number;
@@ -88,6 +91,7 @@ export type DirectionAction =
   | { type: "START" }
   | { type: "LOCATED"; origin: Coords }
   | { type: "FEATURES_LOADED"; features: MapFeature[]; routes: RouteInfo[] }
+  | { type: "AI_QUESTIONS_LOADED"; questions: DirectionQuestion[] }
   | { type: "LOAD_FAILED"; message: string }
   | { type: "ANSWER"; questionId: number; choiceIndex: number }
   | { type: "TICK"; deltaMs: number }

@@ -9,6 +9,7 @@ export function directionInitialState(): DirectionState {
     origin: null,
     features: [],
     routes: [],
+    aiQuestionPool: [],
     question: null,
     score: 0,
     timeLeftMs: DIRECTION_GAME_MS,
@@ -62,20 +63,35 @@ export function directionReduce(state: DirectionState, action: DirectionAction, 
       };
     }
 
+    case "AI_QUESTIONS_LOADED": {
+      // Arrives asynchronously after gameplay starts — just add to the pool
+      return { ...state, aiQuestionPool: action.questions };
+    }
+
     case "ANSWER": {
       if (state.phase !== "playing" || !state.question || !state.origin) return state;
-      if (action.questionId !== state.question.id) return state; // stale answer, ignore
+      if (action.questionId !== state.question.id) return state;
 
       const correct = action.choiceIndex === state.question.correctIndex;
       const correctCount = correct ? state.correctCount + 1 : state.correctCount;
       const wrongCount = correct ? state.wrongCount : state.wrongCount + 1;
       const totalAnswered = state.totalAnswered + 1;
       const score = correct ? state.score + scoreForCorrect(correctCount) : state.score;
-      const question = makeQuestion(state.origin, state.features, state.routes, rng, state.nextId);
+
+      // Use an AI question ~50% of the time when the pool has questions left
+      let nextQuestion;
+      let nextAiPool = state.aiQuestionPool;
+      if (nextAiPool.length > 0 && rng() < 0.5) {
+        nextQuestion = { ...nextAiPool[0], id: state.nextId };
+        nextAiPool = nextAiPool.slice(1);
+      } else {
+        nextQuestion = makeQuestion(state.origin, state.features, state.routes, rng, state.nextId);
+      }
 
       return {
         ...state,
-        question,
+        aiQuestionPool: nextAiPool,
+        question: nextQuestion,
         score,
         correctCount,
         wrongCount,
