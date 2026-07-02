@@ -15,15 +15,29 @@ import type { Move, PieceType } from "../src/chess/types";
 const ZST_PATH =
   "C:/Users/12678/AppData/Local/Temp/claude/C--Users-12678-Downloads-GamesDev/fca29d4c-280a-4e51-b27d-254ca958754e/scratchpad/puzzles.csv.zst";
 
-// Mirrors src/chess/puzzles.ts RATING_TIERS exactly.
+const PUZZLES_TS_PATH = "src/chess/puzzles.ts";
+
+// Mirrors src/chess/puzzles.ts RATING_TIERS exactly. idBase bumped to a
+// fresh block (11100+, well clear of the 11000-16019 range already used
+// by the first Lichess import) so ids never collide across import runs.
 const TIERS = [
-  { difficulty: "beginner", min: 0, max: 400, idBase: 11000, want: 20 },
-  { difficulty: "intermediate", min: 401, max: 800, idBase: 12000, want: 20 },
-  { difficulty: "advanced", min: 801, max: 1200, idBase: 13000, want: 20 },
-  { difficulty: "expert", min: 1201, max: 1600, idBase: 14000, want: 20 },
-  { difficulty: "master", min: 1601, max: 2000, idBase: 15000, want: 20 },
-  { difficulty: "grandmaster", min: 2001, max: 9999, idBase: 16000, want: 20 },
+  { difficulty: "beginner", min: 0, max: 400, idBase: 11100, want: 25 },
+  { difficulty: "intermediate", min: 401, max: 800, idBase: 12100, want: 25 },
+  { difficulty: "advanced", min: 801, max: 1200, idBase: 13100, want: 25 },
+  { difficulty: "expert", min: 1201, max: 1600, idBase: 14100, want: 25 },
+  { difficulty: "master", min: 1601, max: 2000, idBase: 15100, want: 25 },
+  { difficulty: "grandmaster", min: 2001, max: 9999, idBase: 16100, want: 25 },
 ] as const;
+
+/** Load FENs already present in puzzles.ts so we never insert a duplicate puzzle. */
+function loadExistingFens(): Set<string> {
+  const content = readFileSync(PUZZLES_TS_PATH, "utf-8");
+  const fens = new Set<string>();
+  const regex = /fen:\s*"([^"]+)"/g;
+  let m;
+  while ((m = regex.exec(content))) fens.add(m[1]);
+  return fens;
+}
 
 function uciToMove(uci: string): Move {
   const from = parseSquare(uci.slice(0, 2));
@@ -102,6 +116,9 @@ interface Candidate {
 }
 
 async function main() {
+  const existingFens = loadExistingFens();
+  console.log(`Loaded ${existingFens.size} existing puzzle FENs to avoid duplicating.`);
+
   console.log("Decompressing Lichess puzzle slice...");
   const text = await decompressPartial(ZST_PATH);
   const lines = text.split("\n");
@@ -139,6 +156,7 @@ async function main() {
       state = makeMove(state, setupMove);
       const puzzleFen = toFen(state);
       if (puzzleFen === before) { skipped++; continue; } // illegal setup move — skip
+      if (existingFens.has(puzzleFen)) { skipped++; continue; } // already have this exact puzzle
 
       const solutionUci = uciMoves.slice(1);
       const solution: Move[] = [];
@@ -178,6 +196,7 @@ async function main() {
   },`;
 
       pool[tier.difficulty].push({ entry: entryTemplate, puzzleType });
+      existingFens.add(puzzleFen); // avoid picking the same position twice within this run
       seen++;
     } catch {
       skipped++;
