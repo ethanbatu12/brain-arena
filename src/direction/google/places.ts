@@ -25,7 +25,6 @@ const SEARCH_TYPES: { type: string; kind: FeatureKind }[] = [
   { type: "library", kind: "landmark" },
   { type: "movie_theater", kind: "entertainment" },
   { type: "shopping_mall", kind: "business" },
-  { type: "place_of_worship", kind: "worship" },
   { type: "gym", kind: "entertainment" },
 ];
 
