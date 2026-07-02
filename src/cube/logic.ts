@@ -7,7 +7,7 @@ import {
   MIN_HEIGHT,
   MIN_LEVEL,
 } from "./constants";
-import type { Structure } from "./types";
+import type { QuestionKind, Structure } from "./types";
 import type { Rng } from "../game/rng";
 
 /**
@@ -57,6 +57,56 @@ function randInt(min: number, max: number, rng: Rng): number {
  *  - total is the sum of every stack's height, so the answer varies with
  *    the structure instead of always being cols * rows
  */
+function pick<T>(arr: readonly T[], rng: Rng): T {
+  return arr[Math.floor(rng() * arr.length)];
+}
+
+/** Choose which question to ask about the structure, based on level. */
+function generateQuestion(
+  heights: number[][],
+  level: number,
+  rng: Rng,
+): { questionKind: QuestionKind; questionPrompt: string; questionAnswer: number } {
+  const allH = heights.flat();
+  const total = allH.reduce((a, b) => a + b, 0);
+
+  const pool: QuestionKind[] = ["total"];
+  if (level >= 3) pool.push("tallest", "shortest");
+  if (level >= 5) pool.push("front-row");
+  if (level >= 7 && new Set(allH).size > 1) pool.push("exact-height");
+
+  const kind = pick(pool, rng);
+
+  switch (kind) {
+    case "total":
+      return { questionKind: "total", questionPrompt: "How many cubes in total?", questionAnswer: total };
+
+    case "tallest": {
+      const answer = Math.max(...allH);
+      return { questionKind: "tallest", questionPrompt: "What is the height of the tallest tower?", questionAnswer: answer };
+    }
+
+    case "shortest": {
+      const answer = Math.min(...allH);
+      return { questionKind: "shortest", questionPrompt: "What is the height of the shortest tower?", questionAnswer: answer };
+    }
+
+    case "front-row": {
+      // Row 0 is the front row in the isometric view
+      const answer = heights[0].reduce((a, b) => a + b, 0);
+      return { questionKind: "front-row", questionPrompt: "How many cubes are in the front row?", questionAnswer: answer };
+    }
+
+    case "exact-height": {
+      // Pick a height value that actually appears, then count towers with that height
+      const target = pick(allH, rng);
+      const answer = allH.filter(h => h === target).length;
+      const word = target === 1 ? "1 cube" : `${target} cubes`;
+      return { questionKind: "exact-height", questionPrompt: `How many towers are exactly ${word} tall?`, questionAnswer: answer };
+    }
+  }
+}
+
 export function generateStructure(level: number, rng: Rng, id: number): Structure {
   const { cols, rows } = footprintForLevel(level);
   const maxHeight = maxHeightForLevel(level);
@@ -73,7 +123,8 @@ export function generateStructure(level: number, rng: Rng, id: number): Structur
     heights.push(row);
   }
 
-  return { id, cols, rows, heights, total };
+  const { questionKind, questionPrompt, questionAnswer } = generateQuestion(heights, level, rng);
+  return { id, cols, rows, heights, total, questionKind, questionPrompt, questionAnswer };
 }
 
 /**

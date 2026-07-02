@@ -59,12 +59,12 @@ export function LogicGame({ onExit, mode = "solo", onRoundComplete }: LogicGameP
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}
-              aria-label="How many cubes are in the structure?"
+              aria-label={state.structure.questionPrompt}
               value={state.input}
               onChange={(e) => setInput(e.target.value)}
               autoFocus
             />
-            <p className="answer__hint">How many cubes in total? · press Enter</p>
+            <p className="answer__hint">{state.structure.questionPrompt} · press Enter</p>
           </form>
         )}
 
@@ -80,18 +80,14 @@ export function LogicGame({ onExit, mode = "solo", onRoundComplete }: LogicGameP
           <Overlay>
             <h2>Logic Challenge</h2>
             <p className="overlay__lead">
-              A 3D structure made of cube towers appears. Every cube in every
-              tower is fully visible — count all the stacked cubes in each
-              tower and add them all up for the total.
+              A 3D structure of cube towers appears with a question about it.
+              Questions get more varied as you level up — count totals, find the
+              tallest tower, check the front row, and more.
             </p>
             <ul className="overlay__rules">
-              <li>
-                Correct answer: <b>+{POINTS_PER_CORRECT} points</b> and a new,
-                slightly bigger structure
-              </li>
-              <li>
-                Every <b>{BONUS_EVERY} in a row</b>: an extra <b>+{BONUS_POINTS} bonus</b>
-              </li>
+              <li>Correct answer: <b>+{POINTS_PER_CORRECT} points</b> and a new structure</li>
+              <li>Every <b>{BONUS_EVERY} in a row</b>: an extra <b>+{BONUS_POINTS} bonus</b></li>
+              <li>Higher levels unlock harder question types</li>
               <li>Wrong answers move on without losing your progress</li>
             </ul>
             <button className="btn btn--primary" onClick={start}>

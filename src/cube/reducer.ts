@@ -4,7 +4,7 @@ import type { CubeAction, CubeState, Structure } from "./types";
 import type { Rng } from "../game/rng";
 
 /** A placeholder shown only while idle (before the first START). */
-const BLANK: Structure = { id: 0, cols: 0, rows: 0, heights: [], total: 0 };
+const BLANK: Structure = { id: 0, cols: 0, rows: 0, heights: [], total: 0, questionKind: "total", questionPrompt: "", questionAnswer: 0 };
 
 export function cubeInitialState(): CubeState {
   return {
@@ -50,7 +50,7 @@ export function cubeReduce(state: CubeState, action: CubeAction, rng: Rng): Cube
       if (state.input === "") return state;
       const guess = Number(state.input);
 
-      if (guess === state.structure.total) {
+      if (guess === state.structure.questionAnswer) {
         const correct = state.correct + 1;
         const level = levelForCorrectCount(correct);
         const streakToBonus = (state.streakToBonus + 1) % BONUS_EVERY;

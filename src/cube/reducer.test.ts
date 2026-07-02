@@ -54,8 +54,8 @@ describe("SUBMIT correct", () => {
   it("awards points and generates a new structure", () => {
     const rng = seeded();
     const started = cubeReduce(cubeInitialState(), { type: "START" }, rng);
-    const total = started.structure.total;
-    const withInput = cubeReduce(started, { type: "INPUT_CHANGE", value: String(total) }, rng);
+    const answer = started.structure.questionAnswer;
+    const withInput = cubeReduce(started, { type: "INPUT_CHANGE", value: String(answer) }, rng);
 
     const after = cubeReduce(withInput, { type: "SUBMIT" }, rng);
 
@@ -72,8 +72,8 @@ describe("SUBMIT correct", () => {
     let state = cubeReduce(cubeInitialState(), { type: "START" }, rng);
 
     for (let i = 0; i < LEVEL_UP_EVERY; i++) {
-      const total = state.structure.total;
-      state = cubeReduce(state, { type: "INPUT_CHANGE", value: String(total) }, rng);
+      const answer = state.structure.questionAnswer;
+      state = cubeReduce(state, { type: "INPUT_CHANGE", value: String(answer) }, rng);
       state = cubeReduce(state, { type: "SUBMIT" }, rng);
     }
 
@@ -86,8 +86,8 @@ describe("SUBMIT correct", () => {
     let state = cubeReduce(cubeInitialState(), { type: "START" }, rng);
 
     for (let i = 1; i <= BONUS_EVERY; i++) {
-      const total = state.structure.total;
-      state = cubeReduce(state, { type: "INPUT_CHANGE", value: String(total) }, rng);
+      const answer = state.structure.questionAnswer;
+      state = cubeReduce(state, { type: "INPUT_CHANGE", value: String(answer) }, rng);
       state = cubeReduce(state, { type: "SUBMIT" }, rng);
     }
 
@@ -101,7 +101,7 @@ describe("SUBMIT wrong", () => {
   it("does not change the score or level, and moves on to a new structure", () => {
     const rng = seeded();
     const started = cubeReduce(cubeInitialState(), { type: "START" }, rng);
-    const wrongGuess = started.structure.total + 1;
+    const wrongGuess = started.structure.questionAnswer + 1;
     const withInput = cubeReduce(started, { type: "INPUT_CHANGE", value: String(wrongGuess) }, rng);
 
     const after = cubeReduce(withInput, { type: "SUBMIT" }, rng);
