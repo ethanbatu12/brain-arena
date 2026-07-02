@@ -7,7 +7,8 @@ import { GAME_MS } from "./game/constants";
 import { MATH_GAME_MS } from "./math/constants";
 import { CUBE_GAME_MS } from "./cube/constants";
 import { PATTERN_GAME_MS } from "./pattern/constants";
-import { PUZZLE_RUSH_MS } from "./chess/reducer";
+import { REACTION_GAME_MS } from "./reaction/constants";
+import { TRIVIA_GAME_MS } from "./trivia/constants";
 import { clearAllForTests } from "./player/db";
 import App from "./App";
 
@@ -30,10 +31,17 @@ async function signUp(user: ReturnType<typeof userEvent.setup>, name: string, pa
   await user.click(within(form).getByRole("button", { name: /create account/i }));
 
   // Account creation hashes the password asynchronously; wait for either the
-  // hub to appear (success) or an error message (failure) before continuing.
+  // avatar-setup screen to appear (success) or an error message (failure).
   await waitFor(() => {
-    expect(screen.queryByText(/welcome back/i) ?? screen.queryByRole("alert")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /save avatar/i }) ?? screen.queryByRole("alert")).toBeTruthy();
   });
+
+  // A brand-new account routes through one-time avatar setup before the hub.
+  const saveAvatar = screen.queryByRole("button", { name: /save avatar/i });
+  if (saveAvatar) {
+    await user.click(saveAvatar);
+    await screen.findByRole("button", { name: /all games challenge/i });
+  }
 }
 
 async function signIn(user: ReturnType<typeof userEvent.setup>, name: string, password = "secret1") {
@@ -45,7 +53,7 @@ async function signIn(user: ReturnType<typeof userEvent.setup>, name: string, pa
   // Sign-in verifies the password hash asynchronously; wait for either the
   // hub to appear (success) or an error message (failure) before continuing.
   await waitFor(() => {
-    expect(screen.queryByText(/welcome back/i) ?? screen.queryByRole("alert")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /all games challenge/i }) ?? screen.queryByRole("alert")).toBeTruthy();
   });
 }
 
@@ -96,10 +104,14 @@ describe("<App /> navigation", () => {
 
     expect(screen.getByText(/welcome back/i)).toBeInTheDocument();
     expect(screen.getByText("Alice")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /memory matrix/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /mental math/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /logic challenge/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /balloon order/i })).toBeInTheDocument();
+    // Scoped to the game tile grid — the weekly tournament card's accessible
+    // name can also contain a game's name (whichever game is featured this
+    // week), so an unscoped query can ambiguously match both.
+    const grid = within(document.querySelector(".home__grid") as HTMLElement);
+    expect(grid.getByRole("button", { name: /memory matrix/i })).toBeInTheDocument();
+    expect(grid.getByRole("button", { name: /mental math/i })).toBeInTheDocument();
+    expect(grid.getByRole("button", { name: /logic challenge/i })).toBeInTheDocument();
+    expect(grid.getByRole("button", { name: /balloon order/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /all games challenge/i })).toBeInTheDocument();
   });
 
@@ -136,7 +148,10 @@ describe("<App /> navigation", () => {
     const user = userEvent.setup();
     await renderApp();
     await signUp(user, "Alice");
-    await user.click(screen.getByRole("button", { name: /logic challenge/i }));
+    // Scoped to the game tile grid — see comment above on the ambiguous
+    // "logic challenge" match against the weekly tournament card.
+    const grid = within(document.querySelector(".home__grid") as HTMLElement);
+    await user.click(grid.getByRole("button", { name: /logic challenge/i }));
     expect(screen.getByText(/cube towers/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /^start/i }));
@@ -288,7 +303,7 @@ describe("<App /> All Games Challenge", () => {
     vi.useRealTimers();
   });
 
-  it("runs all six games back-to-back, combines scores, and updates the profile", async () => {
+  it("runs all seven games back-to-back, combines scores, and updates the profile", async () => {
     const user = userEvent.setup();
     const { container } = await renderApp();
     await signUp(user, "Alice");
@@ -307,33 +322,39 @@ describe("<App /> All Games Challenge", () => {
     };
 
     // Stage 1: Memory Matrix (auto-started)
-    expect(screen.getByText(/game 1 of 6/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 1 of 7/i)).toBeInTheDocument();
     finishStage(GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
     // Stage 2: Mental Math
-    expect(screen.getByText(/game 2 of 6/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 2 of 7/i)).toBeInTheDocument();
     finishStage(MATH_GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
     // Stage 3: Logic Challenge
-    expect(screen.getByText(/game 3 of 6/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 3 of 7/i)).toBeInTheDocument();
     finishStage(CUBE_GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
     // Stage 4: Balloon Order
-    expect(screen.getByText(/game 4 of 6/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 4 of 7/i)).toBeInTheDocument();
     finishStage(BALLOON_GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
     // Stage 5: Fill in the Pattern
-    expect(screen.getByText(/game 5 of 6/i)).toBeInTheDocument();
+    expect(screen.getByText(/game 5 of 7/i)).toBeInTheDocument();
     finishStage(PATTERN_GAME_MS);
     fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
-    // Stage 6: Chess Puzzle Rush (auto-advances via onRoundComplete when timer ends)
-    expect(screen.getByText(/game 6 of 6/i)).toBeInTheDocument();
-    finishStage(PUZZLE_RUSH_MS);
+    // Stage 6: Reaction Rush
+    expect(screen.getByText(/game 6 of 7/i)).toBeInTheDocument();
+    finishStage(REACTION_GAME_MS);
+    fireEvent.click(screen.getByRole("button", { name: /continue/i }));
+
+    // Stage 7: Trivia Sprint
+    expect(screen.getByText(/game 7 of 7/i)).toBeInTheDocument();
+    finishStage(TRIVIA_GAME_MS);
+    fireEvent.click(screen.getByRole("button", { name: /continue/i }));
 
     vi.useRealTimers();
 
