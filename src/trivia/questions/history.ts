@@ -58,4 +58,13 @@ export const HISTORY_SEEDS: QuestionSeed[] = [
   mc("expert", "What was the name of the famous code used by the Nazis in WWII that was cracked at Bletchley Park?", "Enigma", ["Lorenz", "Purple", "Jade"]),
   mc("expert", "Who was the first person to reach the South Pole?", "Roald Amundsen", ["Robert Falcon Scott", "Ernest Shackleton", "Richard Byrd"]),
   mc("expert", "What year did the United States enter World War II?", "1941", ["1939", "1942", "1940"]),
+  mc("medium", "Which ancient wonder of the world still stands today?", "The Great Pyramid of Giza", ["The Hanging Gardens of Babylon", "The Colossus of Rhodes", "The Lighthouse of Alexandria"]),
+  mc("medium", "What year did the Titanic sink?", "1912", ["1910", "1915", "1920"]),
+  mc("hard", "In what year did the Byzantine Empire fall to the Ottoman Turks?", "1453", ["1389", "1521", "1683"]),
+  mc("hard", "Which treaty ended the Thirty Years' War?", "The Peace of Westphalia", ["The Treaty of Utrecht", "The Peace of Paris", "The Treaty of Augsburg"]),
+  mc("easy", "During which war was the Battle of Gettysburg fought?", "The American Civil War", ["The American Revolutionary War", "The War of 1812", "The Mexican-American War"]),
+  mc("medium", "Which civilization built the Great Wall of China?", "Imperial China", ["Ancient Persia", "The Ottoman Empire", "Medieval Japan"]),
+  mc("hard", "Who was the first Holy Roman Emperor?", "Charlemagne", ["Otto I", "Frederick Barbarossa", "Charles V"]),
+  mc("hard", "Which Chinese dynasty was known for the Terracotta Army?", "The Qin Dynasty", ["The Han Dynasty", "The Ming Dynasty", "The Tang Dynasty"]),
+  mc("easy", "Who was the first Emperor of Rome?", "Augustus Caesar", ["Julius Caesar", "Nero", "Caligula"]),
 ];
