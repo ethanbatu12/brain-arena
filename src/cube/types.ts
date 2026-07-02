@@ -1,17 +1,11 @@
-export type QuestionKind = "total" | "tallest" | "shortest" | "front-row" | "exact-height";
-
 export interface Structure {
   id: number; // unique per generated structure (for React keys / animations)
   cols: number;
   rows: number;
   /** heights[row][col] = number of cubes stacked at that footprint cell (0..maxHeight). */
   heights: number[][];
-  /** Sum of all heights. */
+  /** Sum of all heights — the correct answer. */
   total: number;
-  /** The question being asked this round. */
-  questionKind: QuestionKind;
-  questionPrompt: string;
-  questionAnswer: number;
 }
 
 export type CubePhase = "idle" | "playing" | "over";
