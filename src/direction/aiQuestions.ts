@@ -86,6 +86,8 @@ Generate exactly 12 multiple-choice questions about these real places. Use the A
 - Comparison questions (which place has the best rating? which is the longest drive?)
 - Trick questions with plausible wrong answers
 
+Draw from a WIDE variety of place categories in the list — don't repeatedly use the same 1-2 kinds of places (e.g. don't make every question about parks or schools). Spread questions across restaurants, landmarks, shops, entertainment venues, and anything else listed, not just the very closest couple of places — moderately nearby places are just as fair game as the absolute closest one.
+
 Make the questions feel natural and conversational — not robotic. Vary the phrasing a lot. Some can be fun/casual, some more serious navigation-style.
 
 IMPORTANT: Only use place names from the list above. All 4 choices must be real places from the list. The correctIndex must be 0, 1, 2, or 3.

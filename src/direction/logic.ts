@@ -28,6 +28,9 @@ const KIND_LABELS: Record<MapFeature["kind"], string> = {
   school: "school",
   business: "business",
   intersection: "intersection",
+  restaurant: "restaurant",
+  worship: "place of worship",
+  entertainment: "entertainment venue",
 };
 
 function kindLabel(feature: MapFeature): string {

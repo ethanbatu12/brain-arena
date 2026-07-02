@@ -3,7 +3,16 @@ export interface Coords {
   lon: number;
 }
 
-export type FeatureKind = "road" | "landmark" | "park" | "school" | "business" | "intersection";
+export type FeatureKind =
+  | "road"
+  | "landmark"
+  | "park"
+  | "school"
+  | "business"
+  | "intersection"
+  | "restaurant"
+  | "worship"
+  | "entertainment";
 
 export interface MapFeature extends Coords {
   id: string;

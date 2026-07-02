@@ -12,13 +12,21 @@ import type { Coords, FeatureKind, MapFeature } from "../types";
 
 // "point_of_interest" was a valid type in the legacy Places API but is not
 // a supported type for the new searchNearby endpoint — using specific
-// landmark-ish types instead.
+// landmark-ish types instead. A wide mix of categories keeps question pools
+// from feeling repetitive (same 5 place types every round).
 const SEARCH_TYPES: { type: string; kind: FeatureKind }[] = [
   { type: "school", kind: "school" },
   { type: "park", kind: "park" },
   { type: "tourist_attraction", kind: "landmark" },
   { type: "museum", kind: "landmark" },
   { type: "store", kind: "business" },
+  { type: "restaurant", kind: "restaurant" },
+  { type: "cafe", kind: "restaurant" },
+  { type: "library", kind: "landmark" },
+  { type: "movie_theater", kind: "entertainment" },
+  { type: "shopping_mall", kind: "business" },
+  { type: "place_of_worship", kind: "worship" },
+  { type: "gym", kind: "entertainment" },
 ];
 
 export interface RawPlaceResult {
